@@ -47,7 +47,7 @@ At the top of `scripts/sync_mcp_tool_names.py`, fill in the PostgreSQL connectio
 DATABASE_URL = "postgresql://openany_mcp_namer:YOUR_PASSWORD@127.0.0.1:5432/YOUR_DATABASE"
 ```
 
-The committed default is empty. The CLI uses only this variable, trims surrounding whitespace and stops when empty; shell `POSTGRES_DATABASE_URL` and dotenv files do not select the maintenance database. The Go service continues to use its own environment configuration. After switching databases, make sure the target has the required table/column/constraints by running the existing operator migration if needed.
+The committed default is empty. The CLI uses only this variable, trims surrounding whitespace and stops when empty; shell `POSTGRES_DATABASE_URL` and dotenv files do not select the maintenance database. Use a complete connection string with host, port, database and maintenance user; omitted fields follow libpq defaults. The Go service continues to use its own environment configuration. After switching databases, make sure the target has the required table/column/constraints by running the existing operator migration if needed.
 
 Successful JSON output includes `target.host`, `target.port`, `target.database`, `target.schema` and `target.table` from the actual connection. It does not print the connection string or password. Keep a real configured connection string local when committing changes. The installed `.env.maintenance` remains a private reference for the local naming-role credential; loading it does not configure this CLI anymore.
 

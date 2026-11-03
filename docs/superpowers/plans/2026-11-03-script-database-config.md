@@ -25,8 +25,8 @@
 
 **Files:** scripts/sync_mcp_tool_names.py, scripts/test_sync_mcp_tool_names.py, scripts/test_database.py, README.md, docs/verification.md.
 
-- [ ] Add CLI/config and real-database regressions; observe RED.
-- [ ] Implement the constant and sanitized target output; run full Python suite with disposable PostgreSQL.
-- [ ] Verify actual edit-file-and-run workflow against two isolated databases and misleading environment values.
-- [ ] Update instructions; review once; verify remaining project checks.
-- [ ] Save local commits and verification evidence without remote push.
+- [x] Add CLI/config and real-database regressions; observe RED.
+- [x] Implement the constant and sanitized target output; run full Python suite with disposable PostgreSQL.
+- [x] Verify actual edit-file-and-run workflow against two isolated databases and misleading environment values.
+- [x] Update instructions; review once; verify remaining project checks.
+- [x] Save local commits and verification evidence without remote push.

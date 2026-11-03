@@ -96,3 +96,23 @@ Review scope rulings for lean cache:
 - Retained one source override config for refresh validation/evidence and hashing, without copying the full config into runtime Bindings. Removing it would change refresh/source validation behavior.
 - The reviewer did not independently access real metadata or installation; the implementing agent directly verified actual 956-tool compilation, exact hash, restart readiness and complete live discovery equivalence.
 - Exact heap savings, load performance, paid supplier results and product-specific client UI were not measured. Local HTTP substitute tests and live metadata discovery establish the stated scope.
+
+
+Script-local database configuration verification (2026-11-03):
+
+- User approved a top-level editable DATABASE_URL, no POSTGRES_DATABASE_URL fallback, preview by default and --apply writes.
+- The committed default is empty. CLI strips surrounding whitespace and reports a configuration error before connecting when empty; both preview and apply subprocess checks confirmed that an existing environment URL does not bypass this error. --help remains available without configuration.
+- Successful result target metadata comes from conn.info.host, port and dbname plus the fixed public.agent_apis destination; output does not include the full connection string or password. Existing synchronize explicit-URL API, SQL statements, locks, expected-value checks, naming rules and legacy migration remain intact.
+- RED observed on the old implementation: blank-file-variable and real CLI selection tests failed because the environment variable controlled the connection.
+- Full Python suite passed 21/21: 13 pure tests and 8 real disposable-PostgreSQL cases, including CLI target selection, whitespace trimming, preview/apply/idempotence and sanitized output. Go go test ./... also passed.
+- Actual edit-file workflow was exercised through a temporary copy of the script against two newly created databases, openany_mcp_test_script_config_a and _b. Each run deliberately set the environment to the opposite database. Preview wrote neither; apply updated only the configured database; switching the file variable selected the other database without touching the first; repeated apply assigned=0. Full connection strings were absent from captured output. Both databases were removed after the check.
+- Maintenance README examples now tell operators to edit the script variable. The separate Go runtime still uses environment configuration; its binary/configuration was not changed or restarted. No real business database was modified and no supplier API was called.
+
+Scope rulings for script configuration:
+
+- Worked in the specified project on codex/script-database-config. The unrelated pre-existing .DS_Store was preserved; no remote push/merge is planned.
+- Did not put a real connection string in the tracked script or run an apply against the business catalog; the user chooses the destination by filling the approved empty variable locally.
+
+- Independent read-only review of e1ada41..05dabfc found no Critical/Important/Minor issues, independently passed 13 pure Python tests and diff checks, and confirmed configuration selection/output, preview safety and unchanged transaction boundaries.
+- Reviewer did not independently repeat database tests or production permissions/migrations; the implementing agent directly verified the disposable database scenarios above. No conclusion about a production target was inferred from those tests.
+- Driver semantics remain standard: missing connection fields may use libpq defaults, and target.host/port/database describe the driver's connection rather than independently authenticating a proxy's backend. README requests a complete connection string; no extra DSN parser or backend identity lookup was added.
