@@ -42,7 +42,7 @@ func scalar(v any) (string, error) {
 		return "", fmt.Errorf("value has no scalar HTTP encoding")
 	}
 }
-func Encode(r model.Record, o model.Override, args map[string]any) (Encoded, error) {
+func Encode(r model.Request, args map[string]any) (Encoded, error) {
 	e := Encoded{Path: r.PublicPath, Headers: make(http.Header)}
 	if err := ValidateInputs(r.Inputs); err != nil {
 		return e, err
@@ -72,7 +72,7 @@ func Encode(r model.Record, o model.Override, args map[string]any) (Encoded, err
 			e.Path = strings.ReplaceAll(e.Path, placeholder, url.PathEscape(s))
 		case "query":
 			if a, ok := v.([]any); ok {
-				policy, exists := o.QueryArrays[in.Name]
+				policy, exists := r.QueryArrays[in.Name]
 				if !exists {
 					return e, fmt.Errorf("array query encoding missing for %s", in.Name)
 				}
@@ -206,7 +206,7 @@ func insert(body map[string]any, p string, value any) error {
 }
 
 // ValidateInputs rejects aliases and ancestor/descendant targets before any value is inserted.
-func ValidateInputs(inputs []model.Input) error {
+func ValidateInputs(inputs []model.Parameter) error {
 	paths := [][]string{}
 	for _, in := range inputs {
 		if in.Location != "body" {

@@ -121,3 +121,19 @@ func TestSlowRefreshDoesNotBlockCurrentReadiness(t *testing.T) {
 	close(release)
 	<-done
 }
+
+func TestRefreshOnlyRevisionStillInvalidatesCatalogHash(t *testing.T) {
+	r := fixture("demo_list")
+	before, err := Build([]model.Record{r}, model.Overrides{Version: 1}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r.Revision++
+	after, err := Build([]model.Record{r}, model.Overrides{Version: 1}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if before.Hash == after.Hash {
+		t.Fatal("discarded refresh-only metadata stopped invalidating catalog cursors")
+	}
+}

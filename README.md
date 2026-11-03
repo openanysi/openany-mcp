@@ -64,6 +64,7 @@ After intentional renaming, reconnect or re-list tools in Agents. Old tool names
 ## Runtime behavior
 
 - Active, named APIs are compiled from `agent_api_request_configs.inputs` into specific JSON Schemas and tool bindings. Object/array bodies and local references are retained; large JSON integers are not converted to float64.
+- Each cached tool retains only identity/title/provider/public description, published Input Schema and compiled validator, plus a thin gateway request specification (method/path/content type, parameter placement, query encoding and unsupported-response flag). Raw database records and duplicate original input schemas are released after refresh validation/hashing. Source override configuration remains once in the manager for future refreshes.
 - A request pins one immutable catalog generation. Refresh defaults to 30 seconds; after 120 seconds without successful verification, new MCP requests receive 503. Unnamed rows are reported and skipped. Invalid named metadata prevents the whole new snapshot from publishing.
 - Tools are sorted and paginated 50 at a time. Cursors bind catalog hash and provider view. A catalog change requires restarting discovery. `listChanged` is not advertised; clients re-list/reconnect.
 - Only declared business headers and current-call credential headers reach the gateway. Client URLs, redirects, transport headers and environment proxies cannot override the fixed gateway origin.

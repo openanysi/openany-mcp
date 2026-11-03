@@ -9,30 +9,31 @@ import (
 
 func ptr(s string) *string { return &s }
 func TestEncodeRootArrayQueryAndAuthBoundary(t *testing.T) {
-	r := model.Record{ProviderID: "demo", Method: "POST", PathTemplate: "/rpc/{network}", PublicPath: "/v1/agent-apis/demo/rpc/{network}", RequestContentType: "application/json", Inputs: []model.Input{{Name: "network", Location: "path", Type: "string"}, {Name: "body", Location: "body", Pointer: ptr(""), Type: "array"}}}
-	e, err := Encode(r, model.Override{}, map[string]any{"network": "main", "body": []any{map[string]any{"n": json.Number("9007199254740993")}}})
+	r := model.Request{Method: "POST", PublicPath: "/v1/agent-apis/demo/rpc/{network}", RequestContentType: "application/json", Inputs: []model.Parameter{{Name: "network", Location: "path"}, {Name: "body", Location: "body", Pointer: ptr("")}}}
+	e, err := Encode(r, map[string]any{"network": "main", "body": []any{map[string]any{"n": json.Number("9007199254740993")}}})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if e.Path != "/v1/agent-apis/demo/rpc/main" || string(e.Body) != `[{"n":9007199254740993}]` {
 		t.Fatalf("wrong encoding: %+v %s", e, e.Body)
 	}
-	if _, err = Encode(r, model.Override{}, map[string]any{"network": "../bad", "body": []any{}}); err == nil {
+	if _, err = Encode(r, map[string]any{"network": "../bad", "body": []any{}}); err == nil {
 		t.Fatal("unsafe path accepted")
 	}
-	r.Inputs = []model.Input{{Name: "Authorization", Location: "header", Type: "string"}}
-	if _, err = Encode(r, model.Override{}, map[string]any{"Authorization": "bad"}); err == nil {
+	r.Inputs = []model.Parameter{{Name: "Authorization", Location: "header"}}
+	if _, err = Encode(r, map[string]any{"Authorization": "bad"}); err == nil {
 		t.Fatal("credential override accepted")
 	}
 	_ = http.MethodGet
 }
 func TestEncodeArraysRequireExplicitPolicy(t *testing.T) {
-	r := model.Record{Method: "GET", PublicPath: "/v1/agent-apis/demo/list", Inputs: []model.Input{{Name: "ticker", Location: "query", Type: "array"}}}
+	r := model.Request{Method: "GET", PublicPath: "/v1/agent-apis/demo/list", Inputs: []model.Parameter{{Name: "ticker", Location: "query"}}}
 	args := map[string]any{"ticker": []any{"A", "B"}}
-	if _, err := Encode(r, model.Override{}, args); err == nil {
+	if _, err := Encode(r, args); err == nil {
 		t.Fatal("ambiguous array accepted")
 	}
-	e, err := Encode(r, model.Override{QueryArrays: map[string]model.ArrayEncoding{"ticker": {Encoding: "csv", Empty: "omit"}}}, args)
+	r.QueryArrays = map[string]model.ArrayPolicy{"ticker": {Encoding: "csv", Empty: "omit"}}
+	e, err := Encode(r, args)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,13 +43,13 @@ func TestEncodeArraysRequireExplicitPolicy(t *testing.T) {
 }
 func TestBodyAncestorPointersAreRejectedWithoutMutatingInput(t *testing.T) {
 	for _, reverse := range []bool{false, true} {
-		inputs := []model.Input{{Name: "parent", Location: "body", Type: "object", Pointer: ptr("/a")}, {Name: "child", Location: "body", Type: "integer", Pointer: ptr("/a/b")}}
+		inputs := []model.Parameter{{Name: "parent", Location: "body", Pointer: ptr("/a")}, {Name: "child", Location: "body", Pointer: ptr("/a/b")}}
 		if reverse {
 			inputs[0], inputs[1] = inputs[1], inputs[0]
 		}
 		parent := map[string]any{"x": json.Number("1")}
-		r := model.Record{Method: "POST", PublicPath: "/v1/agent-apis/demo/list", RequestContentType: "application/json", Inputs: inputs}
-		_, err := Encode(r, model.Override{}, map[string]any{"parent": parent, "child": json.Number("2")})
+		r := model.Request{Method: "POST", PublicPath: "/v1/agent-apis/demo/list", RequestContentType: "application/json", Inputs: inputs}
+		_, err := Encode(r, map[string]any{"parent": parent, "child": json.Number("2")})
 		if err == nil {
 			t.Fatal("overlapping body pointers accepted")
 		}

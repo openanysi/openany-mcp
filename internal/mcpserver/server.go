@@ -127,10 +127,10 @@ func (h *Handler) server(snapshot *catalog.Snapshot, scope string) *mcp.Server {
 	tools := []*mcp.Tool{}
 	for _, name := range snapshot.Names {
 		b := snapshot.Tools[name]
-		if scope != "" && b.Record.ProviderID != scope {
+		if scope != "" && b.ProviderID != scope {
 			continue
 		}
-		tool := &mcp.Tool{Name: name, Title: b.Record.Name, Description: b.Description, InputSchema: b.Input.Document}
+		tool := &mcp.Tool{Name: name, Title: b.Title, Description: b.Description, InputSchema: b.Input.Document}
 		tools = append(tools, tool)
 		s.AddTool(tool, func(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			start := time.Now()
@@ -152,8 +152,8 @@ func (h *Handler) server(snapshot *catalog.Snapshot, scope string) *mcp.Server {
 			if req.Extra != nil {
 				headers = req.Extra.Header
 			}
-			result := h.gateway.Call(ctx, b.Record, b.Override, args, headers)
-			h.options.Logger.Info("tool completed", "api_id", b.Record.APIID, "tool_name", name, "catalog_hash", snapshot.Hash, "gateway_request_id", result.Value["request_id"], "http_status", result.Value["http_status"], "is_error", result.IsError, "duration_ms", time.Since(start).Milliseconds())
+			result := h.gateway.Call(ctx, b.Request, args, headers)
+			h.options.Logger.Info("tool completed", "api_id", b.APIID, "tool_name", name, "catalog_hash", snapshot.Hash, "gateway_request_id", result.Value["request_id"], "http_status", result.Value["http_status"], "is_error", result.IsError, "duration_ms", time.Since(start).Milliseconds())
 			return toMCP(result), nil
 		})
 	}

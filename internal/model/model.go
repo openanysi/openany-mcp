@@ -34,6 +34,28 @@ type Record struct {
 	ConfigPresent      bool    `json:"config_present"`
 	Inputs             []Input `json:"inputs"`
 }
+
+// Request contains only the data needed to encode and dispatch a gateway call.
+type Request struct {
+	Method              string
+	PublicPath          string
+	RequestContentType  string
+	Inputs              []Parameter
+	QueryArrays         map[string]ArrayPolicy
+	UnsupportedResponse bool
+}
+
+type Parameter struct {
+	Name     string
+	Location string
+	Pointer  *string
+}
+
+type ArrayPolicy struct {
+	Encoding string
+	Empty    string
+}
+
 type ArrayEncoding struct {
 	Encoding string `json:"encoding"`
 	Empty    string `json:"empty"`

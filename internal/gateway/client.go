@@ -41,11 +41,11 @@ func New(base string, timeout, connect time.Duration, maxResponse, maxResult int
 func Failure(code, message, stage, state string, status any, id any) Result {
 	return Result{map[string]any{"http_status": status, "request_id": id, "error": map[string]any{"code": code, "message": message, "stage": stage, "execution_state": state}}, true}
 }
-func (c *Client) Call(ctx context.Context, r model.Record, o model.Override, args map[string]any, headers http.Header) Result {
-	if o.ResponseMode == "unsupported" {
+func (c *Client) Call(ctx context.Context, r model.Request, args map[string]any, headers http.Header) Result {
+	if r.UnsupportedResponse {
 		return Failure("openany_mcp_unsupported_response_mode", "This API response mode is not supported.", "validate", "not_started", nil, nil)
 	}
-	encoded, err := transport.Encode(r, o, args)
+	encoded, err := transport.Encode(r, args)
 	if err != nil {
 		return Failure("openany_mcp_invalid_input", "Parameters cannot be encoded for this API.", "validate", "not_started", nil, nil)
 	}

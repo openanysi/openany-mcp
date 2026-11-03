@@ -18,10 +18,12 @@ import (
 )
 
 type Binding struct {
-	Record      model.Record
-	Override    model.Override
-	Input       *schema.Compiled
+	APIID       string
+	ProviderID  string
+	Title       string
 	Description string
+	Input       *schema.Compiled
+	Request     model.Request
 }
 type Snapshot struct {
 	Hash      string
@@ -101,7 +103,8 @@ func Build(records []model.Record, overrides model.Overrides, checkUnnamed bool)
 				}
 			}
 		}
-		if err := transport.ValidateInputs(r.Inputs); err != nil {
+		request := projectRequest(r, o)
+		if err := transport.ValidateInputs(request.Inputs); err != nil {
 			return nil, fmt.Errorf("api %s: %w", r.APIID, err)
 		}
 		compiled, err := schema.Compile(r)
@@ -137,7 +140,7 @@ func Build(records []model.Record, overrides model.Overrides, checkUnnamed bool)
 			return nil, fmt.Errorf("duplicate public route")
 		}
 		routes[route] = true
-		s.Tools[name] = &Binding{r, o, compiled, description}
+		s.Tools[name] = &Binding{APIID: r.APIID, ProviderID: r.ProviderID, Title: r.Name, Description: description, Input: compiled, Request: request}
 		s.Names = append(s.Names, name)
 	}
 	sort.Strings(s.Names)
@@ -158,6 +161,25 @@ func Build(records []model.Record, overrides model.Overrides, checkUnnamed bool)
 	digest := sha256.Sum256(raw)
 	s.Hash = hex.EncodeToString(digest[:])
 	return s, nil
+}
+
+func projectRequest(r model.Record, o model.Override) model.Request {
+	request := model.Request{Method: r.Method, PublicPath: r.PublicPath, RequestContentType: r.RequestContentType, UnsupportedResponse: o.ResponseMode == "unsupported"}
+	for _, in := range r.Inputs {
+		parameter := model.Parameter{Name: in.Name, Location: in.Location}
+		if in.Pointer != nil {
+			pointer := *in.Pointer
+			parameter.Pointer = &pointer
+		}
+		request.Inputs = append(request.Inputs, parameter)
+	}
+	if len(o.QueryArrays) > 0 {
+		request.QueryArrays = make(map[string]model.ArrayPolicy, len(o.QueryArrays))
+		for name, policy := range o.QueryArrays {
+			request.QueryArrays[name] = model.ArrayPolicy{Encoding: policy.Encoding, Empty: policy.Empty}
+		}
+	}
+	return request
 }
 
 type Loader func(context.Context) ([]model.Record, error)
