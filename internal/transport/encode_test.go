@@ -40,3 +40,20 @@ func TestEncodeArraysRequireExplicitPolicy(t *testing.T) {
 		t.Fatal(e.Query)
 	}
 }
+func TestBodyAncestorPointersAreRejectedWithoutMutatingInput(t *testing.T) {
+	for _, reverse := range []bool{false, true} {
+		inputs := []model.Input{{Name: "parent", Location: "body", Type: "object", Pointer: ptr("/a")}, {Name: "child", Location: "body", Type: "integer", Pointer: ptr("/a/b")}}
+		if reverse {
+			inputs[0], inputs[1] = inputs[1], inputs[0]
+		}
+		parent := map[string]any{"x": json.Number("1")}
+		r := model.Record{Method: "POST", PublicPath: "/v1/agent-apis/demo/list", RequestContentType: "application/json", Inputs: inputs}
+		_, err := Encode(r, model.Override{}, map[string]any{"parent": parent, "child": json.Number("2")})
+		if err == nil {
+			t.Fatal("overlapping body pointers accepted")
+		}
+		if len(parent) != 1 {
+			t.Fatal("validated input mutated")
+		}
+	}
+}

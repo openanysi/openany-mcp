@@ -13,10 +13,12 @@ go build -trimpath -o bin/openany-mcp ./cmd/openany-mcp
 
 The local installation includes `.env` (reader role) and `.env.maintenance` (naming role), both mode 600 and excluded from Git. `run-local.sh` loads `.env`. Go itself reads environment variables, not dotenv files. No gateway API key is stored in either configuration; callers supply their own.
 
+The installed local `.env` uses port 3335 because the original smoke server occupies 3333. `.env.example` retains the configurable default 3333.
+
 Endpoints:
 
-- `http://127.0.0.1:3333/mcp` — complete catalog.
-- `http://127.0.0.1:3333/mcp/blockrun` — provider-specific catalog; same names.
+- `http://127.0.0.1:3335/mcp` — complete catalog.
+- `http://127.0.0.1:3335/mcp/blockrun` — provider-specific catalog; same names.
 - `/healthz` — process health; `/readyz` — catalog age and counts.
 
 Configure a compatible MCP client for **Streamable HTTP** and attach `Authorization: Bearer YOUR_OPENANY_KEY` (or the gateway-supported API-key header). The service does not implement an OAuth login. Calls without credentials are forwarded without a fallback key and rejected by the gateway. Native clients need no Origin; browser origins must be explicitly allowed.
@@ -74,7 +76,7 @@ go vet ./...
 .venv/bin/python -m unittest discover -s scripts -p 'test_*.py'
 ```
 
-The Python DB tests require `MCP_TEST_DATABASE_URL` pointing to a disposable database: they drop/recreate `public.agent_apis`. **Never point this test variable at your real catalog.** Without the variable, only DB integration cases are skipped.
+The Python DB tests require `MCP_TEST_DATABASE_URL` pointing to a disposable database whose name starts with `openany_mcp_test`: they drop/recreate `public.agent_apis`. **Never point this test variable at your real catalog.** Without the variable, only DB integration cases are skipped.
 
 For a full offline snapshot, supply `MCP_TEST_CATALOG_FILE` (Record JSON with config_present and proposed/stored names) and absolute `MCP_TEST_OVERRIDES_FILE` when running `TestFullCatalogSnapshot`. Full production metadata is not committed as a fixture.
 

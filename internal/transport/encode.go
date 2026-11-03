@@ -44,6 +44,9 @@ func scalar(v any) (string, error) {
 }
 func Encode(r model.Record, o model.Override, args map[string]any) (Encoded, error) {
 	e := Encoded{Path: r.PublicPath, Headers: make(http.Header)}
+	if err := ValidateInputs(r.Inputs); err != nil {
+		return e, err
+	}
 	q := url.Values{}
 	body := map[string]any{}
 	var root any
@@ -198,6 +201,48 @@ func insert(body map[string]any, p string, value any) error {
 			}
 			node = next
 		}
+	}
+	return nil
+}
+
+// ValidateInputs rejects aliases and ancestor/descendant targets before any value is inserted.
+func ValidateInputs(inputs []model.Input) error {
+	paths := [][]string{}
+	for _, in := range inputs {
+		if in.Location != "body" {
+			continue
+		}
+		var parts []string
+		if in.Pointer == nil {
+			parts = []string{in.Name}
+		} else if *in.Pointer != "" {
+			if !strings.HasPrefix(*in.Pointer, "/") {
+				return fmt.Errorf("invalid JSON pointer")
+			}
+			for _, part := range strings.Split((*in.Pointer)[1:], "/") {
+				if strings.Contains(strings.ReplaceAll(strings.ReplaceAll(part, "~0", ""), "~1", ""), "~") {
+					return fmt.Errorf("invalid pointer escape")
+				}
+				parts = append(parts, strings.ReplaceAll(strings.ReplaceAll(part, "~1", "/"), "~0", "~"))
+			}
+		}
+		for _, previous := range paths {
+			n := len(parts)
+			if len(previous) < n {
+				n = len(previous)
+			}
+			overlap := true
+			for i := 0; i < n; i++ {
+				if parts[i] != previous[i] {
+					overlap = false
+					break
+				}
+			}
+			if overlap {
+				return fmt.Errorf("overlapping body pointers")
+			}
+		}
+		paths = append(paths, parts)
 	}
 	return nil
 }

@@ -1,6 +1,6 @@
 {
   "generated_date": "2026-11-03",
-  "status": "initial_backfill_proposal_not_applied",
+  "status": "local_backfill_applied",
   "source": "openany_local.agent_apis",
   "naming_rule": "Initial assignment only: lowercase snake_case(provider_id + method + path_template), truncated to 55 characters and stripped of trailing underscore, followed by underscore and first 8 hex characters of api_id. The maintenance script fills only NULL public_mcp_tool_name values and preserves all assigned names; on a collision, extend only the new UUID suffix to 12, 16, then 32 hex characters and shorten the prefix to keep the total <=64. PostgreSQL enforces uniqueness. The MCP service reads the stored value without regenerating it.",
   "total_api_count": 970,
@@ -11647,12 +11647,12 @@
     }
   ],
   "target_column": "public.agent_apis.public_mcp_tool_name",
-  "values_persisted": false,
-  "exposed_semantics": "Each exposed=true is only a proposed active-status eligibility flag, not a deployed or tested tool. published and supported counts remain unmeasured until implementation, metadata checks and verification. No names have been persisted and no MCP service has been deployed.",
+  "values_persisted": true,
+  "exposed_semantics": "Local database backfill and read-only registry compilation verified: 970 named, 956 active/published. No paid supplier success is claimed; continuous business SSE remains unsupported.",
   "planned_service_language": "Go",
   "planned_name_maintenance_language": "Python",
   "active_api_count": 956,
-  "published_tool_count": null,
+  "published_tool_count": 956,
   "verified_supported_tool_count": null,
   "design_revision": "v2_review_integrated"
 }

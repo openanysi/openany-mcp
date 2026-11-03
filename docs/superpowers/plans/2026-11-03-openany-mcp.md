@@ -24,27 +24,27 @@
 ### Task 1: metadata/schema/transport
 Files: internal/catalog, internal/schema, internal/transport, testdata.
 Interfaces: catalog.Record/Input; schema.Compile; transport.Encode.
-- [ ] Write failing tests for schema constraints, numeric precision, JSON root arrays, local references and unsafe input.
-- [ ] Implement immutable bindings and HTTP encoding without upstream transformations.
-- [ ] Run targeted Go tests and record results.
+- [x] Write failing tests for schema constraints, numeric precision, JSON root arrays, local references and unsafe input.
+- [x] Implement immutable bindings and HTTP encoding without upstream transformations.
+- [x] Run targeted Go tests and record results.
 
 ### Task 2: gateway/MCP/server
 Files: internal/gateway, internal/mcpserver, internal/config, cmd/openany-mcp.
 Interfaces: gateway.Call; catalog.Loader/Manager; mcpserver.NewHandler.
-- [ ] Write failing tests using real HTTP gateway substitutes for auth isolation, errors, no replay, scope and pagination.
-- [ ] Implement PostgreSQL snapshots, SDK tool handlers, versioned pagination, admission and health.
-- [ ] Run Go tests, race detector, vet and build.
+- [x] Write failing tests using real HTTP gateway substitutes for auth isolation, errors, no replay, scope and pagination.
+- [x] Implement PostgreSQL snapshots, SDK tool handlers, versioned pagination, admission and health.
+- [x] Run Go tests, race detector, vet and build.
 
 ### Task 3: name maintenance/migration
 Files: migrations/001_add_public_mcp_tool_name.sql, scripts/sync_mcp_tool_names.py and tests.
-- [ ] Write failing Python tests for deterministic names, collision extension and existing names.
-- [ ] Implement transaction-only NULL backfill, migrations and minimal roles.
-- [ ] Verify against a disposable PostgreSQL database including concurrent/rollback behavior.
+- [x] Write failing Python tests for deterministic names, collision extension and existing names.
+- [x] Implement transaction-only NULL backfill, migrations and minimal roles.
+- [x] Verify against a disposable PostgreSQL database including concurrent/rollback behavior.
 
 ### Task 4: catalog readiness/deployment
 Files: config/catalog-overrides.json, README.md, Dockerfile, .env.example.
-- [ ] Verify actual array serialization from authoritative source metadata/docs; retain explicit blockers when unverifiable.
-- [ ] Run full current local catalog compilation without business calls.
-- [ ] Apply authorized local migration and name backfill after dry-run; verify idempotency.
-- [ ] Request one fresh whole-project review; fix material findings with regression tests.
-- [ ] Install into /Users/legend/WorkSpace/openany/openany-mcp and rerun smoke/verification.
+- [x] Verify actual array serialization from authoritative source metadata/docs; retain explicit blockers when unverifiable.
+- [x] Run full current local catalog compilation without business calls.
+- [x] Apply authorized local migration and name backfill after dry-run; verify idempotency.
+- [x] Request one fresh whole-project review; fix material findings with regression tests.
+- [x] Install into /Users/legend/WorkSpace/openany/openany-mcp and rerun smoke/verification.

@@ -101,6 +101,9 @@ func Build(records []model.Record, overrides model.Overrides, checkUnnamed bool)
 				}
 			}
 		}
+		if err := transport.ValidateInputs(r.Inputs); err != nil {
+			return nil, fmt.Errorf("api %s: %w", r.APIID, err)
+		}
 		compiled, err := schema.Compile(r)
 		if err != nil {
 			return nil, fmt.Errorf("api %s: input schema invalid: %w", r.APIID, err)
@@ -140,10 +143,15 @@ func Build(records []model.Record, overrides model.Overrides, checkUnnamed bool)
 	sort.Strings(s.Names)
 	copyRecords := append([]model.Record(nil), records...)
 	sort.Slice(copyRecords, func(i, j int) bool { return copyRecords[i].APIID < copyRecords[j].APIID })
+	published := map[string]any{}
+	for name, binding := range s.Tools {
+		published[name] = map[string]any{"inputSchema": binding.Input.Document, "description": binding.Description}
+	}
 	raw, err := json.Marshal(struct {
 		Records   []model.Record
 		Overrides model.Overrides
-	}{copyRecords, overrides})
+		Published map[string]any
+	}{copyRecords, overrides, published})
 	if err != nil {
 		return nil, err
 	}
@@ -160,6 +168,7 @@ type Manager struct {
 	checkUnnamed bool
 	current      atomic.Pointer[Snapshot]
 	mu           sync.Mutex
+	refreshMu    sync.Mutex
 	lastVerified time.Time
 	lastErr      bool
 	draining     atomic.Bool
@@ -169,8 +178,8 @@ func NewManager(load Loader, o model.Overrides, maxAge time.Duration, checkUnnam
 	return &Manager{load: load, overrides: o, maxAge: maxAge, checkUnnamed: checkUnnamed}
 }
 func (m *Manager) Refresh(ctx context.Context) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.refreshMu.Lock()
+	defer m.refreshMu.Unlock()
 	records, err := m.load(ctx)
 	if err == nil {
 		var s *Snapshot
@@ -180,12 +189,16 @@ func (m *Manager) Refresh(ctx context.Context) error {
 			if old == nil || old.Hash != s.Hash {
 				m.current.Store(s)
 			}
+			m.mu.Lock()
 			m.lastVerified = time.Now()
 			m.lastErr = false
+			m.mu.Unlock()
 			return nil
 		}
 	}
+	m.mu.Lock()
 	m.lastErr = true
+	m.mu.Unlock()
 	return err
 }
 func (m *Manager) Current() *Snapshot { return m.current.Load() }

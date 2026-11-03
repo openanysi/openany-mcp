@@ -124,7 +124,7 @@ func Compile(r model.Record) (*Compiled, error) {
 			}
 		}
 		ns := "#/properties/" + escapePointer(in.Name)
-		if err := normalize(doc, ns); err != nil {
+		if err := normalize(doc, ns, false); err != nil {
 			return nil, err
 		}
 		if len(in.Enum) > 0 && string(in.Enum) != "null" {
@@ -183,7 +183,35 @@ func Compile(r model.Record) (*Compiled, error) {
 func escapePointer(s string) string {
 	return strings.ReplaceAll(strings.ReplaceAll(s, "~", "~0"), "/", "~1")
 }
-func normalize(s map[string]any, ns string) error {
+func normalize(s map[string]any, ns string, draft07 bool) error {
+	if _, ok := s["$id"]; ok {
+		return fmt.Errorf("embedded $id requires bundling")
+	}
+	if dialect, ok := s["$schema"].(string); ok {
+		switch strings.TrimSuffix(dialect, "#") {
+		case "http://json-schema.org/draft-07/schema", "https://json-schema.org/draft-07/schema":
+			draft07 = true
+		case "https://json-schema.org/draft/2020-12/schema", "http://json-schema.org/draft/2020-12/schema":
+			draft07 = false
+		default:
+			return fmt.Errorf("unsupported source schema dialect")
+		}
+	}
+	if draft07 {
+		if _, ref := s["$ref"]; ref {
+			for key := range s {
+				switch key {
+				case "$ref", "$schema", "$defs", "definitions", "title", "description", "$comment":
+				default:
+					delete(s, key)
+				}
+			}
+		}
+		// These are annotations in draft-07, not validation constraints.
+		for _, key := range []string{"dependentRequired", "dependentSchemas", "prefixItems", "unevaluatedProperties", "unevaluatedItems", "minContains", "maxContains", "$dynamicRef", "$dynamicAnchor"} {
+			delete(s, key)
+		}
+	}
 	if _, ok := s["$id"]; ok {
 		return fmt.Errorf("embedded $id requires bundling")
 	}
@@ -192,7 +220,9 @@ func normalize(s map[string]any, ns string) error {
 		if !strings.HasPrefix(ref, "#") {
 			return fmt.Errorf("external ref forbidden")
 		}
-		ref = strings.ReplaceAll(ref, "/definitions/", "/$defs/")
+		if strings.HasPrefix(ref, "#/definitions/") {
+			ref = "#/$defs/" + strings.TrimPrefix(ref, "#/definitions/")
+		}
 		s["$ref"] = ns + strings.TrimPrefix(ref, "#")
 	}
 	if defs, ok := s["definitions"]; ok {
@@ -202,7 +232,7 @@ func normalize(s map[string]any, ns string) error {
 		s["$defs"] = defs
 		delete(s, "definitions")
 	}
-	if deps, ok := s["dependencies"].(map[string]any); ok {
+	if deps, ok := s["dependencies"].(map[string]any); ok && draft07 {
 		dr := map[string]any{}
 		ds := map[string]any{}
 		for k, v := range deps {
@@ -216,7 +246,13 @@ func normalize(s map[string]any, ns string) error {
 		s["dependentSchemas"] = ds
 		delete(s, "dependencies")
 	}
+	if !draft07 {
+		delete(s, "dependencies")
+	}
 	if tuple, ok := s["items"].([]any); ok {
+		if !draft07 {
+			return fmt.Errorf("tuple items requires a draft-07 source schema")
+		}
 		s["prefixItems"] = tuple
 		if extra, ok := s["additionalItems"]; ok {
 			s["items"] = extra
@@ -229,7 +265,7 @@ func normalize(s map[string]any, ns string) error {
 		if m, ok := s[key].(map[string]any); ok {
 			for _, child := range m {
 				if c, ok := child.(map[string]any); ok {
-					if err := normalize(c, ns); err != nil {
+					if err := normalize(c, ns, draft07); err != nil {
 						return err
 					}
 				}
@@ -238,7 +274,7 @@ func normalize(s map[string]any, ns string) error {
 	}
 	for _, key := range []string{"items", "contains", "additionalProperties", "propertyNames", "not", "if", "then", "else", "unevaluatedProperties", "unevaluatedItems"} {
 		if child, ok := s[key].(map[string]any); ok {
-			if err := normalize(child, ns); err != nil {
+			if err := normalize(child, ns, draft07); err != nil {
 				return err
 			}
 		}
@@ -247,7 +283,7 @@ func normalize(s map[string]any, ns string) error {
 		if a, ok := s[key].([]any); ok {
 			for _, v := range a {
 				if c, ok := v.(map[string]any); ok {
-					if err := normalize(c, ns); err != nil {
+					if err := normalize(c, ns, draft07); err != nil {
 						return err
 					}
 				}

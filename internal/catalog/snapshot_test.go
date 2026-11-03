@@ -78,3 +78,46 @@ func TestDrainMakesReadinessFalse(t *testing.T) {
 		t.Fatal("draining instance still ready")
 	}
 }
+func TestCatalogRejectsOverlappingDecodedBodyPointers(t *testing.T) {
+	r := fixture("demo_list")
+	r.Method = "POST"
+	r.RequestContentType = "application/json"
+	a := "/a~1b"
+	b := "/a~1b/c"
+	r.Inputs = []model.Input{{Name: "parent", Type: "object", Location: "body", Pointer: &a}, {Name: "child", Type: "integer", Location: "body", Pointer: &b}}
+	if _, err := Build([]model.Record{r}, model.Overrides{Version: 1}, false); err == nil {
+		t.Fatal("catalog published overlapping decoded pointers")
+	}
+}
+func TestSlowRefreshDoesNotBlockCurrentReadiness(t *testing.T) {
+	r := fixture("demo_list")
+	blocked := make(chan struct{})
+	release := make(chan struct{})
+	calls := 0
+	m := NewManager(func(context.Context) ([]model.Record, error) {
+		calls++
+		if calls == 2 {
+			close(blocked)
+			<-release
+		}
+		return []model.Record{r}, nil
+	}, model.Overrides{Version: 1}, time.Minute, false)
+	if err := m.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan struct{})
+	go func() { m.Refresh(context.Background()); close(done) }()
+	<-blocked
+	checked := make(chan bool, 1)
+	go func() { checked <- m.Ready() }()
+	select {
+	case ready := <-checked:
+		if !ready {
+			t.Error("valid previous snapshot unavailable")
+		}
+	case <-time.After(500 * time.Millisecond):
+		t.Error("database refresh blocked current snapshot readiness")
+	}
+	close(release)
+	<-done
+}

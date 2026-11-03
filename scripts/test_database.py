@@ -10,6 +10,9 @@ class DatabaseTests(unittest.TestCase):
         import psycopg
         self.url=os.environ['MCP_TEST_DATABASE_URL']
         self.conn=psycopg.connect(self.url,autocommit=True)
+        if not self.conn.info.dbname.startswith('openany_mcp_test'):
+            self.conn.close()
+            raise RuntimeError('Integration database name must start with openany_mcp_test; refusing destructive setup')
         self.conn.execute('DROP TABLE IF EXISTS public.agent_apis CASCADE')
         self.conn.execute('''CREATE TABLE public.agent_apis(id uuid PRIMARY KEY,provider_id text NOT NULL,
           method text NOT NULL,path_template text NOT NULL,status text NOT NULL,updated_at timestamptz DEFAULT now(),price bigint DEFAULT 7)''')
