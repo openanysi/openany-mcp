@@ -74,3 +74,25 @@ Review scope rulings for the amendment:
 - The reviewer did not independently access real triggers, roles, migration or runtime refresh; these were directly verified by the implementing agent and the evidence is listed above.
 - Extreme same-name catalog sizes were not load-tested; current 970-row preview/apply completed with 6 collision aliases.
 - A hand-picked value identical to the exact legacy algorithm remains indistinguishable without provenance. Current 970 values match the stored initial assignment baseline, and the user authorized their migration.
+
+
+Lean catalog cache verification (2026-11-03):
+
+- User requested removing refresh-only metadata and duplicate original schemas from the persistent per-tool cache.
+- Binding no longer stores model.Record or model.Override. It retains API/provider identity, title/public description, compiled Input Schema/validator and a thin model.Request. Request contains method/public path/content type, minimal name/location/pointer mappings, array encoding/empty policies and unsupported-response flag.
+- Raw status, revision, upstream protocol, billing mode, path template, config marker, unknown-parameter policy, original input schema/enum/bounds and override evidence are used during refresh validation/hashing rather than retained in each Binding. One authoritative overrides config remains in Manager for future refreshes.
+- Behavioral regression TestCachedCallsDoNotDependOnMutableSourceRecords failed before implementation: mutating original input containers changed forwarded body to {} and changed repeated query keys to CSV. With detached runtime pointers/maps it passes, retaining exact large integers, expected body placement, query encoding, discovery and current-request credentials.
+- Full Go normal and race suites passed; go vet passed. Additional regressions retain refresh-only revision hash invalidation and local unsupported-response rejection before dispatch.
+- Python 11 pure tests passed; 7 database integration tests were skipped because no disposable database URL was configured. Python and database maintenance logic were unchanged by this refactor.
+- New binary read-only --check-catalog validated active=956, published=956, pending=0 and the exact existing hash 44977747640192d19523f17b7760ac7d6c7f518d336ff6a7d5babcb36c9bdff7.
+- Independent read-only review of f58785a..b65af90 found no Critical/Important/Minor issues, independently ran go test -count=1 ./... and diff whitespace checks, and found no raw-record retention through production loader or handler closures.
+- Saved full live discovery before installation; verified the old process executable belongs to this project, retained a rollback binary, installed the reviewed build and sent graceful termination to the old process. New process is ready on the existing port 3335 using the existing private configuration.
+- Installed-service discovery returned 956 tools across 20 pages. Every full tool definition exactly equals the saved pre-change definition, and catalog hash is unchanged. No tool names or Agent configuration changed.
+- No database writes or paid business calls were made for this change. No exact retained-heap or performance improvement is claimed without profiling.
+
+Review scope rulings for lean cache:
+
+- Used a clean codex/lean-catalog-cache branch in the specified project, keeping the existing local installation workflow. Concurrent external changes would require reconciliation; no remote push or merge was performed.
+- Retained one source override config for refresh validation/evidence and hashing, without copying the full config into runtime Bindings. Removing it would change refresh/source validation behavior.
+- The reviewer did not independently access real metadata or installation; the implementing agent directly verified actual 956-tool compilation, exact hash, restart readiness and complete live discovery equivalence.
+- Exact heap savings, load performance, paid supplier results and product-specific client UI were not measured. Local HTTP substitute tests and live metadata discovery establish the stated scope.

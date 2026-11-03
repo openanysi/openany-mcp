@@ -25,10 +25,10 @@
 
 **Files:** internal/model/model.go, internal/catalog/snapshot.go, internal/transport/encode.go, internal/gateway/client.go, internal/mcpserver/server.go and their tests; README.md; docs/verification.md.
 
-- [ ] Save full live discovery and its catalog hash as a before baseline.
-- [ ] Add behavior regressions for source-independent cached routing/schema and unsupported forwarding; observe RED.
-- [ ] Introduce thin runtime types and project validated records, update direct callers/tests.
-- [ ] Run full Go tests, race, vet, Python regressions and actual read-only catalog compilation.
-- [ ] Get one independent read-only review and address Important/Critical findings with RED/GREEN.
-- [ ] Build/install locally, restart the existing service gracefully and verify exact discovery/hash equivalence.
-- [ ] Record results and save local commits without remote push.
+- [x] Save full live discovery and its catalog hash as a before baseline.
+- [x] Add behavior regressions for source-independent cached routing/schema and unsupported forwarding; observe RED.
+- [x] Introduce thin runtime types and project validated records, update direct callers/tests.
+- [x] Run full Go tests, race, vet, Python regressions and actual read-only catalog compilation.
+- [x] Get one independent read-only review and address Important/Critical findings with RED/GREEN.
+- [x] Build/install locally, restart the existing service gracefully and verify exact discovery/hash equivalence.
+- [x] Record results and save local commits without remote push.
