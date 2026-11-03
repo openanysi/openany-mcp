@@ -29,17 +29,27 @@ Configure a compatible MCP client for **Streamable HTTP** and attach `Authorizat
 2. Have an operator run `migrations/001_add_public_mcp_tool_name.sql` against the intended database. It adds a nullable text column, validated format constraint and global unique index; it does not change prices, enable APIs or assign names.
 3. Review API descriptions and array query serialization. Source-derived local overrides are in `config/catalog-overrides.json`; evidence and limitations are in `config/transport-evidence.md`.
 4. Run `--check-catalog` to validate active metadata, including unnamed rows. This command never calls a business API or writes names.
-5. Preview and apply name assignment using a **separate maintenance credential**, then re-check the catalog.
+5. Set the top-level `DATABASE_URL` in `scripts/sync_mcp_tool_names.py` to a **separate maintenance credential**, preview/apply name assignment, then re-check the catalog.
 
 Python setup and assignment:
 
 ```sh
 uv venv --python 3.12 .venv
 uv pip install --python .venv/bin/python -r scripts/requirements.lock
-# Export a maintenance POSTGRES_DATABASE_URL in this shell before these commands.
+# First edit DATABASE_URL at the top of scripts/sync_mcp_tool_names.py.
 .venv/bin/python scripts/sync_mcp_tool_names.py
 .venv/bin/python scripts/sync_mcp_tool_names.py --apply
 ```
+
+At the top of `scripts/sync_mcp_tool_names.py`, fill in the PostgreSQL connection string:
+
+```python
+DATABASE_URL = "postgresql://openany_mcp_namer:YOUR_PASSWORD@127.0.0.1:5432/YOUR_DATABASE"
+```
+
+The committed default is empty. The CLI uses only this variable, trims surrounding whitespace and stops when empty; shell `POSTGRES_DATABASE_URL` and dotenv files do not select the maintenance database. The Go service continues to use its own environment configuration. After switching databases, make sure the target has the required table/column/constraints by running the existing operator migration if needed.
+
+Successful JSON output includes `target.host`, `target.port`, `target.database`, `target.schema` and `target.table` from the actual connection. It does not print the connection string or password. Keep a real configured connection string local when committing changes. The installed `.env.maintenance` remains a private reference for the local naming-role credential; loading it does not configure this CLI anymore.
 
 The default is read-only preview. `--apply` assigns only NULL values in one transaction, using advisory/row locks and the unique index. Existing or manually assigned names are never changed. Names have no automatic UUID suffix. On a collision, only the new name receives a numeric alias (`_2`, `_3`, ...); the base is shortened as needed to keep the full name at most 64 ASCII characters. Disabled APIs also receive and retain names. No force-rename option exists.
 
@@ -50,7 +60,7 @@ Names normally look like `blockrun_get_api_v1_crypto_list` or `dataforseo_post_v
 The explicit migration switch previews changes to names that exactly match the old generator for the same provider, method, path and API UUID:
 
 ```sh
-# Load your separate maintenance POSTGRES_DATABASE_URL first.
+# First set the script's DATABASE_URL to your maintenance connection string.
 .venv/bin/python scripts/sync_mcp_tool_names.py --rename-generated
 .venv/bin/python scripts/sync_mcp_tool_names.py --rename-generated --apply
 ```

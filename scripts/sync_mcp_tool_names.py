@@ -2,10 +2,12 @@
 """Preview or fill missing public MCP names; rename legacy generated names only when explicitly requested."""
 import argparse
 import json
-import os
 import re
 import sys
 import uuid
+
+# Edit this value to select the maintenance database; an empty value stops execution.
+DATABASE_URL = ""
 
 NAME = re.compile(r'[a-z][a-z0-9_]{0,63}\Z', re.ASCII)
 LOCK_NAMESPACE = 741216
@@ -111,7 +113,9 @@ def synchronize(database_url, apply=False, rename_generated=False):
                       WHERE id=%s AND public_mcp_tool_name IS NULL''', (item['tool_name'], item['api_id']))
                     if cursor.rowcount != 1:
                         raise ValueError('Concurrent name change; transaction rolled back')
-            result = {'mode': 'apply' if apply else 'preview', 'total': len(rows),
+            result = {'target': {'host': conn.info.host, 'port': conn.info.port,
+                                 'database': conn.info.dbname, 'schema': 'public', 'table': 'agent_apis'},
+                      'mode': 'apply' if apply else 'preview', 'total': len(rows),
                       'already_named': sum(row['public_mcp_tool_name'] is not None for row in rows),
                       'assigned': len(assignments), 'renamed': sum('previous_tool_name' in item for item in assignments),
                       'rename_generated': rename_generated,
@@ -125,9 +129,9 @@ def main():
     parser.add_argument('--rename-generated', action='store_true',
                         help='also replace names that exactly match the old UUID-suffix algorithm')
     args = parser.parse_args()
-    database_url = os.environ.get('POSTGRES_DATABASE_URL')
+    database_url = DATABASE_URL.strip()
     if not database_url:
-        print(json.dumps({'error': 'POSTGRES_DATABASE_URL is required'}), file=sys.stderr)
+        print(json.dumps({'error': 'Set DATABASE_URL at the top of sync_mcp_tool_names.py'}), file=sys.stderr)
         return 1
     try:
         result = synchronize(database_url, args.apply, args.rename_generated)

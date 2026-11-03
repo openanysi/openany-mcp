@@ -1,4 +1,11 @@
+import contextlib
+import io
+import json
+import os
+import sys
 import unittest
+from unittest.mock import patch
+import sync_mcp_tool_names as script
 from sync_mcp_tool_names import assign_names
 
 
@@ -94,6 +101,36 @@ class NameTests(unittest.TestCase):
         row = self.row('e1183d75-4cb5-41b3-a351-0b027f17dea9')
         row['provider_id'] = '123'
         with self.assertRaises(ValueError): assign_names([row])
+
+
+class ConfigurationTests(unittest.TestCase):
+    def test_blank_file_variable_does_not_fall_back_to_environment(self):
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with patch.object(script, 'DATABASE_URL', '  ', create=True), \
+             patch.dict(os.environ, {'POSTGRES_DATABASE_URL': 'ignored_environment_secret'}), \
+             patch.object(sys, 'argv', ['sync_mcp_tool_names.py']), \
+             contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            code = script.main()
+        self.assertEqual(code, 1)
+        self.assertEqual(stdout.getvalue(), '')
+        error = json.loads(stderr.getvalue())
+        self.assertIn('DATABASE_URL', error['error'])
+        self.assertNotIn('POSTGRES_DATABASE_URL', error['error'])
+        self.assertNotIn('ignored_environment_secret', stderr.getvalue())
+
+    def test_invalid_connection_does_not_echo_configured_secret(self):
+        stdout, stderr = io.StringIO(), io.StringIO()
+        secret = 'invalid_connection_secret_do_not_echo'
+        with patch.object(script, 'DATABASE_URL', secret, create=True), \
+             patch.dict(os.environ, {'POSTGRES_DATABASE_URL': 'different_environment_secret'}), \
+             patch.object(sys, 'argv', ['sync_mcp_tool_names.py', '--apply']), \
+             contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            code = script.main()
+        self.assertEqual(code, 1)
+        self.assertEqual(stdout.getvalue(), '')
+        self.assertNotIn(secret, stderr.getvalue())
+        self.assertNotIn('different_environment_secret', stderr.getvalue())
+        self.assertIn('error', json.loads(stderr.getvalue()))
 
 
 if __name__ == '__main__':

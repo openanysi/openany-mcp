@@ -1,3 +1,9 @@
+import contextlib
+import io
+import json
+import sys
+from unittest.mock import patch
+import sync_mcp_tool_names as script
 import os
 import threading
 import unittest
@@ -93,3 +99,28 @@ class DatabaseTests(unittest.TestCase):
         for thread in threads: thread.join()
         self.assertFalse(errors)
         self.assertEqual(sorted(results), [0, 2])
+
+    def test_cli_file_variable_selects_target_and_preserves_preview_apply(self):
+        def run(*args):
+            stdout, stderr = io.StringIO(), io.StringIO()
+            with patch.object(script, 'DATABASE_URL', '  ' + self.url + '  ', create=True), \
+                 patch.dict(os.environ, {'POSTGRES_DATABASE_URL': 'ignored_environment_secret'}), \
+                 patch.object(sys, 'argv', ['sync_mcp_tool_names.py', *args]), \
+                 contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                code = script.main()
+            self.assertEqual(code, 0, stderr.getvalue())
+            self.assertEqual(stderr.getvalue(), '')
+            self.assertNotIn(self.url, stdout.getvalue())
+            return json.loads(stdout.getvalue())
+        preview = run()
+        self.assertEqual(preview['target'], {'host': self.conn.info.host, 'port': self.conn.info.port,
+                         'database': self.conn.info.dbname, 'schema': 'public', 'table': 'agent_apis'})
+        self.assertEqual(preview['mode'], 'preview')
+        self.assertFalse(preview['committed'])
+        self.assertEqual(self.conn.execute('SELECT count(*) FROM public.agent_apis WHERE public_mcp_tool_name IS NOT NULL').fetchone()[0], 0)
+        applied = run('--apply')
+        self.assertEqual(applied['target'], preview['target'])
+        self.assertEqual(applied['assigned'], 2)
+        self.assertTrue(applied['committed'])
+        self.assertEqual([r[0] for r in self.conn.execute('SELECT public_mcp_tool_name FROM public.agent_apis ORDER BY id')], ['demo_get_list', 'demo_get_list_2'])
+        self.assertEqual(run('--apply')['assigned'], 0)
