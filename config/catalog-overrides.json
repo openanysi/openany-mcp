@@ -1,0 +1,382 @@
+{
+  "version": 1,
+  "apis": {
+    "87fe5d22-0359-471f-811f-d35d4b321568": {
+      "query_arrays": {
+        "ticker": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/kalshi/markets GET ticker; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "event_ticker": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/kalshi/markets GET event_ticker; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "series_ticker": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/kalshi/markets GET series_ticker; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/kalshi/markets GET predexon_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        }
+      }
+    },
+    "5f807990-823a-431f-91b3-123f63d17fff": {
+      "query_arrays": {
+        "categories": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets GET categories; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "tags": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets GET tags; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "condition_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets GET condition_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "market_slug": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets GET market_slug; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets GET predexon_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "token_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets GET token_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        }
+      }
+    },
+    "ab64d739-159a-4652-9962-156a48767853": {
+      "query_arrays": {
+        "labels": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets GET labels; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "condition_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets GET condition_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "market_slug": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets GET market_slug; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "market_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets GET market_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets GET predexon_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "token_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets GET token_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "event_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets GET event_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "event_slug": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets GET event_slug; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        }
+      }
+    },
+    "08159d6d-a84c-4b03-9e98-03c9273d5f40": {
+      "query_arrays": {
+        "id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset GET id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "slug": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset GET slug; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "tag": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset GET tag; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        }
+      }
+    },
+    "f8d96a45-08da-4203-be34-1ac6dbb9d5f8": {
+      "query_arrays": {
+        "id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset GET id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "slug": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset GET slug; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "tag": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset GET tag; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        }
+      }
+    },
+    "535f30cb-8507-42af-a190-38d808c961ca": {
+      "query_arrays": {
+        "tags": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset GET tags; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "event_slug": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset GET event_slug; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "condition_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset GET condition_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "question_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset GET question_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "market_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset GET market_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "market_slug": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset GET market_slug; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "token_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset GET token_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset GET predexon_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        }
+      }
+    },
+    "34d55e97-7f16-4323-832e-db92bdb7fb2d": {
+      "query_arrays": {
+        "tags": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset GET tags; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "event_slug": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset GET event_slug; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "condition_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset GET condition_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "question_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset GET question_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "market_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset GET market_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "market_slug": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset GET market_slug; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "token_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset GET token_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset GET predexon_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        }
+      }
+    },
+    "3fe512f5-1ca8-46cd-9622-f7e9e4af391e": {
+      "query_arrays": {
+        "condition_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets GET condition_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "market_slug": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets GET market_slug; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "market_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets GET market_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "token_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets GET token_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets GET predexon_id; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        },
+        "event_slug": {
+          "encoding": "repeated",
+          "empty": "empty",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets GET event_slug; OpenAPI 3.1 query defaults form/explode=true; BlockRun mirror https://blockrun.ai/docs/api-reference/prediction-markets"
+        }
+      }
+    },
+    "31333ed3-c1f3-4463-be98-acc39013acc4": {
+      "public_description": "Forward JSON-RPC requests to the selected blockchain network. Batch pricing is determined by the OpenAny gateway."
+    },
+    "d697649a-d91b-4f70-ac12-1609f558ec32": {
+      "response_mode": "unsupported",
+      "unsupported_reason": "The current gateway does not support continuous business SSE subscriptions."
+    },
+    "8d369d5c-027d-5373-92a3-6083d0f38dd7": {
+      "public_description": "Retrieve historical administrative licenses for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "6e39b630-228f-5c7a-9354-3ccf5056507a": {
+      "public_description": "Retrieve historical administrative penalties for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "a6f1443f-5458-5508-9563-b5de34487a0c": {
+      "public_description": "Retrieve historical bankruptcy and reorganization for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "0651ca3b-f890-575b-88db-4a312bbe8129": {
+      "public_description": "Retrieve historical abnormal operations for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "66994b5c-c506-5060-9c55-8ba583e5a3df": {
+      "public_description": "Retrieve historical case filings for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "03c46216-a2b2-5c4e-99e3-c0afef9ea27f": {
+      "public_description": "Retrieve historical chattel mortgages for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "e24db732-5903-599b-9823-b39b67db129a": {
+      "public_description": "Retrieve historical court notices for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "31a9d1bb-deac-5a0f-a989-459543bb49d0": {
+      "public_description": "Retrieve historical dishonest judgment debtor records for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "b57b0153-3637-5640-9104-f0a3860fad0d": {
+      "public_description": "Retrieve historical environmental penalties for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "75f7039c-87b2-5d4c-ba08-259b2939d091": {
+      "public_description": "Retrieve historical equity freezes for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "97b4c4d3-e453-5763-bb43-a12ce8db9413": {
+      "public_description": "Retrieve historical equity pledge registrations for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "473ad636-f28e-5eb4-93df-b17f009a9ce7": {
+      "public_description": "Retrieve historical key personnel for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "9a415fbb-c544-522e-aebc-0a2b34eece7d": {
+      "public_description": "Retrieve historical hearing notices for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "c1260150-c527-573f-9cbd-49cc1d3de2d4": {
+      "public_description": "Retrieve historical high consumption restrictions for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "7a83c7c6-2306-5075-92ae-4f2aa545c2f6": {
+      "public_description": "Retrieve historical honors for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "c83506a1-3490-5e2e-9230-4fb7bf98dc84": {
+      "public_description": "Retrieve historical registered websites for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "f84b86b9-c7eb-5618-b53d-6e9c57fa06a7": {
+      "public_description": "Retrieve historical investments for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "cc249d8f-f22e-5799-b72f-54d8f5124723": {
+      "public_description": "Retrieve historical intellectual property pledges for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "22f934e5-58f6-5a8d-84ac-e439db3bd196": {
+      "public_description": "Retrieve historical judgment enforcement records for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "8b3fbce5-fb76-516e-a4c2-9917fef77ecc": {
+      "public_description": "Retrieve historical judgment documents for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "2cc0539b-d1bc-511d-b008-f8f84375b3ff": {
+      "public_description": "Retrieve historical land mortgages for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "8cdf5bc9-f5a4-529a-bc17-e4692f5a9de5": {
+      "public_description": "Retrieve historical legal representatives for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "fbc1bbfc-99af-51a6-87e6-4870b388146d": {
+      "public_description": "Retrieve historical listing information for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "f57621ef-8a40-546e-976a-1c2dacb92fc4": {
+      "public_description": "Retrieve historical patents for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "35c23403-cd1b-58b9-9b1e-a1c2b17fc3ff": {
+      "public_description": "Retrieve historical pre-litigation mediation for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "5840e290-e63d-5d29-8ffe-112a174739d4": {
+      "public_description": "Retrieve historical randomized inspections for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "e93437e3-f14d-5db3-bbe4-6d9f73c31367": {
+      "public_description": "Retrieve historical company registration information for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "d8728a50-4cc4-5f69-ae75-0c66b914c325": {
+      "public_description": "Retrieve historical serious violations for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "4986e0c9-2362-57de-99b1-60f4d024954f": {
+      "public_description": "Retrieve historical service notices for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "ef036eca-6077-507b-9b55-90857d9ee86e": {
+      "public_description": "Retrieve historical shareholders for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "f8515cf9-768d-5f68-8f0d-533d72546de2": {
+      "public_description": "Retrieve historical spot checks and inspections for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "d4a99d10-f0a6-52a2-8473-b6e5c656eb8f": {
+      "public_description": "Retrieve historical tax arrears notices for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "d76d4dbd-dac7-5b60-b032-063e969f82b0": {
+      "public_description": "Retrieve historical terminated enforcement cases for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "62f9581e-e034-5654-9320-f6fd677b9734": {
+      "public_description": "Retrieve historical trademarks for a company identified by its full registered name or Unified Social Credit Code. Historical service availability and authoritative input schema remain unverified."
+    },
+    "eef5f96b-3633-51a1-80e7-e1a191f07933": {
+      "public_description": "可以通过公司名称或ID获取企业荣誉类信息，包括荣誉名称、荣誉类型、荣誉级别、认证年份、发布日期、有效期、发布单位、来源等字段的详细信息"
+    },
+    "cbba4d7f-59d9-5f41-8de1-b5a42e1e8bb7": {
+      "public_description": "天眼查专业算法加持，结合【软件著作权数量】【实用新型专利数量】【发明授权有效数量】【科技型企业认证】【研发实力评分】【创新能力评分】等多角度立体分析，产出企业【科创分】的综合评价。"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+.git
+.env*
+.superpowers
+.venv
+bin
+__pycache__
+*.log
