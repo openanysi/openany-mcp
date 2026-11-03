@@ -41,9 +41,25 @@ uv pip install --python .venv/bin/python -r scripts/requirements.lock
 .venv/bin/python scripts/sync_mcp_tool_names.py --apply
 ```
 
-The default is read-only preview. `--apply` assigns only NULL values in one transaction, using advisory/row locks and the unique index. Existing or manually assigned names are never changed. A collision extends only the new UUID suffix. Disabled APIs also receive and retain names. No force-rename option exists.
+The default is read-only preview. `--apply` assigns only NULL values in one transaction, using advisory/row locks and the unique index. Existing or manually assigned names are never changed. Names have no automatic UUID suffix. On a collision, only the new name receives a numeric alias (`_2`, `_3`, ...); the base is shortened as needed to keep the full name at most 64 ASCII characters. Disabled APIs also receive and retain names. No force-rename option exists.
 
-Names normally look like `blockrun_get_api_v1_crypto_list_e1183d75`. They are stored in `agent_apis.public_mcp_tool_name`; the existing `mcp_tool_name` remains the upstream tool name. API imports and updates must preserve this column when not explicitly changing it. No control-plane importer was modified by this independent project.
+Names normally look like `blockrun_get_api_v1_crypto_list` or `dataforseo_post_v3_backlinks_summary_live`. They are stored in `agent_apis.public_mcp_tool_name`; the existing `mcp_tool_name` remains the upstream tool name. API imports and updates must preserve this column when not explicitly changing it. No control-plane importer was modified by this independent project.
+
+### Migrating names from the original UUID format
+
+The explicit migration switch previews changes to names that exactly match the old generator for the same provider, method, path and API UUID:
+
+```sh
+# Load your separate maintenance POSTGRES_DATABASE_URL first.
+.venv/bin/python scripts/sync_mcp_tool_names.py --rename-generated
+.venv/bin/python scripts/sync_mcp_tool_names.py --rename-generated --apply
+```
+
+Other existing names are reserved and preserved. A hand-picked name identical to an old generated value cannot be distinguished without historical provenance; if metadata paths have changed, the old name may not match and will be retained. Output includes `previous_tool_name` for each rename. `assigned` counts all proposed/written changes, including `renamed`; `already_named` counts non-NULL rows before changes.
+
+Migration and NULL fills commit atomically under the same advisory lock. Row locks, expected-old-value checks and the unique index protect concurrent changes. No intermediate NULL values are visible to catalog readers. Save the preview and apply JSON reports before a migration; local reports belong under ignored `var/maintenance/`.
+
+After intentional renaming, reconnect or re-list tools in Agents. Old tool names are removed on catalog refresh; they are not runtime aliases. The `_2`, `_3` names each identify their own API, and repeated normal runs never re-number saved names.
 
 ## Runtime behavior
 
@@ -94,4 +110,4 @@ The service image contains no Python. Run naming maintenance as a separate task.
 
 Rollback the service/config image, keeping the persistent name column and assigned values. Do not clear/rebuild names. Structured logs omit credentials and business bodies; request IDs correlate calls with gateway usage.
 
-The approved design and original mapping proposal are under `docs/superpowers/specs/`. Their original "not implemented" status describes the planning baseline; this README and `docs/verification.md` record the implementation state.
+The approved design and original mapping proposal are under `docs/superpowers/specs/`. The original design retains the approved baseline; the readable-name amendment, this README and `docs/verification.md` record subsequent changes and verification.

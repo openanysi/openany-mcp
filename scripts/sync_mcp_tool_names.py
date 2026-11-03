@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Preview or transactionally fill missing public MCP names. Never rename existing values."""
+"""Preview or fill missing public MCP names; rename legacy generated names only when explicitly requested."""
 import argparse
 import json
 import os
@@ -12,7 +12,21 @@ LOCK_NAMESPACE = 741216
 LOCK_KEY = 1
 
 
-def assign_names(rows):
+def name_base(row):
+    source = f"{row['provider_id']}_{row['method']}_{row['path_template']}".lower()
+    return re.sub(r'[^a-z0-9]+', '_', source, flags=re.ASCII).strip('_')
+
+
+def is_legacy_name(row):
+    if row['public_mcp_tool_name'] is None:
+        return False
+    prefix = name_base(row)
+    identity = uuid.UUID(str(row['api_id'])).hex
+    return any(row['public_mcp_tool_name'] == prefix[:63-length].rstrip('_') + '_' + identity[:length]
+               for length in (8, 12, 16, 32))
+
+
+def assign_names(rows, rename_generated=False):
     occupied = set()
     for row in rows:
         name = row['public_mcp_tool_name']
@@ -20,21 +34,28 @@ def assign_names(rows):
             if not NAME.fullmatch(name) or name in occupied:
                 raise ValueError('Invalid or duplicate existing public name')
             occupied.add(name)
+    rename_ids = {row['api_id'] for row in rows if rename_generated and is_legacy_name(row)}
+    occupied.difference_update(row['public_mcp_tool_name'] for row in rows if row['api_id'] in rename_ids)
     assigned = []
     for row in sorted(rows, key=lambda row: str(row['api_id'])):
-        if row['public_mcp_tool_name'] is not None:
+        previous = row['public_mcp_tool_name']
+        if previous is not None and row['api_id'] not in rename_ids:
             continue
-        identity = uuid.UUID(str(row['api_id'])).hex
-        source = f"{row['provider_id']}_{row['method']}_{row['path_template']}".lower()
-        prefix = re.sub(r'[^a-z0-9]+', '_', source, flags=re.ASCII).strip('_')
-        for length in (8, 12, 16, 32):
-            candidate = prefix[:63-length].rstrip('_') + '_' + identity[:length]
-            if NAME.fullmatch(candidate) and candidate not in occupied:
-                occupied.add(candidate)
-                assigned.append({'api_id': str(row['api_id']), 'status': row['status'], 'tool_name': candidate})
-                break
-        else:
-            raise ValueError('Cannot assign a unique name for API ' + str(row['api_id']))
+        prefix = name_base(row)
+        candidate = prefix[:64].rstrip('_')
+        if not NAME.fullmatch(candidate):
+            raise ValueError('Cannot assign a valid name for API ' + str(row['api_id']))
+        number = 2
+        while candidate in occupied:
+            suffix = '_' + str(number)
+            candidate = prefix[:64-len(suffix)].rstrip('_') + suffix
+            number += 1
+        occupied.add(candidate)
+        if candidate != previous:
+            item = {'api_id': str(row['api_id']), 'status': row['status'], 'tool_name': candidate}
+            if previous is not None:
+                item['previous_tool_name'] = previous
+            assigned.append(item)
     return assigned
 
 
@@ -59,7 +80,7 @@ def check_schema(conn):
         raise ValueError('Required global nullable unique index missing or incompatible')
 
 
-def synchronize(database_url, apply=False):
+def synchronize(database_url, apply=False, rename_generated=False):
     import psycopg
     from psycopg.rows import dict_row
     with psycopg.connect(database_url, autocommit=True, row_factory=dict_row,
@@ -72,18 +93,28 @@ def synchronize(database_url, apply=False):
             check_schema(conn)
             if apply:
                 conn.execute('SELECT pg_advisory_xact_lock(%s,%s)', (LOCK_NAMESPACE, LOCK_KEY))
-                conn.execute('SELECT id FROM public.agent_apis WHERE public_mcp_tool_name IS NULL ORDER BY id FOR UPDATE').fetchall()
+                where = '' if rename_generated else 'WHERE public_mcp_tool_name IS NULL'
+                conn.execute('SELECT id FROM public.agent_apis ' + where + ' ORDER BY id FOR UPDATE').fetchall()
             rows = conn.execute('''SELECT id::text AS api_id,provider_id,method,path_template,status,public_mcp_tool_name
                                  FROM public.agent_apis ORDER BY id''').fetchall()
-            assignments = assign_names(rows)
+            assignments = assign_names(rows, rename_generated=rename_generated)
             if apply:
+                # Free old values atomically before assigning names that another renamed row may hold.
+                for item in assignments:
+                    if 'previous_tool_name' in item:
+                        cursor = conn.execute('''UPDATE public.agent_apis SET public_mcp_tool_name=NULL
+                          WHERE id=%s AND public_mcp_tool_name=%s''', (item['api_id'], item['previous_tool_name']))
+                        if cursor.rowcount != 1:
+                            raise ValueError('Concurrent name change; transaction rolled back')
                 for item in assignments:
                     cursor = conn.execute('''UPDATE public.agent_apis SET public_mcp_tool_name=%s,updated_at=now()
                       WHERE id=%s AND public_mcp_tool_name IS NULL''', (item['tool_name'], item['api_id']))
                     if cursor.rowcount != 1:
                         raise ValueError('Concurrent name change; transaction rolled back')
             result = {'mode': 'apply' if apply else 'preview', 'total': len(rows),
-                      'already_named': len(rows)-len(assignments), 'assigned': len(assignments),
+                      'already_named': sum(row['public_mcp_tool_name'] is not None for row in rows),
+                      'assigned': len(assignments), 'renamed': sum('previous_tool_name' in item for item in assignments),
+                      'rename_generated': rename_generated,
                       'committed': apply, 'assignments': assignments}
         return result
 
@@ -91,13 +122,15 @@ def synchronize(database_url, apply=False):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--apply', action='store_true', help='commit assignments; default is read-only preview')
+    parser.add_argument('--rename-generated', action='store_true',
+                        help='also replace names that exactly match the old UUID-suffix algorithm')
     args = parser.parse_args()
     database_url = os.environ.get('POSTGRES_DATABASE_URL')
     if not database_url:
         print(json.dumps({'error': 'POSTGRES_DATABASE_URL is required'}), file=sys.stderr)
         return 1
     try:
-        result = synchronize(database_url, args.apply)
+        result = synchronize(database_url, args.apply, args.rename_generated)
     except ValueError as error:
         print(json.dumps({'error': str(error)}), file=sys.stderr)
         return 1
