@@ -51,3 +51,26 @@ Review scope rulings:
 - Production proxy behavior and production grants were not exercised. Local reader/namer grants and local catalog reads were verified; deployment guidance specifies retry/time-budget settings.
 - Retaining unrestricted RPC array items can produce compatibility warnings in stricter clients; narrowing them would reject valid provider inputs.
 - This is a new standalone repository with no existing merge base or remote; preserve the local codex branch and commits, with no merge/push operation.
+
+
+Readable-name amendment verification (2026-11-03):
+
+- User explicitly chose no fixed UUID suffix, `_2`/`_3` collision aliases, and migration of existing generated names.
+- New natural-name assertions failed against the original implementation. Legacy migration tests initially failed because the new API did not exist; the rollback test uses the specific database RaiseException so a missing Python parameter cannot satisfy it.
+- Full Python suite passed 18/18: 11 unit tests and 7 disposable-PostgreSQL cases. Coverage includes multi-digit alias truncation, exact legacy detection (all four suffix lengths), manual/disabled names, cross-occupied old names, concurrent migration and restoration of cleared names after a failed final write.
+- Independent read-only review of 7d3632f..3f99932 found no Critical/Important/Minor issues; reviewer independently passed all 11 unit tests and diff whitespace checks.
+- Real preflight found 7 custom gateway triggers. Name-only updates run validation guards and the deferred pricing check, with no price/status/revision mutation. Added their four required column SELECT grants to the local naming role; a forced-rollback UPDATE plus immediate deferred-constraint evaluation passed. Writable columns remain exactly public_mcp_tool_name and updated_at.
+- Preview: 970 rows all exactly matched the old algorithm, 970 proposed renames, no unmatched stored names. At the 64-character natural-name limit there are 4 duplicate groups; 6 numeric aliases resolve all final candidate collisions.
+- Applied all 970 renames in one transaction using the restricted naming role. Output matched the saved preview exactly. Second explicit migration apply assigned=0 and renamed=0.
+- User example now persists as dataforseo_post_v3_backlinks_summary_live. All 970 database names match both the migration report and the updated one-to-one mapping artifact, with global uniqueness.
+- Server-side fingerprints before/after confirm every other agent_apis field except updated_at is unchanged (including prices, status, revision and upstream tool names); all request config data is unchanged.
+- Runtime reader --check-catalog passes: active=956, pending=0, published=956. The already-running service auto-refreshed without restart. HTTP discovery returned all 956 new names across 20 pages and 154 in the DataForSEO view; the old example name is absent and the new name is present.
+- Private before/preview/apply/no-op/fingerprint reports are in ignored var/maintenance/ with mode 600. No paid business call was made for this change.
+
+Review scope rulings for the amendment:
+
+- Existing clean standalone checkout and a new codex/readable-tool-names branch satisfy the user's target-directory workflow; no additional worktree or remote push was needed. Concurrent external edits would require reconciliation.
+- Review ran before the real migration; only generated mapping and verification/operational docs changed afterward. This reduced live-reference risk without another review loop.
+- The reviewer did not independently access real triggers, roles, migration or runtime refresh; these were directly verified by the implementing agent and the evidence is listed above.
+- Extreme same-name catalog sizes were not load-tested; current 970-row preview/apply completed with 6 collision aliases.
+- A hand-picked value identical to the exact legacy algorithm remains indistinguishable without provenance. Current 970 values match the stored initial assignment baseline, and the user authorized their migration.

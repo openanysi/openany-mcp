@@ -83,6 +83,8 @@ Gateway timeout comes from the gateway's actual global execution budget, not `ag
 
 The service uses PostgreSQL `default_transaction_read_only=on` in addition to role grants. Runtime SELECT columns: id, name, description, provider_id, public_mcp_tool_name, method, path_template, public_path, status, revision, upstream_protocol, request_content_type, unknown_parameters, billing_mode; request config needs api_id and inputs. Maintenance needs SELECT naming fields and UPDATE(public_mcp_tool_name, updated_at). DDL belongs to a migration role.
 
+The deployed gateway may install SECURITY INVOKER validation triggers on `agent_apis`. In this local schema, maintenance also needs SELECT on `agent_apis.billing_mode`, `agent_api_pricing_policies.api_id` and `provider_registration_publications(upstream_key_id, registration_id)`. Those four column-read grants are included in the local setup; UPDATE is still limited to `public_mcp_tool_name` and `updated_at`. APIs linked to provider registrations may need additional trigger read/row-lock privileges, audited against the deployed gateway schema.
+
 ## Verification
 
 ```sh

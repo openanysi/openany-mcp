@@ -25,9 +25,9 @@
 
 **Files:** scripts/sync_mcp_tool_names.py; scripts/test_sync_mcp_tool_names.py; scripts/test_database.py; README.md; docs/verification.md; .gitignore.
 
-- [ ] Write naming and real-database regression tests, run against the old implementation and observe failure.
-- [ ] Implement natural names, numeric aliases, explicit legacy rename and atomic conditional updates.
-- [ ] Run all Python tests on a disposable PostgreSQL database, and the existing Go suite.
-- [ ] Update operational documentation; preview the real catalog and save private old/new reports.
-- [ ] Apply the approved local migration; verify the example name, uniqueness, idempotence, unchanged non-name metadata and refreshed discovery.
-- [ ] Review the final diff and save a local commit, without remote push.
+- [x] Write naming and real-database regression tests, run against the old implementation and observe failure.
+- [x] Implement natural names, numeric aliases, explicit legacy rename and atomic conditional updates.
+- [x] Run all Python tests on a disposable PostgreSQL database, and the existing Go suite.
+- [x] Update operational documentation; preview the real catalog and save private old/new reports.
+- [x] Apply the approved local migration; verify the example name, uniqueness, idempotence, unchanged non-name metadata and refreshed discovery.
+- [x] Review the final diff and save a local commit, without remote push.
