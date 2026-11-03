@@ -39,8 +39,9 @@ Final review and installation verification:
 - Related regressions cover modern dependentRequired, unsupported embedded resource identity, literal properties called definitions, decoded pointer overlap and input non-mutation.
 - A slow database refresh was reproduced blocking old-snapshot readiness; refresh serialization now uses a separate mutex, and the regression/race suite passes.
 - Published schema content participates in the catalog hash, so transformation changes invalidate old cursors.
-- Final-installation HTTP discovery enumerated 956 unique tools across 20 pages; the accurlex view contained 3 tools. No business call was made.
+- Final-installation HTTP discovery enumerated 956 unique tools across 20 pages; the accurlex view contained 3 tools. A tools/call with no credentials reached the local gateway and returned HTTP 401 with a gateway request ID. No authenticated supplier call was made.
 - Official MCP Inspector CLI discovered all 76 BlockRun tools: 0 schema errors and 2 portability warnings for intentionally unconstrained JSON-RPC params items. These schemas retain the provider's any-JSON contract rather than being narrowed to objects.
+- Installed-project Go race tests and go vet passed again; the four pure Python naming tests passed in the installed virtual environment.
 - Docker daemon is not running; native build/tests passed, but no container image build is claimed.
 - Test database setup now refuses database names without the openany_mcp_test prefix. All 7 Python tests passed against that disposable database.
 
