@@ -7,3 +7,4 @@ bin/
 .superpowers/
 *.log
 var/maintenance/
+.DS_Store

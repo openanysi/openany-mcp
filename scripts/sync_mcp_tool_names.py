@@ -7,7 +7,7 @@ import sys
 import uuid
 
 # Edit this value to select the maintenance database; an empty value stops execution.
-DATABASE_URL = ""
+DATABASE_URL = "postgres://postgres:EyNF5Jiqjk@127.0.0.1:5433/openany_dev"
 
 NAME = re.compile(r'[a-z][a-z0-9_]{0,63}\Z', re.ASCII)
 LOCK_NAMESPACE = 741216
