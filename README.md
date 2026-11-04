@@ -86,7 +86,7 @@ After intentional renaming, reconnect or re-list tools in Agents. Old tool names
 
 ## Configuration
 
-See `.env.example`. Required: `POSTGRES_DATABASE_URL`, `OPENANY_GATEWAY_BASE_URL`. The gateway URL must be an origin without userinfo, query, fragment or non-root path.
+See `.env.example` for local configuration. Required: `POSTGRES_DATABASE_URL`, `OPENANY_GATEWAY_BASE_URL`. The Docker image supplies `OPENANY_GATEWAY_BASE_URL=http://127.0.0.1:8888` and listens on `0.0.0.0:3000`. The gateway URL must be an origin without userinfo, query, fragment or non-root path.
 
 Defaults: listen `127.0.0.1:3333`, database pool 4, concurrent calls 16, query timeout 10s, gateway connect 5s, gateway total 1260s, shutdown 1300s; input 8 MiB, gateway response 8 MiB, MCP result 20 MiB. Host defaults only allow localhost/loopback; production must set `MCP_PUBLIC_HOSTS`. If an Origin header is supplied, it must be in `MCP_ALLOWED_ORIGINS`.
 
@@ -115,9 +115,15 @@ Tests use local gateway substitutes. No production key, paid provider call, or d
 
 ```sh
 docker build -t openany-mcp:local .
-# Set an explicit public Host allowlist; 127.0.0.1 inside a container is the container itself.
-docker run --rm --env-file .env -e MCP_LISTEN_ADDR=0.0.0.0:3333 -p 3333:3333 openany-mcp:local
+# Export database credentials and the public Host/Origin allowlists before running.
+docker run --rm \
+  -e POSTGRES_DATABASE_URL \
+  -e MCP_PUBLIC_HOSTS \
+  -e MCP_ALLOWED_ORIGINS \
+  -p 3000:3000 openany-mcp:local
 ```
+
+The image defines the MCP listener (`0.0.0.0:3000`, exposed TCP port **3000**) and gateway origin (`http://127.0.0.1:8888`) in the Dockerfile; neither needs a runtime environment variable. The loopback gateway address requires the gateway to share the container's network namespace, such as another container in the same Kubernetes Pod. Separate Docker containers or Kubernetes Pods must use a reachable gateway service address. The local `.env.example` is for local execution; passing it with `--env-file` would override image defaults, including the listener.
 
 The service image contains no Python. Run naming maintenance as a separate task. Public deployments require HTTPS at the ingress, explicit Host/Origin settings, no business retries, suitable response buffering and deadlines, and termination grace >=1310 seconds for the default long-call budget.
 
