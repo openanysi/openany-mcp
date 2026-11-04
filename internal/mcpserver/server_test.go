@@ -17,8 +17,10 @@ import (
 
 func TestHTTPDiscoveryCallScopeAndHeaderIsolation(t *testing.T) {
 	seen := ""
+	seenQuery := ""
 	gw := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		seen = r.Header.Get("Authorization")
+		seenQuery = r.URL.RawQuery
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"n":9007199254740993}`))
 	}))
@@ -26,7 +28,13 @@ func TestHTTPDiscoveryCallScopeAndHeaderIsolation(t *testing.T) {
 	client, _ := gateway.New(gw.URL, time.Second, time.Second, 1024, 4096)
 	name := "demo_list"
 	r := model.Record{APIID: "00000000-0000-4000-8000-000000000001", Name: "List", ToolName: &name, ProviderID: "demo", Method: "GET", PathTemplate: "/list", PublicPath: "/v1/agent-apis/demo/list", Status: "active", ConfigPresent: true, RequestContentType: "none", UnknownParameters: "reject"}
-	manager := catalog.NewManager(func(context.Context) ([]model.Record, error) { return []model.Record{r}, nil }, model.Overrides{Version: 1}, time.Minute, false)
+	r.Inputs = []model.Input{{Name: "cursor", Location: "query", Type: "string", Nullable: true}}
+	invalidAPI := r
+	invalidAPI.APIID, invalidAPI.PathTemplate, invalidAPI.PublicPath = "00000000-0000-4000-8000-000000000002", "/other", "/v1/agent-apis/demo/other"
+	badName := "demo_bad"
+	invalidAPI.ToolName = &badName
+	invalidAPI.Inputs = []model.Input{{Name: "tickers", Location: "query", Type: "array"}}
+	manager := catalog.NewManager(func(context.Context) ([]model.Record, error) { return []model.Record{r, invalidAPI}, nil }, model.Overrides{Version: 1}, time.Minute, false)
 	if err := manager.Refresh(context.Background()); err != nil {
 		t.Fatal(err)
 	}
@@ -56,14 +64,25 @@ func TestHTTPDiscoveryCallScopeAndHeaderIsolation(t *testing.T) {
 	if list["error"] != nil {
 		t.Fatal(list)
 	}
-	call := rpc("/mcp/demo", "tools/call", map[string]any{"name": "demo_list", "arguments": map[string]any{}}, "Bearer caller")
-	if call["error"] != nil || seen != "Bearer caller" {
-		t.Fatalf("%v auth=%s", call, seen)
+	tools := list["result"].(map[string]any)["tools"].([]any)
+	if len(tools) != 1 || tools[0].(map[string]any)["name"] != "demo_list" {
+		t.Fatal("quarantined tool leaked into discovery", list)
+	}
+	call := rpc("/mcp/demo", "tools/call", map[string]any{"name": "demo_list", "arguments": map[string]any{"cursor": nil}}, "Bearer caller")
+	if call["error"] != nil || seen != "Bearer caller" || seenQuery != "" {
+		t.Fatalf("%v auth=%s query=%s", call, seen, seenQuery)
 	}
 	response, _ := http.Get(server.URL + "/readyz")
+	var status map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&status); err != nil {
+		t.Fatal(err)
+	}
 	response.Body.Close()
-	if response.StatusCode != 200 {
-		t.Fatal("not ready")
+	if response.StatusCode != 200 || status["published"] != float64(1) || status["quarantined"] != float64(1) {
+		t.Fatal("incorrect partial catalog readiness", response.StatusCode, status)
+	}
+	if _, exposed := status["issues"]; exposed {
+		t.Fatal("public readiness exposed API configuration details")
 	}
 	bad, _ := http.NewRequest("POST", server.URL+"/mcp", bytes.NewReader([]byte(`{}`)))
 	bad.Header.Set("Origin", "https://untrusted.invalid")

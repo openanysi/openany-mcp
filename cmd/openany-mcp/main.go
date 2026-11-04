@@ -52,7 +52,13 @@ func run() int {
 			logger.Error("catalog check failed", "reason", err.Error())
 			return 1
 		}
-		json.NewEncoder(os.Stdout).Encode(manager.Status())
+		status := manager.Status()
+		issues := manager.Current().Issues
+		status["issues"] = issues
+		json.NewEncoder(os.Stdout).Encode(status)
+		if len(issues) > 0 {
+			return 1
+		}
 		return 0
 	}
 	client, err := gateway.New(c.GatewayURL, c.GatewayTimeout, c.ConnectTimeout, c.MaxResponse, c.MaxResult)
@@ -74,6 +80,9 @@ func run() int {
 		defer ticker.Stop()
 		for {
 			if err := manager.Refresh(ctx); err != nil {
+				if ctx.Err() != nil {
+					return
+				}
 				logger.Error("catalog refresh failed", "reason", err.Error())
 			} else {
 				logger.Info("catalog verified", "status", manager.Status())

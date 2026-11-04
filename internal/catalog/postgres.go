@@ -29,10 +29,10 @@ func PostgresLoader(pool *pgxpool.Pool, timeout time.Duration) Loader {
 			}
 			if r.ConfigPresent {
 				if len(inputs) == 0 || string(inputs) == "null" {
-					return nil, fmt.Errorf("api %s: null inputs", r.APIID)
-				}
-				if err = json.Unmarshal(inputs, &r.Inputs); err != nil {
-					return nil, fmt.Errorf("api %s: invalid inputs", r.APIID)
+					r.InputError = "null inputs"
+				} else if err = json.Unmarshal(inputs, &r.Inputs); err != nil {
+					r.InputError = "invalid inputs"
+					r.Inputs = nil
 				}
 			}
 			result = append(result, r)

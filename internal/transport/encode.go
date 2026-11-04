@@ -71,6 +71,9 @@ func Encode(r model.Request, args map[string]any) (Encoded, error) {
 			}
 			e.Path = strings.ReplaceAll(e.Path, placeholder, url.PathEscape(s))
 		case "query":
+			if v == nil && in.OmitNull {
+				continue
+			}
 			if a, ok := v.([]any); ok {
 				policy, exists := r.QueryArrays[in.Name]
 				if !exists {

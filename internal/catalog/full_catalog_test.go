@@ -34,9 +34,13 @@ func TestFullCatalogSnapshot(t *testing.T) {
 		if r.Status != "active" {
 			continue
 		}
-		_, err := Build([]model.Record{r}, o, true)
+		snapshot, err := Build([]model.Record{r}, o, true)
 		if err != nil {
 			t.Errorf("%s %s: %v", r.ProviderID, r.PathTemplate, err)
+			continue
+		}
+		for _, issue := range snapshot.Issues {
+			t.Errorf("%s %s: %s", r.ProviderID, r.PathTemplate, issue.Reason)
 		}
 	}
 }

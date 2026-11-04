@@ -11,6 +11,17 @@ go build -trimpath -o bin/openany-mcp ./cmd/openany-mcp
 ./scripts/run-local.sh
 ```
 
+For local development, load the configuration in the same shell and run the source:
+
+```sh
+set -a
+. ./.env
+set +a
+go run ./cmd/openany-mcp
+```
+
+Go does not load `.env` automatically. Restart `go run` after code changes. The local runner executes `bin/openany-mcp`, so rebuild it after changing Go source.
+
 The local installation includes `.env` (reader role) and `.env.maintenance` (naming role), both mode 600 and excluded from Git. `run-local.sh` loads `.env`. Go itself reads environment variables, not dotenv files. No gateway API key is stored in either configuration; callers supply their own.
 
 The installed local `.env` uses port 3335 because the original smoke server occupies 3333. `.env.example` retains the configurable default 3333.
@@ -19,7 +30,7 @@ Endpoints:
 
 - `http://127.0.0.1:3335/mcp` — complete catalog.
 - `http://127.0.0.1:3335/mcp/blockrun` — provider-specific catalog; same names.
-- `/healthz` — process health; `/readyz` — catalog age and counts.
+- `/healthz` — process health; `/readyz` — catalog age and active/published/pending/quarantined counts. A listening port alone does not mean the catalog is ready.
 
 Configure a compatible MCP client for **Streamable HTTP** and attach `Authorization: Bearer YOUR_OPENANY_KEY` (or the gateway-supported API-key header). The service does not implement an OAuth login. Calls without credentials are forwarded without a fallback key and rejected by the gateway. Native clients need no Origin; browser origins must be explicitly allowed.
 
@@ -75,7 +86,9 @@ After intentional renaming, reconnect or re-list tools in Agents. Old tool names
 
 - Active, named APIs are compiled from `agent_api_request_configs.inputs` into specific JSON Schemas and tool bindings. Object/array bodies and local references are retained; large JSON integers are not converted to float64.
 - Each cached tool retains only identity/title/provider/public description, published Input Schema and compiled validator, plus a thin gateway request specification (method/path/content type, parameter placement, query encoding and unsupported-response flag). Raw database records and duplicate original input schemas are released after refresh validation/hashing. Source override configuration remains once in the manager for future refreshes.
-- A request pins one immutable catalog generation. Refresh defaults to 30 seconds; after 120 seconds without successful verification, new MCP requests receive 503. Unnamed rows are reported and skipped. Invalid named metadata prevents the whole new snapshot from publishing.
+- A request pins one immutable catalog generation. Refresh defaults to 30 seconds; after 120 seconds without successful verification, new MCP requests receive 503. Unnamed rows are reported as `pending` and skipped. Incompatible named APIs are quarantined individually; compatible tools remain available and `/readyz` reports `quarantined`. Quarantined APIs are checked again on every refresh and return automatically when their configuration is corrected. No usable tools in a nonempty active catalog means not ready. Database read failures and catalog-wide integrity errors retain the last verified snapshot until it expires.
+- `--check-catalog` audits unnamed APIs too, outputs status and an `issues` array with API IDs/reasons, and exits 1 if any metadata issue is found. This is a stricter operator audit; its nonzero exit does not stop a separately running server from publishing compatible tools. Public `/readyz` exposes counts, not issue details.
+- Optional query parameters declared nullable accept explicit JSON `null` by omitting that query parameter. Omitted values, `false`, `0`, empty strings and empty arrays remain distinct; the configured array policy still controls empty arrays. JSON body nulls remain unchanged. Nullable path/header inputs and required nullable query inputs remain unsupported and are quarantined.
 - Tools are sorted and paginated 50 at a time. Cursors bind catalog hash and provider view. A catalog change requires restarting discovery. `listChanged` is not advertised; clients re-list/reconnect.
 - Only declared business headers and current-call credential headers reach the gateway. Client URLs, redirects, transport headers and environment proxies cannot override the fixed gateway origin.
 - One tool invocation dispatches one business request, with no application retry. The business transport uses HTTP/1.1 without keepalive reuse to avoid transparent replay of billable GETs. Reverse proxies must also disable retries.
@@ -106,6 +119,8 @@ go vet ./...
 ```
 
 The Python DB tests require `MCP_TEST_DATABASE_URL` pointing to a disposable database whose name starts with `openany_mcp_test`: they drop/recreate `public.agent_apis`. **Never point this test variable at your real catalog.** Without the variable, only DB integration cases are skipped.
+
+The Go loader integration test uses `MCP_TEST_CATALOG_DATABASE_URL` and refuses database names without the `openany_mcp_test_` prefix. It recreates `public.agent_apis` and `public.agent_api_request_configs`; use a separate disposable database. It checks that malformed inputs in one named or unnamed API do not block other tools. Without this variable, that database case is skipped.
 
 For a full offline snapshot, supply `MCP_TEST_CATALOG_FILE` (Record JSON with config_present and proposed/stored names) and absolute `MCP_TEST_OVERRIDES_FILE` when running `TestFullCatalogSnapshot`. Full production metadata is not committed as a fixture.
 

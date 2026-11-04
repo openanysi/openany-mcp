@@ -33,6 +33,7 @@ type Record struct {
 	UnknownParameters  string  `json:"unknown_parameters"`
 	ConfigPresent      bool    `json:"config_present"`
 	Inputs             []Input `json:"inputs"`
+	InputError         string  `json:"input_error,omitempty"`
 }
 
 // Request contains only the data needed to encode and dispatch a gateway call.
@@ -49,6 +50,7 @@ type Parameter struct {
 	Name     string
 	Location string
 	Pointer  *string
+	OmitNull bool
 }
 
 type ArrayPolicy struct {
