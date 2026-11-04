@@ -8,6 +8,7 @@ FROM gcr.io/distroless/static-debian12:nonroot
 WORKDIR /app
 COPY --from=build /out/openany-mcp /app/openany-mcp
 COPY config /app/config
-ENV MCP_LISTEN_ADDR=0.0.0.0:3333
-EXPOSE 3333
+ENV OPENANY_GATEWAY_BASE_URL=http://127.0.0.1:8888 \
+    MCP_LISTEN_ADDR=0.0.0.0:3000
+EXPOSE 3000
 ENTRYPOINT ["/app/openany-mcp"]
