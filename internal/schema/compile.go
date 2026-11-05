@@ -137,7 +137,8 @@ func Compile(r model.Record) (*Compiled, error) {
 			if minimum, exists := doc["minItems"]; !exists {
 				doc["minItems"] = 1
 			} else if n, ok := minimum.(json.Number); ok {
-				if value, err := n.Float64(); err == nil && value == 0 {
+				mantissa, _, _ := strings.Cut(strings.ToLower(n.String()), "e")
+				if strings.Trim(mantissa, "-0.") == "" {
 					doc["minItems"] = 1
 				}
 			}
