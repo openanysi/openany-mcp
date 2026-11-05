@@ -133,6 +133,15 @@ func Compile(r model.Record) (*Compiled, error) {
 		if err := normalize(doc, ns, false); err != nil {
 			return nil, err
 		}
+		if in.NonEmpty {
+			if minimum, exists := doc["minItems"]; !exists {
+				doc["minItems"] = 1
+			} else if n, ok := minimum.(json.Number); ok {
+				if value, err := n.Float64(); err == nil && value == 0 {
+					doc["minItems"] = 1
+				}
+			}
+		}
 		if len(in.Enum) > 0 && string(in.Enum) != "null" {
 			v, e := Decode(in.Enum)
 			if e != nil {

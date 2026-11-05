@@ -378,5 +378,943 @@
     "cbba4d7f-59d9-5f41-8de1-b5a42e1e8bb7": {
       "public_description": "天眼查专业算法加持，结合【软件著作权数量】【实用新型专利数量】【发明授权有效数量】【科技型企业认证】【研发实力评分】【创新能力评分】等多角度立体分析，产出企业【科创分】的综合评价。"
     }
-  }
+  },
+  "routes": [
+    {
+      "provider_id": "blockrun",
+      "method": "GET",
+      "path_template": "/v1/pm/limitless/markets",
+      "query_arrays": {
+        "categories": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "condition_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "tags": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "token_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "blockrun",
+      "method": "GET",
+      "path_template": "/api/v1/pm/limitless/markets",
+      "query_arrays": {
+        "categories": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "condition_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "tags": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "token_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/limitless/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "lifi",
+      "method": "GET",
+      "path_template": "/v1/quote",
+      "query_arrays": {
+        "allowBridges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/quote; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "allowExchanges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/quote; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "denyBridges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/quote; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "denyExchanges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/quote; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "denyPools": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/quote; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "preferBridges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/quote; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "preferExchanges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/quote; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "swapStepTimingStrategies": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/quote; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "routeTimingStrategies": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/quote; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "blockrun",
+      "method": "GET",
+      "path_template": "/v1/pm/polymarket/markets",
+      "query_arrays": {
+        "condition_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "event_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "question_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "tags": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "token_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "blockrun",
+      "method": "GET",
+      "path_template": "/api/v1/pm/polymarket/markets",
+      "query_arrays": {
+        "condition_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "event_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "question_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "tags": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "token_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "lifi",
+      "method": "GET",
+      "path_template": "/v1/connections",
+      "query_arrays": {
+        "allowBridges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/connections; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "denyBridges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/connections; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "preferBridges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/connections; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "allowExchanges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/connections; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "denyExchanges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/connections; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "preferExchanges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/connections; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "polymarket",
+      "method": "GET",
+      "path_template": "/teams",
+      "query_arrays": {
+        "league": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/teams; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "name": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/teams; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "abbreviation": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/teams; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "polymarket",
+      "method": "GET",
+      "path_template": "/series",
+      "query_arrays": {
+        "slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/series; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "categories_ids": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/series; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "categories_labels": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/series; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "blockrun",
+      "method": "GET",
+      "path_template": "/v1/pm/opinion/markets",
+      "query_arrays": {
+        "condition_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "event_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "event_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "labels": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "token_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "blockrun",
+      "method": "GET",
+      "path_template": "/api/v1/pm/opinion/markets",
+      "query_arrays": {
+        "condition_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "event_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "event_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "labels": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "token_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/opinion/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "lifi",
+      "method": "GET",
+      "path_template": "/v1/quote/toAmount",
+      "query_arrays": {
+        "allowBridges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/quote/toAmount; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "allowExchanges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/quote/toAmount; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "denyBridges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/quote/toAmount; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "denyExchanges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/quote/toAmount; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "preferBridges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/quote/toAmount; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "preferExchanges": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/quote/toAmount; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "swapStepTimingStrategies": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/quote/toAmount; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "routeTimingStrategies": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/quote/toAmount; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "blockrun",
+      "method": "GET",
+      "path_template": "/v1/pm/polymarket/events",
+      "query_arrays": {
+        "id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "tag": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "blockrun",
+      "method": "GET",
+      "path_template": "/api/v1/pm/polymarket/events",
+      "query_arrays": {
+        "id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "tag": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "blockrun",
+      "method": "GET",
+      "path_template": "/v1/pm/polymarket/events/keyset",
+      "query_arrays": {
+        "id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "tag": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "blockrun",
+      "method": "GET",
+      "path_template": "/api/v1/pm/polymarket/events/keyset",
+      "query_arrays": {
+        "id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "tag": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "polymarket",
+      "method": "GET",
+      "path_template": "/query/market-discovery/list-events-keyset-pagination-f9e1322a",
+      "query_arrays": {
+        "id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "tag_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "exclude_tag_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "series_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "game_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "created_by": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/events/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "blockrun",
+      "method": "GET",
+      "path_template": "/v1/pm/kalshi/markets",
+      "query_arrays": {
+        "event_ticker": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/kalshi/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/kalshi/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "series_ticker": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/kalshi/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "ticker": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/kalshi/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "blockrun",
+      "method": "GET",
+      "path_template": "/api/v1/pm/kalshi/markets",
+      "query_arrays": {
+        "event_ticker": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/kalshi/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/kalshi/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "series_ticker": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/kalshi/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "ticker": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/kalshi/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "polymarket",
+      "method": "GET",
+      "path_template": "/query/market-discovery/list-markets-keyset-pagination-321a46b4",
+      "query_arrays": {
+        "id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "clob_token_ids": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "condition_ids": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "question_ids": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "tag_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "sports_market_types": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "blockrun",
+      "method": "GET",
+      "path_template": "/v1/pm/predictfun/markets",
+      "query_arrays": {
+        "condition_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "event_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "token_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "blockrun",
+      "method": "GET",
+      "path_template": "/api/v1/pm/predictfun/markets",
+      "query_arrays": {
+        "condition_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "event_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "token_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/predictfun/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "polymarket",
+      "method": "GET",
+      "path_template": "/events",
+      "query_arrays": {
+        "id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/events; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "exclude_tag_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/events; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/events; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "polymarket",
+      "method": "GET",
+      "path_template": "/markets",
+      "query_arrays": {
+        "id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "clob_token_ids": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "condition_ids": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "sports_market_types": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "question_ids": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/markets; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "blockscout",
+      "method": "GET",
+      "path_template": "/{chain_id}/api/v2/arbitrum/batches",
+      "query_arrays": {
+        "batch_numbers": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.blockscout.com/openapi-specs/pro-api-v12.json#/{chain_id}/api/v2/arbitrum/batches; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "blockrun",
+      "method": "GET",
+      "path_template": "/v1/pm/polymarket/markets/keyset",
+      "query_arrays": {
+        "condition_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "event_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "question_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "tags": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "token_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "blockrun",
+      "method": "GET",
+      "path_template": "/api/v1/pm/polymarket/markets/keyset",
+      "query_arrays": {
+        "condition_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "event_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "market_slug": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "predexon_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "question_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "tags": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "token_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.predexon.com/openapi-v2.json#/v2/polymarket/markets/keyset; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "polymarket",
+      "method": "GET",
+      "path_template": "/public-search",
+      "query_arrays": {
+        "events_tag": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/public-search; OpenAPI query form/explode=true; empty-array behavior unverified"
+        },
+        "exclude_tag_id": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.polymarket.com/api-spec/gamma-openapi.yaml#/public-search; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    },
+    {
+      "provider_id": "lifi",
+      "method": "POST",
+      "path_template": "/v1/advanced/stepTransaction",
+      "query_arrays": {
+        "denyPools": {
+          "encoding": "repeated",
+          "empty": "reject",
+          "source": "https://docs.li.fi/openapi.yaml#/v1/advanced/stepTransaction; OpenAPI query form/explode=true; empty-array behavior unverified"
+        }
+      }
+    }
+  ]
 }

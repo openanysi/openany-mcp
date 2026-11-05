@@ -79,6 +79,9 @@ func Encode(r model.Request, args map[string]any) (Encoded, error) {
 				if !exists {
 					return e, fmt.Errorf("array query encoding missing for %s", in.Name)
 				}
+				if len(a) == 0 && policy.Empty == "reject" {
+					return e, fmt.Errorf("empty query array is not supported for %s", in.Name)
+				}
 				if len(a) == 0 && policy.Empty == "omit" {
 					continue
 				}

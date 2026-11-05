@@ -49,6 +49,10 @@ func Build(records []model.Record, overrides model.Overrides, checkUnnamed bool)
 	if overrides.Version != 1 {
 		return nil, fmt.Errorf("unsupported overrides version")
 	}
+	policies, err := indexRoutes(overrides.Routes)
+	if err != nil {
+		return nil, err
+	}
 	s := &Snapshot{Tools: map[string]*Binding{}, Providers: map[string]bool{}}
 	routes := map[string]bool{}
 	for _, r := range records {
@@ -64,7 +68,8 @@ func Build(records []model.Record, overrides model.Overrides, checkUnnamed bool)
 				continue
 			}
 		}
-		binding, err := compileBinding(r, overrides.APIs[r.APIID])
+		override := mergeOverride(policies[routeKey{r.ProviderID, r.Method, r.PathTemplate}], overrides.APIs[r.APIID])
+		binding, err := compileBinding(r, override)
 		if err != nil {
 			s.Issues = append(s.Issues, Issue{APIID: r.APIID, Reason: err.Error()})
 			if !pending {
@@ -134,7 +139,8 @@ func compileBinding(r model.Record, o model.Override) (*Binding, error) {
 	if o.ResponseMode != "" && o.ResponseMode != "json" && o.ResponseMode != "unsupported" {
 		return nil, fmt.Errorf("api %s: invalid response mode", r.APIID)
 	}
-	for _, in := range r.Inputs {
+	r.Inputs = append([]model.Input(nil), r.Inputs...)
+	for i, in := range r.Inputs {
 		switch in.Location {
 		case "path", "query", "body", "header":
 		default:
@@ -154,8 +160,11 @@ func compileBinding(r model.Record, o model.Override) (*Binding, error) {
 			if r.BillingMode == "rules" && p.Encoding == "repeated" {
 				return nil, fmt.Errorf("api %s: rules billing cannot accept repeated query keys", r.APIID)
 			}
-			if !ok || p.Source == "" || (p.Encoding != "csv" && p.Encoding != "repeated" && p.Encoding != "json") || (p.Empty != "omit" && p.Empty != "empty") {
+			if !ok || p.Source == "" || (p.Encoding != "csv" && p.Encoding != "repeated" && p.Encoding != "json") || (p.Empty != "omit" && p.Empty != "empty" && p.Empty != "reject") {
 				return nil, fmt.Errorf("api %s: query array %s needs sourced encoding", r.APIID, in.Name)
+			}
+			if p.Empty == "reject" {
+				r.Inputs[i].NonEmpty = true
 			}
 		}
 	}

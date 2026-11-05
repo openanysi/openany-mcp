@@ -15,6 +15,7 @@ type Input struct {
 	Enum        json.RawMessage `json:"enum_values,omitempty"`
 	Minimum     json.RawMessage `json:"minimum,omitempty"`
 	Maximum     json.RawMessage `json:"maximum,omitempty"`
+	NonEmpty    bool            `json:"-"`
 }
 type Record struct {
 	BillingMode        string  `json:"billing_mode"`
@@ -72,4 +73,12 @@ type Override struct {
 type Overrides struct {
 	Version int                 `json:"version"`
 	APIs    map[string]Override `json:"apis"`
+	Routes  []RouteOverride     `json:"routes,omitempty"`
+}
+
+type RouteOverride struct {
+	ProviderID   string `json:"provider_id"`
+	Method       string `json:"method"`
+	PathTemplate string `json:"path_template"`
+	Override
 }

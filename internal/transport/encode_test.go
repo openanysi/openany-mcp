@@ -41,6 +41,17 @@ func TestEncodeArraysRequireExplicitPolicy(t *testing.T) {
 		t.Fatal(e.Query)
 	}
 }
+
+func TestEncodeRejectsUnverifiedEmptyArrays(t *testing.T) {
+	r := model.Request{Method: "GET", PublicPath: "/list", Inputs: []model.Parameter{{Name: "tags", Location: "query"}}, QueryArrays: map[string]model.ArrayPolicy{"tags": {Encoding: "repeated", Empty: "reject"}}}
+	if _, err := Encode(r, map[string]any{"tags": []any{}}); err == nil {
+		t.Fatal("unverified empty array was encoded")
+	}
+	e, err := Encode(r, map[string]any{"tags": []any{"a", "b"}})
+	if err != nil || e.Query != "tags=a&tags=b" {
+		t.Fatal("nonempty array changed", e, err)
+	}
+}
 func TestBodyAncestorPointersAreRejectedWithoutMutatingInput(t *testing.T) {
 	for _, reverse := range []bool{false, true} {
 		inputs := []model.Parameter{{Name: "parent", Location: "body", Pointer: ptr("/a")}, {Name: "child", Location: "body", Pointer: ptr("/a/b")}}
