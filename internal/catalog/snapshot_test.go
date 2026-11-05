@@ -121,6 +121,36 @@ func TestNullableHTTPInputsStillRequireSupportedPolicy(t *testing.T) {
 func fixture(name string) model.Record {
 	return model.Record{APIID: "00000000-0000-4000-8000-000000000001", Name: "List", ProviderID: "demo", ToolName: &name, Method: "GET", PathTemplate: "/list", PublicPath: "/v1/agent-apis/demo/list", Status: "active", RequestContentType: "none", UnknownParameters: "reject", ConfigPresent: true}
 }
+
+func TestAnyArrayToolPublishesAndPreservesBodyPlacement(t *testing.T) {
+	for _, tc := range []struct{ pointer, body string }{
+		{"", `["link",9007199254740993,false,null,{},[1,"nested"]]`},
+		{"/links", `{"links":["link",9007199254740993,false,null,{},[1,"nested"]]}`},
+	} {
+		r := fixture("demo_batch_post_ids")
+		r.APIID = "0007569f-ced2-4463-a3e6-b32da069a2f3"
+		r.Name = "Get post IDs in batch through sharing links"
+		r.Method, r.RequestContentType = "POST", "application/json"
+		pointer := tc.pointer
+		r.Inputs = []model.Input{{Name: "body", Location: "body", Type: "array", ItemType: "any", Required: true, Pointer: &pointer, Schema: json.RawMessage(`null`)}}
+		s, err := Build([]model.Record{r}, model.Overrides{Version: 1}, false)
+		if err != nil || s.Quarantined != 0 || len(s.Tools) != 1 {
+			t.Fatalf("valid any-array API was not published: %v", err)
+		}
+		b := s.Tools["demo_batch_post_ids"]
+		args, err := b.Input.Validate([]byte(`{"body":["link",9007199254740993,false,null,{},[1,"nested"]]}`))
+		if err != nil {
+			t.Fatal(err)
+		}
+		encoded, err := transport.Encode(b.Request, args)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(encoded.Body) != tc.body {
+			t.Fatalf("body placement or JSON values changed: got %s, want %s", encoded.Body, tc.body)
+		}
+	}
+}
 func TestBuildAndAtomicRefresh(t *testing.T) {
 	r := fixture("demo_list")
 	snap, err := Build([]model.Record{r}, model.Overrides{Version: 1}, false)

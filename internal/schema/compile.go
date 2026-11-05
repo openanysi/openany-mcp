@@ -120,7 +120,14 @@ func Compile(r model.Record) (*Compiled, error) {
 				if item == "" {
 					item = "string"
 				}
-				doc["items"] = map[string]any{"type": item}
+				if item == "any" {
+					if in.Location != "body" || r.RequestContentType != "application/json" {
+						return nil, fmt.Errorf("input %s: item_type any requires a JSON body", in.Name)
+					}
+					doc["items"] = map[string]any{}
+				} else {
+					doc["items"] = map[string]any{"type": item}
+				}
 			}
 		}
 		ns := "#/properties/" + escapePointer(in.Name)

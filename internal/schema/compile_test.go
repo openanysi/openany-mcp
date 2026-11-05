@@ -6,6 +6,74 @@ import (
 	"testing"
 )
 
+func TestCompileAnyArrayPreservesArrayAndNullability(t *testing.T) {
+	for _, rawSchema := range []json.RawMessage{nil, json.RawMessage(`null`)} {
+		r := model.Record{RequestContentType: "application/json", UnknownParameters: "reject", Inputs: []model.Input{{Name: "body", Location: "body", Type: "array", ItemType: "any", Required: true, Schema: rawSchema}}}
+		c, err := Compile(r)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, raw := range []string{`{"body":[]}`, `{"body":["link",9007199254740993,0,false,null,{},[1,"nested"]]}`} {
+			if _, err := c.Validate([]byte(raw)); err != nil {
+				t.Fatalf("valid any array rejected: %s: %v", raw, err)
+			}
+		}
+		for _, raw := range []string{`{}`, `{"body":null}`, `{"body":{}}`, `{"body":"link"}`} {
+			if _, err := c.Validate([]byte(raw)); err == nil {
+				t.Fatalf("array contract lost: %s", raw)
+			}
+		}
+		r.Inputs[0].Nullable = true
+		c, err = Compile(r)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := c.Validate([]byte(`{"body":null}`)); err != nil {
+			t.Fatal("nullable array rejected null:", err)
+		}
+	}
+}
+
+func TestAnyArrayDoesNotBroadenExplicitSchemasOrOtherTypes(t *testing.T) {
+	r := model.Record{RequestContentType: "application/json", UnknownParameters: "reject", Inputs: []model.Input{{Name: "body", Location: "body", Type: "array", ItemType: "any", Schema: json.RawMessage(`{"type":"array","items":{"type":"string"}}`)}}}
+	c, err := Compile(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.Validate([]byte(`{"body":["link"]}`)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.Validate([]byte(`{"body":[1]}`)); err == nil {
+		t.Fatal("explicit item schema was broadened")
+	}
+	r.Inputs[0].Schema = json.RawMessage(`{"type":"array","items":{"type":"any"}}`)
+	if _, err := Compile(r); err == nil {
+		t.Fatal("invalid explicit schema was silently accepted")
+	}
+	r.Inputs[0].Schema = nil
+	r.Inputs[0].ItemType = "string"
+	c, err = Compile(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.Validate([]byte(`{"body":[1]}`)); err == nil {
+		t.Fatal("ordinary string array was broadened")
+	}
+	r.Inputs[0].ItemType = "not_a_type"
+	if _, err := Compile(r); err == nil {
+		t.Fatal("unknown item type was treated as any")
+	}
+}
+
+func TestAnyArrayRequiresJSONBody(t *testing.T) {
+	for _, tc := range []struct{ location, contentType string }{{"query", "none"}, {"body", "none"}, {"header", "application/json"}} {
+		r := model.Record{RequestContentType: tc.contentType, UnknownParameters: "reject", Inputs: []model.Input{{Name: "body", Location: tc.location, Type: "array", ItemType: "any"}}}
+		if _, err := Compile(r); err == nil {
+			t.Fatalf("unencodable any array accepted: %+v", tc)
+		}
+	}
+}
+
 func TestCompileRelocatesReferencesAndRejectsWrongTypes(t *testing.T) {
 	r := model.Record{UnknownParameters: "reject", Inputs: []model.Input{{Name: "body", Location: "body", Type: "object", Required: true, Schema: json.RawMessage(`{"type":"object","$defs":{"N":{"type":"integer"}},"properties":{"n":{"$ref":"#/$defs/N"}},"required":["n"]}`)}}}
 	c, err := Compile(r)
