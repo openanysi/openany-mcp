@@ -15,17 +15,18 @@ import (
 	"slices"
 	"strings"
 	"sync"
-	"time"
 )
 
 type Options struct {
-	MaxBody  int64
-	MaxCalls int
-	Hosts    []string
-	Origins  []string
-	Logger   *slog.Logger
+	LiteEnabled bool
+	MaxBody     int64
+	MaxCalls    int
+	Hosts       []string
+	Origins     []string
+	Logger      *slog.Logger
 }
 type serverKey struct{}
+type snapshotKey struct{}
 type viewSet struct {
 	snapshot *catalog.Snapshot
 	servers  map[string]*mcp.Server
@@ -38,6 +39,7 @@ type Handler struct {
 	mu      sync.Mutex
 	views   *viewSet
 	sdk     *mcp.StreamableHTTPHandler
+	lite    *mcp.Server
 }
 
 func New(manager *catalog.Manager, client *gateway.Client, opts Options) *Handler {
@@ -51,6 +53,9 @@ func New(manager *catalog.Manager, client *gateway.Client, opts Options) *Handle
 		opts.Logger = slog.Default()
 	}
 	h := &Handler{manager: manager, gateway: client, options: opts, slots: make(chan struct{}, opts.MaxCalls)}
+	if opts.LiteEnabled {
+		h.lite = h.newLiteServer()
+	}
 	h.sdk = mcp.NewStreamableHTTPHandler(func(r *http.Request) *mcp.Server { s, _ := r.Context().Value(serverKey{}).(*mcp.Server); return s }, &mcp.StreamableHTTPOptions{Stateless: true, JSONResponse: true, MaxRequestBodyBytes: opts.MaxBody, Logger: opts.Logger, DisableLocalhostProtection: true})
 	return h
 }
@@ -79,8 +84,13 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	lite := r.URL.Path == "/mcp-lite"
+	if lite && !h.options.LiteEnabled {
+		http.NotFound(w, r)
+		return
+	}
 	scope := ""
-	if r.URL.Path != "/mcp" {
+	if !lite && r.URL.Path != "/mcp" {
 		if !strings.HasPrefix(r.URL.Path, "/mcp/") || strings.Contains(r.URL.Path[len("/mcp/"):], "/") {
 			http.NotFound(w, r)
 			return
@@ -100,8 +110,16 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	server := h.server(snapshot, scope)
-	h.sdk.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), serverKey{}, server)))
+	server := h.lite
+	if lite && snapshot.Discovery == nil {
+		http.Error(w, "Discovery catalog is loading", 503)
+		return
+	}
+	if !lite {
+		server = h.server(snapshot, scope)
+	}
+	ctx := context.WithValue(r.Context(), snapshotKey{}, snapshot)
+	h.sdk.ServeHTTP(w, r.WithContext(context.WithValue(ctx, serverKey{}, server)))
 }
 func (h *Handler) allowedHost(host string) bool {
 	if len(h.options.Hosts) > 0 {
@@ -117,7 +135,7 @@ func (h *Handler) allowedHost(host string) bool {
 func (h *Handler) server(snapshot *catalog.Snapshot, scope string) *mcp.Server {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	if h.views == nil || h.views.snapshot != snapshot {
+	if h.views == nil || h.views.snapshot.Hash != snapshot.Hash {
 		h.views = &viewSet{snapshot: snapshot, servers: map[string]*mcp.Server{}}
 	}
 	if s := h.views.servers[scope]; s != nil {
@@ -133,28 +151,7 @@ func (h *Handler) server(snapshot *catalog.Snapshot, scope string) *mcp.Server {
 		tool := &mcp.Tool{Name: name, Title: b.Title, Description: b.Description, InputSchema: b.Input.Document}
 		tools = append(tools, tool)
 		s.AddTool(tool, func(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			start := time.Now()
-			raw := req.Params.Arguments
-			if len(raw) == 0 {
-				raw = json.RawMessage(`{}`)
-			}
-			args, err := b.Input.Validate(raw)
-			if err != nil {
-				return toMCP(gateway.Failure("openany_mcp_invalid_input", "Input parameters do not match the tool schema.", "validate", "not_started", nil, nil)), nil
-			}
-			select {
-			case h.slots <- struct{}{}:
-				defer func() { <-h.slots }()
-			default:
-				return toMCP(gateway.Failure("openany_mcp_busy", "MCP concurrency limit reached.", "admission", "not_started", nil, nil)), nil
-			}
-			var headers http.Header
-			if req.Extra != nil {
-				headers = req.Extra.Header
-			}
-			result := h.gateway.Call(ctx, b.Request, args, headers)
-			h.options.Logger.Info("tool completed", "api_id", b.APIID, "tool_name", name, "catalog_hash", snapshot.Hash, "gateway_request_id", result.Value["request_id"], "http_status", result.Value["http_status"], "is_error", result.IsError, "duration_ms", time.Since(start).Milliseconds())
-			return toMCP(result), nil
+			return h.execute(ctx, req, b, name, req.Params.Arguments, snapshot.Hash)
 		})
 	}
 	s.AddReceivingMiddleware(func(next mcp.MethodHandler) mcp.MethodHandler {

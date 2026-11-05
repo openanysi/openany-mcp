@@ -46,6 +46,9 @@ func run() int {
 	}
 	defer pool.Close()
 	manager := catalog.NewManager(catalog.PostgresLoader(pool, c.QueryTimeout), o, c.MaxAge, *check)
+	if c.LiteEnabled {
+		manager = catalog.NewManagerWithDiscovery(catalog.PostgresLoader(pool, c.QueryTimeout), o, c.MaxAge, *check, catalog.PostgresPricingLoader(pool, c.QueryTimeout))
+	}
 	if *check {
 		if err = manager.Refresh(context.Background()); err != nil {
 			logger.Error("catalog check failed", "reason", err.Error())
@@ -61,7 +64,7 @@ func run() int {
 	defer client.Close()
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	handler := mcpserver.New(manager, client, mcpserver.Options{MaxBody: c.MaxBody, MaxCalls: c.MaxCalls, Hosts: c.Hosts, Origins: c.Origins, Logger: logger})
+	handler := mcpserver.New(manager, client, mcpserver.Options{LiteEnabled: c.LiteEnabled, MaxBody: c.MaxBody, MaxCalls: c.MaxCalls, Hosts: c.Hosts, Origins: c.Origins, Logger: logger})
 	server := &http.Server{Addr: c.Listen, Handler: handler, ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 32 << 10}
 	done := make(chan error, 1)
 	go func() { done <- server.ListenAndServe() }()
