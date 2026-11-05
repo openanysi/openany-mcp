@@ -120,7 +120,10 @@ func Compile(r model.Record) (*Compiled, error) {
 				if item == "" {
 					item = "string"
 				}
-				doc["items"] = map[string]any{"type": item}
+				// OpenAny's "any" permits every JSON value; JSON Schema has no "any" type.
+				if item != "any" {
+					doc["items"] = map[string]any{"type": item}
+				}
 			}
 		}
 		ns := "#/properties/" + escapePointer(in.Name)

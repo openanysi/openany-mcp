@@ -90,3 +90,48 @@ func TestLocalReferenceDoesNotRenamePropertyCalledDefinitions(t *testing.T) {
 		t.Fatalf("property name was treated as a schema keyword: %v", err)
 	}
 }
+
+func TestCompileArrayItemTypes(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		itemType string
+		valid    []string
+		invalid  []string
+	}{
+		{
+			name:     "unconstrained items",
+			itemType: "any",
+			valid:    []string{`{"body":[]}`, `{"body":["link",1,1.5,true,null,{"nested":[]},[false]]}`},
+			invalid:  []string{`{"body":"link"}`, `{"body":{}}`, `{"body":null}`},
+		},
+		{
+			name:     "string items",
+			itemType: "string",
+			valid:    []string{`{"body":[]}`, `{"body":["link"]}`},
+			invalid:  []string{`{"body":[1]}`, `{"body":[null]}`},
+		},
+		{
+			name:    "default string items",
+			valid:   []string{`{"body":["link"]}`},
+			invalid: []string{`{"body":[1]}`},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r := model.Record{UnknownParameters: "reject", Inputs: []model.Input{{Name: "body", Location: "body", Type: "array", ItemType: tc.itemType, Required: true}}}
+			c, err := Compile(r)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, raw := range tc.valid {
+				if _, err := c.Validate([]byte(raw)); err != nil {
+					t.Fatalf("rejected valid input %s: %v", raw, err)
+				}
+			}
+			for _, raw := range tc.invalid {
+				if _, err := c.Validate([]byte(raw)); err == nil {
+					t.Fatalf("accepted invalid input %s", raw)
+				}
+			}
+		})
+	}
+}
