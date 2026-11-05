@@ -334,6 +334,10 @@ func (m *Manager) Status() map[string]any {
 		v["warning_count"] = len(s.Warnings)
 		v["published"] = len(s.Tools)
 		v["catalog_hash"] = s.Hash
+		if m.loadPricing != nil {
+			v["lite_ready"] = v["ready"] == true && s.Discovery != nil
+			v["pricing_available"] = s.Discovery != nil && s.Discovery.PricingAvailable
+		}
 	}
 	return v
 }

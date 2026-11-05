@@ -26,7 +26,12 @@ The local installation includes `.env` (reader role) and `.env.maintenance` (nam
 
 The installed local `.env` uses port 3335 because the original smoke server occupies 3333. `.env.example` retains the configurable default 3333.
 
+Lightweight discovery is available behind `MCP_LITE_ENABLED=true` (default false). Rebuild the binary, enable it in the environment or `.env`, then restart. The original full/provider URLs remain available. New Agents should connect only to `/mcp-lite` to avoid loading the full catalog. [Public connection guide](docs/mcp.md) ships at `/docs/mcp` when enabled.
+
 Endpoints:
+
+- `http://127.0.0.1:3335/mcp-lite` — exactly `search_apis`, `get_api`, `run_api` when enabled.
+- `http://127.0.0.1:3335/docs/mcp` — public plain-text connection guide when enabled; available before catalog readiness.
 
 - `http://127.0.0.1:3335/mcp` — complete catalog.
 - `http://127.0.0.1:3335/mcp/blockrun` — provider-specific catalog; same names.
@@ -93,6 +98,8 @@ After intentional renaming, reconnect or re-list tools in Agents. Old tool names
 - Gateway methods GET, POST, PUT, PATCH and DELETE are supported, preserving their method. Bodyless requests use `none`; non-GET JSON requests use `application/json`. A GET marked JSON with no body inputs is normalized to `none` with a warning. Real GET body inputs, body inputs with `none`, and unsupported body encodings remain hard errors.
 - Legacy nullable enums without an explicit `json_schema` include null in the generated enum. Legacy numeric enum strings are projected as exact JSON numbers. Explicit schemas keep their enum/null constraints. No database edits are required.
 - Optional query parameters declared nullable accept explicit JSON `null` by omitting that query parameter. Omitted values, `false`, `0`, empty strings and empty arrays remain distinct; the configured array policy still controls empty arrays. JSON body nulls remain unchanged. Nullable path/header inputs and required nullable query inputs remain unsupported and are quarantined.
+- Lite discovery defaults to five keyword matches (maximum ten); `get_api` returns the exact original input schema and public pricing. `run_api` requires the returned per-API version and shares the existing validator/admission/credential/transport path. No schema/price lock or automatic business retry is implied. Additional price reads happen after publishing the core catalog; failures report unavailable pricing without failing core readiness. `lite_ready` and `pricing_available` appear in readiness only when enabled. Price/search versions do not affect the direct catalog hash.
+- Public price loading selects only sale rules and public billing fields. Reader permissions for these columns are documented in the connection guide; no supplier costs, upstream keys or new business tables are needed. The same binary can serve a separate lite instance for stronger load isolation.
 - Tools are sorted and paginated 50 at a time. Cursors bind catalog hash and provider view. A catalog change requires restarting discovery. `listChanged` is not advertised; clients re-list/reconnect.
 - Only declared business headers and current-call credential headers reach the gateway. Client URLs, redirects, transport headers and environment proxies cannot override the fixed gateway origin.
 - One tool invocation dispatches one business request, with no application retry. The business transport uses HTTP/1.1 without keepalive reuse to avoid transparent replay of billable GETs. Reverse proxies must also disable retries.

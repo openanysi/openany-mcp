@@ -163,3 +163,19 @@ Deployment requires rebuilding the Docker image with both the binary and `config
 The production report contains 118 IDs/reasons without full request metadata. This change addresses the observed classes but does not prove all 118 are compatible: required unknown arrays, real unsupported body encodings, invalid explicit schemas and unsafe routes/headers still quarantine. Unknown optional arrays publish with a limitation; clients must omit them until a source-backed policy is configured. No production deployment or paid supplier verification was performed.
 
 Independent whole-branch review found one numerical edge case: floating-point underflow could rewrite invalid tiny nonzero `minItems` to 1. The fix identifies exact zero without floating-point conversion. Regression tests first reproduced both positive and negative underflow and now reject them, while legitimate zero representations still advertise nonempty arrays. No other review findings; supplier business availability and full production coverage remain unverified as above.
+
+## Lightweight MCP — 2026-11-05
+
+Added opt-in `/mcp-lite` with search_apis/get_api/run_api and public plain-text `/docs/mcp`. MCP_LITE_ENABLED defaults false; disabled uses the original database loader and no supplementary price reads. Core readiness publishes before auxiliary prices; failures are independently observable through lite_ready/pricing_available. Direct list/schema/hash/provider behavior and execution are preserved.
+
+Tests cover keyword ordering and limits, query/provider/generation-bound cursors, public-price projection (including explicit null conditions/defaults), independent per-API versions, blocked/failing auxiliary price reads, static three-tool discovery, strict wrapper/API validation, no dispatch on stale versions or malformed input, exact large JSON numbers, current-call credential isolation, shared concurrency and Host/Origin guards. Go full tests, race and vet passed; the captured 740-row metadata snapshot also compiles successfully.
+
+Actual read-only HTTP comparison used `openany_local` through the local5432 Unix socket, with old9006efd and new binaries on independent temporary ports:
+
+- Active/published956, quarantined0; all full-catalog tool definitions and all76 BlockRun tool definitions equal to the old binary.
+- Old/new direct catalog hash identical: `3144dee759d41fce49d5c9bfcc4d6ba2cb97c28a8390d54c4e1b9db3060dabcd`.
+- Lite list exactly3 tools, complete JSON-RPC response1860bytes (below10KiB target).
+- Real search/get returned the selected API; its input_schema equals the corresponding direct tool schema. Public price query succeeded and selected price status was available. Public docs returned200.
+- Zero business API calls; credentials, database contents and existing running services were not changed.
+
+The existing private.env currently targets localhost5433/openany_dev, unavailable during verification. It was left unchanged; local5432 has openany_local, not openany_dev. Do not silently point a deployment at another database. Production3220API/6MB figures were supplied by the user; no production deployment, Grok Bot UI test or paid supplier call was performed. Enable the flag and route both new paths when deploying. Same-process traffic shares CPU/memory/business admission; separate-instance rollout remains available.

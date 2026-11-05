@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/modelcontextprotocol/go-sdk/jsonrpc"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	publicdocs "github.com/openany/openany-mcp/docs"
 	"github.com/openany/openany-mcp/internal/catalog"
 	"github.com/openany/openany-mcp/internal/gateway"
 	"log/slog"
@@ -66,6 +67,19 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if origin := r.Header.Get("Origin"); origin != "" && !slices.Contains(h.options.Origins, origin) {
 		http.Error(w, "Forbidden origin", 403)
+		return
+	}
+	if h.options.LiteEnabled && r.URL.Path == "/docs/mcp" {
+		if r.Method != "GET" && r.Method != "HEAD" {
+			w.Header().Set("Allow", "GET, HEAD")
+			w.WriteHeader(405)
+			return
+		}
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		if r.Method == "GET" {
+			w.Write([]byte(publicdocs.MCP))
+		}
 		return
 	}
 	if r.URL.Path == "/healthz" || r.URL.Path == "/readyz" {

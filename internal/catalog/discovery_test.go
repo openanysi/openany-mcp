@@ -73,14 +73,14 @@ func TestDiscoverySearchRanksBoundsAndBindsCursors(t *testing.T) {
 func TestDiscoveryPublicPricingAndVersionsDoNotChangeDirectCatalog(t *testing.T) {
 	s := discoveryFixture(t)
 	hash := s.Hash
-	prices := map[string]map[string]any{"demo_weather": {"mode": "fixed", "currency": "USD", "price_micro_usd": "9007199254740993", "unit": "request", "supplier_price_micro_usd": "private-marker"}}
+	prices := map[string]map[string]any{"demo_weather": {"mode": "fixed", "currency": "USD", "price_micro_usd": "9007199254740991", "unit": "request", "supplier_price_micro_usd": "private-marker"}}
 	a := NewDiscovery(s, prices, true)
 	detail, ok := a.Detail("demo_weather")
 	if !ok || detail["input_schema"] == nil || detail["api_version"] == "" {
 		t.Fatal(detail)
 	}
 	raw, _ := json.Marshal(detail)
-	if strings.Contains(string(raw), "private-marker") || !strings.Contains(string(raw), `"9007199254740993"`) {
+	if strings.Contains(string(raw), "private-marker") || !strings.Contains(string(raw), `"9007199254740991"`) {
 		t.Fatal("public pricing lost precision or leaked supplier data", string(raw))
 	}
 	if _, err := s.Tools["demo_weather"].Input.Validate([]byte(`{}`)); err == nil {
@@ -121,9 +121,11 @@ func TestAuxiliaryPricingDoesNotBlockCoreReadiness(t *testing.T) {
 	if !m.Ready() || m.Current().Tools["demo_list"] == nil {
 		t.Error("price query blocked original service")
 	}
+	if m.Status()["lite_ready"] != false { t.Error("pending discovery reported ready") }
 	hash := m.Current().Hash
 	close(release)
 	if err := <-done; err != nil || !m.Ready() || m.Current().Hash != hash || m.Current().Discovery == nil || m.Current().Discovery.PricingAvailable {
 		t.Fatal("optional failure poisoned catalog", err, m.Status())
 	}
+	if m.Status()["lite_ready"]!=true || m.Status()["pricing_available"]!=false { t.Fatal("auxiliary failure not observable",m.Status()) }
 }

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -17,6 +18,29 @@ import (
 	"github.com/openany/openany-mcp/internal/gateway"
 	"github.com/openany/openany-mcp/internal/model"
 )
+
+func TestLitePublicDocsAvailableBeforeCatalog(t *testing.T) {
+	manager := catalog.NewManager(func(context.Context) ([]model.Record, error) { return nil, nil }, model.Overrides{Version: 1}, time.Minute, false)
+	server := httptest.NewServer(New(manager, nil, Options{LiteEnabled: true}))
+	defer server.Close()
+	res, err := http.Get(server.URL + "/docs/mcp")
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, _ := io.ReadAll(res.Body)
+	res.Body.Close()
+	if res.StatusCode != 200 || !strings.HasPrefix(res.Header.Get("Content-Type"), "text/plain") || len(body) < 1000 {
+		t.Fatal("public docs missing while catalog starts", res.StatusCode, len(body))
+	}
+	res, err = http.Post(server.URL+"/docs/mcp", "application/json", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res.Body.Close()
+	if res.StatusCode != 405 {
+		t.Fatal("documentation endpoint accepts mutations", res.StatusCode)
+	}
+}
 
 func TestLiteWorkflowPreservesDirectCallsAndRejectsUnsafeDispatch(t *testing.T) {
 	var mu sync.Mutex
