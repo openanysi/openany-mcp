@@ -146,6 +146,9 @@ func compileBinding(r model.Record, o model.Override) (*Binding, error) {
 		if in.Location != "body" && in.Nullable && (in.Location != "query" || in.Required) {
 			return nil, fmt.Errorf("api %s: nullable %s input %s has no supported HTTP encoding; null omission requires an optional query parameter", r.APIID, in.Location, in.Name)
 		}
+		if in.Type == "array" && in.ItemType == "any" && (len(in.Schema) == 0 || string(in.Schema) == "null") && (in.Location != "body" || r.RequestContentType != "application/json") {
+			return nil, fmt.Errorf("api %s: array input %s with item_type any requires a JSON body", r.APIID, in.Name)
+		}
 		if in.Location == "query" && in.Type == "array" {
 			p, ok := o.QueryArrays[in.Name]
 			if r.BillingMode == "rules" && p.Encoding == "repeated" {

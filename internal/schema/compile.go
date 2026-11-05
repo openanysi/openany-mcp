@@ -120,10 +120,8 @@ func Compile(r model.Record) (*Compiled, error) {
 				if item == "" {
 					item = "string"
 				}
+				// OpenAny's "any" permits every JSON value; JSON Schema has no "any" type.
 				if item == "any" {
-					if in.Location != "body" || r.RequestContentType != "application/json" {
-						return nil, fmt.Errorf("input %s: item_type any requires a JSON body", in.Name)
-					}
 					doc["items"] = map[string]any{}
 				} else {
 					doc["items"] = map[string]any{"type": item}

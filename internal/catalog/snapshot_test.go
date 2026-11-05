@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/openany/openany-mcp/internal/model"
 	"github.com/openany/openany-mcp/internal/transport"
+	"strings"
 	"testing"
 	"time"
 )
@@ -279,5 +280,20 @@ func TestRefreshOnlyRevisionStillInvalidatesCatalogHash(t *testing.T) {
 	}
 	if before.Hash == after.Hash {
 		t.Fatal("discarded refresh-only metadata stopped invalidating catalog cursors")
+	}
+}
+
+func TestAnyArrayRequiresJSONBody(t *testing.T) {
+	for _, tc := range []struct{ location, contentType string }{{"query", "none"}, {"body", "none"}, {"header", "application/json"}, {"path", "application/json"}} {
+		r := fixture("demo_any_array")
+		r.RequestContentType = tc.contentType
+		if tc.contentType == "application/json" {
+			r.Method = "POST"
+		}
+		r.Inputs = []model.Input{{Name: "body", Location: tc.location, Type: "array", ItemType: "any"}}
+		s, err := Build([]model.Record{r}, model.Overrides{Version: 1}, false)
+		if err != nil || len(s.Tools) != 0 || s.Quarantined != 1 || len(s.Issues) != 1 || !strings.Contains(s.Issues[0].Reason, "JSON body") {
+			t.Fatalf("any array without JSON body policy was not isolated: %+v %v", tc, err)
+		}
 	}
 }

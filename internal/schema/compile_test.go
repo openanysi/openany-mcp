@@ -65,15 +65,6 @@ func TestAnyArrayDoesNotBroadenExplicitSchemasOrOtherTypes(t *testing.T) {
 	}
 }
 
-func TestAnyArrayRequiresJSONBody(t *testing.T) {
-	for _, tc := range []struct{ location, contentType string }{{"query", "none"}, {"body", "none"}, {"header", "application/json"}} {
-		r := model.Record{RequestContentType: tc.contentType, UnknownParameters: "reject", Inputs: []model.Input{{Name: "body", Location: tc.location, Type: "array", ItemType: "any"}}}
-		if _, err := Compile(r); err == nil {
-			t.Fatalf("unencodable any array accepted: %+v", tc)
-		}
-	}
-}
-
 func TestCompileRelocatesReferencesAndRejectsWrongTypes(t *testing.T) {
 	r := model.Record{UnknownParameters: "reject", Inputs: []model.Input{{Name: "body", Location: "body", Type: "object", Required: true, Schema: json.RawMessage(`{"type":"object","$defs":{"N":{"type":"integer"}},"properties":{"n":{"$ref":"#/$defs/N"}},"required":["n"]}`)}}}
 	c, err := Compile(r)
@@ -156,5 +147,50 @@ func TestLocalReferenceDoesNotRenamePropertyCalledDefinitions(t *testing.T) {
 	}
 	if _, err = c.Validate([]byte(`{"body":"ok"}`)); err != nil {
 		t.Fatalf("property name was treated as a schema keyword: %v", err)
+	}
+}
+
+func TestCompileArrayItemTypes(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		itemType string
+		valid    []string
+		invalid  []string
+	}{
+		{
+			name:     "unconstrained items",
+			itemType: "any",
+			valid:    []string{`{"body":[]}`, `{"body":["link",1,1.5,true,null,{"nested":[]},[false]]}`},
+			invalid:  []string{`{"body":"link"}`, `{"body":{}}`, `{"body":null}`},
+		},
+		{
+			name:     "string items",
+			itemType: "string",
+			valid:    []string{`{"body":[]}`, `{"body":["link"]}`},
+			invalid:  []string{`{"body":[1]}`, `{"body":[null]}`},
+		},
+		{
+			name:    "default string items",
+			valid:   []string{`{"body":["link"]}`},
+			invalid: []string{`{"body":[1]}`},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r := model.Record{UnknownParameters: "reject", Inputs: []model.Input{{Name: "body", Location: "body", Type: "array", ItemType: tc.itemType, Required: true}}}
+			c, err := Compile(r)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, raw := range tc.valid {
+				if _, err := c.Validate([]byte(raw)); err != nil {
+					t.Fatalf("rejected valid input %s: %v", raw, err)
+				}
+			}
+			for _, raw := range tc.invalid {
+				if _, err := c.Validate([]byte(raw)); err == nil {
+					t.Fatalf("accepted invalid input %s", raw)
+				}
+			}
+		})
 	}
 }
