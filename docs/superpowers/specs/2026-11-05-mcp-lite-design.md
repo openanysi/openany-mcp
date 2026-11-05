@@ -4,7 +4,7 @@ Approved: add `/mcp-lite` with exactly search_apis, get_api and run_api; retain 
 
 ## Approach
 
-Keep the old entry points and add an independent lightweight view. Pagination/compression alone still exposes the full catalog; replacing /mcp would break existing clients. User chose the additive route. Default MCP_LITE_ENABLED=false for rollout; disabled means no extra price reads or discovery index. Enabled means public static documentation is served with the service, plus Markdown source and README links.
+Keep the old entry points and add an independent lightweight view. Pagination/compression alone still exposes the full catalog; replacing /mcp would break existing clients. User chose the additive route. User follow-up changed the default to MCP_LITE_ENABLED=true; an explicit false disables it; disabled means no extra price reads or discovery index. Enabled means public static documentation is served with the service, plus Markdown source and README links.
 
 Discovery only covers published bindings. Search uses lexical matching (exact name before weighted title/name, description, route, parameter names), basic bilingual synonyms, optional provider, default5/max10, a bounded summary, and stateless generation/query-bound pagination. No claim of general semantic search. get_api returns exact existing input_schema, public metadata, price and a per-API content version. run_api takes api (saved public tool name), api_version and input. It uses the same validator, concurrency admission, encoder, current-call credentials, logging and gateway execution as direct calls. Unknown/stale/quarantined inputs fail locally. Version is not an authorization token or a price lock. Do not auto-retry business calls.
 

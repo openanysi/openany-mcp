@@ -86,19 +86,19 @@ api_version 包含该接口的 revision、Schema、公开价格和转发规则�
 
 ## 部署与自检
 
-在运行环境中设置 `MCP_LITE_ENABLED=true`，重启服务。默认 false，不加载轻量价格和搜索索引，原有入口照常工作。数据库角色仍为只读。价格使用独立刷新任务和最多1个连接的独立只读连接池，避免占用原目录连接池；数据库连接配额应预留这个额外连接。
+轻量入口默认开启，更新二进制后重启服务即可使用。需要关闭时设置 `MCP_LITE_ENABLED=false`；关闭后不加载轻量价格和搜索索引，原有入口照常工作。数据库角色仍为只读。价格使用独立刷新任务和最多1个连接的独立只读连接池，避免占用原目录连接池；数据库连接配额应预留这个额外连接。
 
 公开价格辅助查询需要 agent_apis 的公开计费字段、收费条件字段，以及 agent_api_pricing_policies 的 api_id、policy_version、parameters、sale_policy 只读权限。无需读取 supplier_policy 或 supplier_price_micro_usd。由数据库管理员按最小列权限授权；不需要新增业务表或改名。
 
 ```sh
-MCP_LITE_ENABLED=true ./scripts/run-local.sh --check-catalog
-MCP_LITE_ENABLED=true ./scripts/run-local.sh
+./scripts/run-local.sh --check-catalog
+./scripts/run-local.sh
 ```
 
-如果 .env 中已经显式设置了这个变量，以脚本加载的 .env 值为准；可直接在 .env 中改为 true。源码开发也需要先加载环境变量。run-local.sh 运行 bin/openany-mcp，修改代码后先重新构建。
+变量未设置或为空时默认开启。如果 .env 中已显式设置为 false，仍会关闭；删除该配置或改为 true 即可开启。源码开发也需要先加载环境变量。run-local.sh 运行 bin/openany-mcp，修改代码后先重新构建。
 
 /readyz 中 ready 继续表示原目录状态；启用后还会显示 lite_ready 和 pricing_available。价格辅助读取失败不让原目录失败，get_api 明确返回价格 unavailable。目录尚未完成轻量准备时，/mcp-lite 暂时返回503。/docs/mcp 不依赖目录就绪。
 
-生产环境需设置 MCP_PUBLIC_HOSTS；有浏览器 Origin 时配置 MCP_ALLOWED_ORIGINS。反向代理应放行 /mcp-lite 和 /docs/mcp，按现有要求透传调用方凭证并关闭业务重试。不要仅更新二进制后继续使用未开启功能的环境配置。
+生产环境需设置 MCP_PUBLIC_HOSTS；有浏览器 Origin 时配置 MCP_ALLOWED_ORIGINS。反向代理应放行 /mcp-lite 和 /docs/mcp，按现有要求透传调用方凭证并关闭业务重试。已有环境配置中的显式 false 会覆盖默认开启行为。
 
 三个入口共用同进程资源与业务并发额度。需要更强隔离时，用同一镜像单独部署轻量实例，再把 /mcp-lite 路由到该实例。

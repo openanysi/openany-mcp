@@ -23,7 +23,7 @@ type Config struct {
 func Load() (Config, error) {
 	c := Config{DatabaseURL: os.Getenv("POSTGRES_DATABASE_URL"), GatewayURL: os.Getenv("OPENANY_GATEWAY_BASE_URL"), Listen: value("MCP_LISTEN_ADDR", "127.0.0.1:3333"), OverridesFile: value("MCP_CATALOG_OVERRIDES_FILE", "config/catalog-overrides.json"), Hosts: list("MCP_PUBLIC_HOSTS"), Origins: list("MCP_ALLOWED_ORIGINS")}
 	var err error
-	c.LiteEnabled, err = strconv.ParseBool(value("MCP_LITE_ENABLED", "false"))
+	c.LiteEnabled, err = strconv.ParseBool(value("MCP_LITE_ENABLED", "true"))
 	if err != nil {
 		return c, fmt.Errorf("invalid MCP_LITE_ENABLED")
 	}

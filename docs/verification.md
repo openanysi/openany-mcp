@@ -181,3 +181,8 @@ Actual read-only HTTP comparison used `openany_local` through the local5432 Unix
 The existing private.env currently targets localhost5433/openany_dev, unavailable during verification. It was left unchanged; local5432 has openany_local, not openany_dev. Do not silently point a deployment at another database. Production3220API/6MB figures were supplied by the user; no production deployment, Grok Bot UI test or paid supplier call was performed. Enable the flag and route both new paths when deploying. Same-process traffic shares CPU/memory/business admission; separate-instance rollout remains available.
 
 Independent review identified stale versions on revision-only changes and auxiliary refresh blocking; both were fixed with regressions. API versions now include each API revision, and price IO runs independently on its own one-connection read-only pool. Slow results enrich the latest core generation; they do not restore an older snapshot or advance core freshness. Legal JSON integer forms such as1.0/1e0 now obey search limits. Same-process CPU/network resources remain shared; provision the additional database connection. Mutable internal aliases/cursors and the original JSON decoder behavior remain within their reviewed public/immutable contracts.
+
+
+### Default enabled follow-up — 2026-11-05
+
+User requested MCP lite enabled by default. The runtime fallback and .env.example now use true; an explicit false still disables auxiliary reads and the lightweight/document routes. Configuration regression was observed RED with the former default, then GREEN with the new fallback. Current connection docs/spec/plan were updated; earlier verification records describe the initial opt-in rollout. Existing private .env was not modified.

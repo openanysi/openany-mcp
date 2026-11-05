@@ -26,7 +26,7 @@ The local installation includes `.env` (reader role) and `.env.maintenance` (nam
 
 The installed local `.env` uses port 3335 because the original smoke server occupies 3333. `.env.example` retains the configurable default 3333.
 
-Lightweight discovery is available behind `MCP_LITE_ENABLED=true` (default false). Rebuild the binary, enable it in the environment or `.env`, then restart. The original full/provider URLs remain available. New Agents should connect only to `/mcp-lite` to avoid loading the full catalog. [Public connection guide](docs/mcp.md) ships at `/docs/mcp` when enabled.
+Lightweight discovery is enabled by default. Rebuild the binary and restart to use it; set `MCP_LITE_ENABLED=false` to disable it. The original full/provider URLs remain available. New Agents should connect only to `/mcp-lite` to avoid loading the full catalog. [Public connection guide](docs/mcp.md) ships at `/docs/mcp` when enabled.
 
 Endpoints:
 
