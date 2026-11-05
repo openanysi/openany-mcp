@@ -19,6 +19,7 @@ import (
 
 type Binding struct {
 	APIID       string
+	Revision    int
 	ProviderID  string
 	Title       string
 	Description string
@@ -233,7 +234,7 @@ func compileBinding(r model.Record, o model.Override) (*Binding, []Issue, error)
 	if o.ResponseMode == "unsupported" {
 		description += "\nUnsupported in this version: " + o.UnsupportedReason
 	}
-	return &Binding{APIID: r.APIID, ProviderID: r.ProviderID, Title: r.Name, Description: description, Input: compiled, Request: request}, warnings, nil
+	return &Binding{APIID: r.APIID, Revision: r.Revision, ProviderID: r.ProviderID, Title: r.Name, Description: description, Input: compiled, Request: request}, warnings, nil
 }
 
 func projectRequest(r model.Record, o model.Override) model.Request {
@@ -257,17 +258,20 @@ func projectRequest(r model.Record, o model.Override) model.Request {
 
 type Loader func(context.Context) ([]model.Record, error)
 type Manager struct {
-	load         Loader
-	loadPricing  PricingLoader
-	overrides    model.Overrides
-	maxAge       time.Duration
-	checkUnnamed bool
-	current      atomic.Pointer[Snapshot]
-	mu           sync.Mutex
-	refreshMu    sync.Mutex
-	lastVerified time.Time
-	lastErr      bool
-	draining     atomic.Bool
+	load             Loader
+	loadPricing      PricingLoader
+	priceRefreshMu   sync.Mutex
+	prices           map[string]map[string]any
+	pricingAvailable bool
+	overrides        model.Overrides
+	maxAge           time.Duration
+	checkUnnamed     bool
+	current          atomic.Pointer[Snapshot]
+	mu               sync.Mutex
+	refreshMu        sync.Mutex
+	lastVerified     time.Time
+	lastErr          bool
+	draining         atomic.Bool
 }
 
 func NewManager(load Loader, o model.Overrides, maxAge time.Duration, checkUnnamed bool) *Manager {
@@ -286,29 +290,58 @@ func (m *Manager) Refresh(ctx context.Context) error {
 		var s *Snapshot
 		s, err = Build(records, m.overrides, m.checkUnnamed)
 		if err == nil {
+			if m.loadPricing != nil {
+				discovery := NewDiscovery(s, m.prices, m.pricingAvailable)
+				enriched := *s
+				enriched.Discovery = discovery
+				s = &enriched
+			}
 			old := m.current.Load()
-			if old == nil || old.Hash != s.Hash {
+			if old == nil || old.Hash != s.Hash || (s.Discovery != nil && (old.Discovery == nil || old.Discovery.Hash != s.Discovery.Hash || old.Discovery.PricingAvailable != s.Discovery.PricingAvailable)) {
 				m.current.Store(s)
 			}
 			m.mu.Lock()
 			m.lastVerified = time.Now()
 			m.lastErr = false
 			m.mu.Unlock()
-			if m.loadPricing != nil {
-				prices, priceErr := m.loadPricing(ctx)
-				discovery := NewDiscovery(s, prices, priceErr == nil)
-				copySnapshot := *s
-				copySnapshot.Discovery = discovery
-				if old == nil || old.Hash != s.Hash || old.Discovery == nil || old.Discovery.Hash != discovery.Hash || old.Discovery.PricingAvailable != discovery.PricingAvailable {
-					m.current.Store(&copySnapshot)
-				}
-			}
 			return nil
 		}
 	}
 	m.mu.Lock()
 	m.lastErr = true
 	m.mu.Unlock()
+	return err
+}
+
+// RefreshPricing is scheduled independently and never holds the core refresh lock during IO.
+func (m *Manager) RefreshPricing(ctx context.Context) error {
+	if m.loadPricing == nil {
+		return nil
+	}
+	m.priceRefreshMu.Lock()
+	defer m.priceRefreshMu.Unlock()
+	prices, err := m.loadPricing(ctx)
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	m.refreshMu.Lock()
+	defer m.refreshMu.Unlock()
+	m.prices = prices
+	m.pricingAvailable = err == nil
+	if err != nil {
+		m.prices = nil
+	}
+	if old := m.current.Load(); old != nil {
+		// Strip the old discovery pointer to avoid retaining a chain of generations.
+		core := *old
+		core.Discovery = nil
+		discovery := NewDiscovery(&core, m.prices, m.pricingAvailable)
+		if old.Discovery == nil || old.Discovery.Hash != discovery.Hash || old.Discovery.PricingAvailable != discovery.PricingAvailable {
+			enriched := core
+			enriched.Discovery = discovery
+			m.current.Store(&enriched)
+		}
+	}
 	return err
 }
 func (m *Manager) Current() *Snapshot { return m.current.Load() }

@@ -116,16 +116,65 @@ func TestAuxiliaryPricingDoesNotBlockCoreReadiness(t *testing.T) {
 		<-release
 		return nil, errors.New("private database error")
 	})
-	go func() { done <- m.Refresh(context.Background()) }()
+	if err := m.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	go func() { done <- m.RefreshPricing(context.Background()) }()
 	<-entered
 	if !m.Ready() || m.Current().Tools["demo_list"] == nil {
 		t.Error("price query blocked original service")
 	}
-	if m.Status()["lite_ready"] != false { t.Error("pending discovery reported ready") }
+	if m.Status()["lite_ready"] != true {
+		t.Error("search unavailable while prices load")
+	}
+	r.Revision++
+	coreDone := make(chan error, 1)
+	go func() { coreDone <- m.Refresh(context.Background()) }()
+	select {
+	case err := <-coreDone:
+		if err != nil {
+			t.Error(err)
+		}
+	case <-time.After(time.Second):
+		t.Error("slow pricing blocked subsequent core refresh")
+	}
 	hash := m.Current().Hash
 	close(release)
-	if err := <-done; err != nil || !m.Ready() || m.Current().Hash != hash || m.Current().Discovery == nil || m.Current().Discovery.PricingAvailable {
+	if err := <-done; err == nil || !m.Ready() || m.Current().Hash != hash || m.Current().Discovery == nil || m.Current().Discovery.PricingAvailable {
 		t.Fatal("optional failure poisoned catalog", err, m.Status())
 	}
-	if m.Status()["lite_ready"]!=true || m.Status()["pricing_available"]!=false { t.Fatal("auxiliary failure not observable",m.Status()) }
+	if m.Status()["lite_ready"] != true || m.Status()["pricing_available"] != false {
+		t.Fatal("auxiliary failure not observable", m.Status())
+	}
+}
+
+func TestLatePricingCannotRepublishAnUnavailableAPI(t *testing.T) {
+	a, b := fixture("demo_removed"), fixture("demo_good")
+	b.APIID = "other"
+	b.PathTemplate = "/other"
+	b.PublicPath = "/v1/agent-apis/demo/other"
+	entered, release, done := make(chan struct{}), make(chan struct{}), make(chan error, 1)
+	m := NewManagerWithDiscovery(func(context.Context) ([]model.Record, error) { return []model.Record{a, b}, nil }, model.Overrides{Version: 1}, time.Minute, false, func(context.Context) (map[string]map[string]any, error) {
+		close(entered)
+		<-release
+		return map[string]map[string]any{a.APIID: {"mode": "fixed", "currency": "USD", "price_micro_usd": "10", "unit": "request"}}, nil
+	})
+	if err := m.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	go func() { done <- m.RefreshPricing(context.Background()) }()
+	<-entered
+	a.Status = "inactive"
+	if err := m.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	hash := m.Current().Hash
+	close(release)
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+	_, exposed := m.Current().Discovery.Detail("demo_removed")
+	if !m.Ready() || m.Current().Hash != hash || m.Current().Tools["demo_removed"] != nil || exposed {
+		t.Fatal("late price result resurrected old generation")
+	}
 }

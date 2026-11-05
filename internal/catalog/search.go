@@ -82,7 +82,7 @@ func NewDiscovery(s *Snapshot, prices map[string]map[string]any, available bool)
 			sort.Strings(names)
 			e.fields[3] += " " + normalizeSearch(strings.Join(names, " "))
 		}
-		e.version = digest([]any{name, b.APIID, b.ProviderID, b.Title, b.Description, b.Input.Document, b.Request, p})
+		e.version = digest([]any{name, b.APIID, b.Revision, b.ProviderID, b.Title, b.Description, b.Input.Document, b.Request, p})
 		d.entries[name] = e
 		versions[name] = e.version
 	}

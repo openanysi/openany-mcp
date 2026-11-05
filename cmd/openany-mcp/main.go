@@ -47,12 +47,23 @@ func run() int {
 	defer pool.Close()
 	manager := catalog.NewManager(catalog.PostgresLoader(pool, c.QueryTimeout), o, c.MaxAge, *check)
 	if c.LiteEnabled {
-		manager = catalog.NewManagerWithDiscovery(catalog.PostgresLoader(pool, c.QueryTimeout), o, c.MaxAge, *check, catalog.PostgresPricingLoader(pool, c.QueryTimeout))
+		priceConfig := pc.Copy()
+		priceConfig.MaxConns = 1
+		pricePool, priceErr := pgxpool.NewWithConfig(context.Background(), priceConfig)
+		if priceErr != nil {
+			logger.Error("pricing pool initialization failed")
+			return 1
+		}
+		defer pricePool.Close()
+		manager = catalog.NewManagerWithDiscovery(catalog.PostgresLoader(pool, c.QueryTimeout), o, c.MaxAge, *check, catalog.PostgresPricingLoader(pricePool, c.QueryTimeout))
 	}
 	if *check {
 		if err = manager.Refresh(context.Background()); err != nil {
 			logger.Error("catalog check failed", "reason", err.Error())
 			return 1
+		}
+		if c.LiteEnabled {
+			_ = manager.RefreshPricing(context.Background())
 		}
 		return writeCatalogReport(os.Stdout, manager)
 	}
@@ -91,6 +102,37 @@ func run() int {
 			}
 		}
 	}()
+	pricingDone := make(chan struct{})
+	if c.LiteEnabled {
+		go func() {
+			defer close(pricingDone)
+			ticker := time.NewTicker(c.Refresh)
+			defer ticker.Stop()
+			logged, failed := false, false
+			for {
+				err := manager.RefreshPricing(ctx)
+				if ctx.Err() != nil {
+					return
+				}
+				if !logged || failed != (err != nil) {
+					if err != nil {
+						logger.Warn("public pricing unavailable")
+					} else {
+						logger.Info("public pricing loaded")
+					}
+					logged = true
+					failed = err != nil
+				}
+				select {
+				case <-ctx.Done():
+					return
+				case <-ticker.C:
+				}
+			}
+		}()
+	} else {
+		close(pricingDone)
+	}
 	logger.Info("MCP listening", "address", c.Listen)
 	select {
 	case err = <-done:
@@ -109,5 +151,6 @@ func run() int {
 		return 1
 	}
 	<-refreshDone
+	<-pricingDone
 	return 0
 }

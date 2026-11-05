@@ -49,7 +49,10 @@ func (h *Handler) newLiteServer() *mcp.Server {
 			case "search_apis":
 				limit := 0
 				if number, ok := args["limit"].(json.Number); ok {
-					n, _ := number.Int64()
+					n, err := number.Float64()
+					if err != nil {
+						return toMCP(gateway.Failure("openany_mcp_invalid_input", "Invalid search limit.", "validate", "not_started", nil, nil)), nil
+					}
 					limit = int(n)
 				}
 				result, err := d.Search(text("query"), text("provider"), limit, text("cursor"))

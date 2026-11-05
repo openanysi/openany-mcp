@@ -118,6 +118,12 @@ func TestLiteWorkflowPreservesDirectCallsAndRejectsUnsafeDispatch(t *testing.T) 
 	if len(search["structuredContent"].(map[string]any)["results"].([]any)) != 5 {
 		t.Fatal("search was not bounded", search)
 	}
+	for _, number := range []string{"1", "1.0", "1e0"} {
+		limited := call("search_apis", map[string]any{"query": "weather", "limit": json.Number(number)}, "")
+		if len(limited["structuredContent"].(map[string]any)["results"].([]any)) != 1 {
+			t.Errorf("limit %s ignored", number)
+		}
+	}
 	detail := call("get_api", map[string]any{"api": "demo_weather_00"}, "")["structuredContent"].(map[string]any)
 	if detail["input_schema"] == nil || detail["api_version"] == nil {
 		t.Fatal("missing API contract", detail)
@@ -136,6 +142,24 @@ func TestLiteWorkflowPreservesDirectCallsAndRejectsUnsafeDispatch(t *testing.T) 
 		t.Error("direct/lite dispatch changed", seen)
 	}
 	mu.Unlock()
+	oldVersion := detail["api_version"]
+	records[1].Revision++
+	if err := manager.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	otherRefresh := call("get_api", map[string]any{"api": "demo_weather_00"}, "")["structuredContent"].(map[string]any)
+	if otherRefresh["api_version"] != oldVersion {
+		t.Fatal("another API revision invalidated selected API")
+	}
+	records[0].Revision++
+	if err := manager.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	stale := call("run_api", map[string]any{"api": "demo_weather_00", "api_version": oldVersion, "input": args}, "Bearer caller-B")
+	if stale["isError"] != true {
+		t.Fatal("revision-only update accepted old version")
+	}
+	detail = call("get_api", map[string]any{"api": "demo_weather_00"}, "")["structuredContent"].(map[string]any)
 	for _, bad := range []map[string]any{
 		{"api": "demo_weather_00", "api_version": detail["api_version"], "input": map[string]any{}},
 		{"api": "demo_weather_00", "api_version": "0000000000000000000000000000000000000000000000000000000000000000", "input": args},

@@ -82,11 +82,11 @@ pricing.status=available 表示公开价格数据可读，不代表已经为当�
 - openany_mcp_busy：本地业务调用并发已满，此次调用未开始。
 - execution_state=unknown：请求可能已经执行或扣费，不要因为超时就重复提交。保存 request_id 供排查。
 
-api_version 只用于发现已知定义变化，不是认证凭证、幂等键或网关锁价令牌。本版本没有通用的自动去重或长任务恢复工具。结果大小限制沿用现有服务；业务结果过大时不会伪装成截断成功。
+api_version 包含该接口的 revision、Schema、公开价格和转发规则，只用于发现已知定义变化，不是认证凭证、幂等键或网关锁价令牌。本版本没有通用的自动去重或长任务恢复工具。结果大小限制沿用现有服务；业务结果过大时不会伪装成截断成功。
 
 ## 部署与自检
 
-在运行环境中设置 `MCP_LITE_ENABLED=true`，重启服务。默认 false，不加载轻量价格和搜索索引，原有入口照常工作。数据库角色仍为只读。
+在运行环境中设置 `MCP_LITE_ENABLED=true`，重启服务。默认 false，不加载轻量价格和搜索索引，原有入口照常工作。数据库角色仍为只读。价格使用独立刷新任务和最多1个连接的独立只读连接池，避免占用原目录连接池；数据库连接配额应预留这个额外连接。
 
 公开价格辅助查询需要 agent_apis 的公开计费字段、收费条件字段，以及 agent_api_pricing_policies 的 api_id、policy_version、parameters、sale_policy 只读权限。无需读取 supplier_policy 或 supplier_price_micro_usd。由数据库管理员按最小列权限授权；不需要新增业务表或改名。
 
