@@ -103,7 +103,8 @@ func Compile(r model.Record) (*Compiled, error) {
 			return nil, fmt.Errorf("duplicate input name %s", in.Name)
 		}
 		var doc map[string]any
-		if len(in.Schema) > 0 && string(in.Schema) != "null" {
+		hasSchema := len(in.Schema) > 0 && string(in.Schema) != "null"
+		if hasSchema {
 			v, e := Decode(in.Schema)
 			if e != nil {
 				return nil, e
@@ -136,6 +137,24 @@ func Compile(r model.Record) (*Compiled, error) {
 			v, e := Decode(in.Enum)
 			if e != nil {
 				return nil, e
+			}
+			if values, ok := v.([]any); ok && !hasSchema {
+				hasNull := false
+				for i, value := range values {
+					if value == nil {
+						hasNull = true
+					} else if raw, ok := value.(string); ok && in.Type == "number" {
+						parsed, err := Decode([]byte(raw))
+						if _, ok := parsed.(json.Number); err != nil || !ok {
+							return nil, fmt.Errorf("input %s: invalid numeric enum", in.Name)
+						}
+						values[i] = parsed
+					}
+				}
+				if in.Nullable && !hasNull {
+					values = append(values, nil)
+				}
+				v = values
 			}
 			doc["enum"] = v
 		}

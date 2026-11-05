@@ -6,6 +6,62 @@ import (
 	"testing"
 )
 
+func TestLegacyNullableEnumProjection(t *testing.T) {
+	for _, source := range []json.RawMessage{nil, json.RawMessage(`null`)} {
+		r := model.Record{UnknownParameters: "reject", Inputs: []model.Input{{Name: "side", Location: "query", Type: "string", Nullable: true, Enum: json.RawMessage(`["yes","no"]`), Schema: source}}}
+		c, err := Compile(r)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, raw := range []string{`{}`, `{"side":null}`, `{"side":"yes"}`, `{"side":"no"}`} {
+			if _, err := c.Validate([]byte(raw)); err != nil {
+				t.Fatalf("legacy nullable enum rejected %s: %v", raw, err)
+			}
+		}
+		for _, raw := range []string{`{"side":"other"}`, `{"side":1}`} {
+			if _, err := c.Validate([]byte(raw)); err == nil {
+				t.Fatalf("enum or type constraint was lost: %s", raw)
+			}
+		}
+		if string(r.Inputs[0].Enum) != `["yes","no"]` {
+			t.Fatal("source metadata mutated")
+		}
+		r.Inputs[0].Required = true
+		c, err = Compile(r)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := c.Validate([]byte(`{}`)); err == nil {
+			t.Fatal("nullable was confused with optional")
+		}
+	}
+}
+
+func TestNullableDoesNotRelaxExplicitSchemaEnum(t *testing.T) {
+	r := model.Record{UnknownParameters: "reject", Inputs: []model.Input{{Name: "side", Type: "string", Nullable: true, Schema: json.RawMessage(`{"type":"string","enum":["yes","no"]}`)}}}
+	if _, err := Compile(r); err == nil {
+		t.Fatal("explicit enum semantics were silently widened")
+	}
+}
+
+func TestLegacyNullableNumberEnumUsesExactNumbers(t *testing.T) {
+	r := model.Record{UnknownParameters: "reject", Inputs: []model.Input{{Name: "version", Location: "query", Type: "number", Nullable: true, Enum: json.RawMessage(`["0","1","9007199254740993"]`)}}}
+	c, err := Compile(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, raw := range []string{`{"version":0}`, `{"version":1}`, `{"version":9007199254740993}`, `{"version":null}`} {
+		if _, err := c.Validate([]byte(raw)); err != nil {
+			t.Fatalf("numeric enum rejected %s: %v", raw, err)
+		}
+	}
+	for _, raw := range []string{`{"version":"0"}`, `{"version":2}`, `{"version":true}`} {
+		if _, err := c.Validate([]byte(raw)); err == nil {
+			t.Fatalf("numeric enum was broadened: %s", raw)
+		}
+	}
+}
+
 func TestCompileAnyArrayPreservesArrayAndNullability(t *testing.T) {
 	for _, rawSchema := range []json.RawMessage{nil, json.RawMessage(`null`)} {
 		r := model.Record{RequestContentType: "application/json", UnknownParameters: "reject", Inputs: []model.Input{{Name: "body", Location: "body", Type: "array", ItemType: "any", Required: true, Schema: rawSchema}}}
