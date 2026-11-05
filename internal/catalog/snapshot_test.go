@@ -26,7 +26,7 @@ func TestRefreshQuarantinesInvalidAPIAndPreservesSnapshotOnDatabaseFailure(t *te
 	if len(m.Current().Tools) != 2 {
 		t.Fatal("missing initial tools")
 	}
-	bad.Inputs = []model.Input{{Name: "ticker", Location: "query", Type: "array"}}
+	bad.Inputs = []model.Input{{Name: "ticker", Location: "query", Type: "array", Required: true}}
 	if err := m.Refresh(context.Background()); err != nil {
 		t.Fatal("one invalid API blocked the healthy catalog:", err)
 	}

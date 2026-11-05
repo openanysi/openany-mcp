@@ -139,3 +139,25 @@ Unconstrained JSON body arrays (2026-11-05):
 - Regression checks cover absent/null source schema, empty/mixed arrays, required/nullable outer arrays, explicit item schemas, invalid explicit type:any, unknown types, ordinary string arrays and non-JSON-body restrictions. Build-to-validation-to-encoding checks preserve root and nested body placement, exact large integers, false, null, nested arrays and objects.
 - Focused schema/catalog suites, the full Go race suite and go vet passed. Independent read-only review found no important issues. Database integration cases were not rerun for this compiler-only change. No actual dev-container deployment or paid API invocation was performed; the supplied dev record is not present in the locally configured catalog.
 - Remote main concurrently received a fix for the same internal any type. The final merge preserves its complete TestCompileArrayItemTypes coverage. Compile remains a pure schema translator; the JSON-body forwarding restriction is enforced in catalog.compileBinding only for fallback metadata. The relocated guard regression failed without the policy and passed with it. Full merged-tree race tests and go vet passed, a follow-up read-only review found no important issues, and the local binary was rebuilt.
+
+
+## Reduced catalog checks — 2026-11-05
+
+Implemented description warnings with safe display fallbacks; GET/POST/PUT/PATCH/DELETE request support; bodyless GET normalization; legacy nullable/numeric enum projection; exact route-based array policies with UUID precedence; and local pre-dispatch errors for unknown optional array encodings. No naming script, gateway, credential configuration or business database changes.
+
+Verification on the actual local `openany_dev` database, using the existing environment and PostgreSQL read-only sessions:
+
+| Check | Result |
+| --- | --- |
+| Active / published / pending / quarantined | 740 / 700 / 40 / 0 |
+| Warning count (warnings, not APIs) | 84: 74 input descriptions, 8 tool descriptions, 2 GET content-type normalizations |
+| Catalog hash | `eef5f21545c7a9f6e3639c1936e1a146dc3122858c977fcd25d4ac90104a410b` |
+| `--check-catalog` | Exit 0, no hard issues; includes warnings and safe API identities |
+| Independent temporary-port `/readyz` and `tools/list` | Ready; 700 unique sorted tools across 14 pages; same hash |
+| Business requests | 0; no real gateway/supplier invocation |
+
+The captured 740-row metadata snapshot also passes full schema/transport compilation. Go tests, race detector and vet pass. Regressions cover legacy versus explicit enum constraints, exact numbers, method/body behavior, route identity/precedence, preserved schema references/length limits, empty-array rejection, optional unknown arrays, warning CLI status and generation-scoped logging. A local HTTP substitute verifies that supplied unknown arrays make zero requests; omitted/null arrays dispatch once per call with current caller credentials.
+
+Deployment requires rebuilding the Docker image with both the binary and `config/catalog-overrides.json`, then replacing the running container. Do not reuse an old image or a mounted old override file. Overrides load at startup; database metadata refreshes periodically. The existing development process was not restarted during verification.
+
+The production report contains 118 IDs/reasons without full request metadata. This change addresses the observed classes but does not prove all 118 are compatible: required unknown arrays, real unsupported body encodings, invalid explicit schemas and unsafe routes/headers still quarantine. Unknown optional arrays publish with a limitation; clients must omit them until a source-backed policy is configured. No production deployment or paid supplier verification was performed.

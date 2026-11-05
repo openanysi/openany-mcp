@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/openany/openany-mcp/internal/catalog"
@@ -52,14 +51,7 @@ func run() int {
 			logger.Error("catalog check failed", "reason", err.Error())
 			return 1
 		}
-		status := manager.Status()
-		issues := manager.Current().Issues
-		status["issues"] = issues
-		json.NewEncoder(os.Stdout).Encode(status)
-		if len(issues) > 0 {
-			return 1
-		}
-		return 0
+		return writeCatalogReport(os.Stdout, manager)
 	}
 	client, err := gateway.New(c.GatewayURL, c.GatewayTimeout, c.ConnectTimeout, c.MaxResponse, c.MaxResult)
 	if err != nil {
@@ -78,6 +70,7 @@ func run() int {
 		defer close(refreshDone)
 		ticker := time.NewTicker(c.Refresh)
 		defer ticker.Stop()
+		var diagnosticsHash string
 		for {
 			if err := manager.Refresh(ctx); err != nil {
 				if ctx.Err() != nil {
@@ -85,6 +78,7 @@ func run() int {
 				}
 				logger.Error("catalog refresh failed", "reason", err.Error())
 			} else {
+				diagnosticsHash = logCatalogDiagnostics(logger, manager.Current(), diagnosticsHash)
 				logger.Info("catalog verified", "status", manager.Status())
 			}
 			select {

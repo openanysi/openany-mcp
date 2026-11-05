@@ -17,6 +17,12 @@ type Encoded struct {
 	Headers http.Header
 }
 
+type MissingArrayPolicyError struct{ Parameter string }
+
+func (e *MissingArrayPolicyError) Error() string {
+	return fmt.Sprintf("query array serialization policy missing for %s", e.Parameter)
+}
+
 var safeHeader = regexp.MustCompile(`^[!#$%&'*+.^_` + "`" + `|~0-9a-zA-Z-]+$`)
 
 func ReservedHeader(s string) bool {
@@ -77,7 +83,7 @@ func Encode(r model.Request, args map[string]any) (Encoded, error) {
 			if a, ok := v.([]any); ok {
 				policy, exists := r.QueryArrays[in.Name]
 				if !exists {
-					return e, fmt.Errorf("array query encoding missing for %s", in.Name)
+					return e, &MissingArrayPolicyError{Parameter: in.Name}
 				}
 				if len(a) == 0 && policy.Empty == "reject" {
 					return e, fmt.Errorf("empty query array is not supported for %s", in.Name)

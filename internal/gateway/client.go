@@ -3,6 +3,7 @@ package gateway
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/openany/openany-mcp/internal/model"
 	"github.com/openany/openany-mcp/internal/schema"
@@ -47,6 +48,10 @@ func (c *Client) Call(ctx context.Context, r model.Request, args map[string]any,
 	}
 	encoded, err := transport.Encode(r, args)
 	if err != nil {
+		var missing *transport.MissingArrayPolicyError
+		if errors.As(err, &missing) {
+			return Failure("openany_mcp_array_policy_missing", "Omit optional parameter "+missing.Parameter+": its query array serialization policy is not configured.", "validate", "not_started", nil, nil)
+		}
 		return Failure("openany_mcp_invalid_input", "Parameters cannot be encoded for this API.", "validate", "not_started", nil, nil)
 	}
 	// Keep escaped path segments intact; never resolve a client-controlled URL.

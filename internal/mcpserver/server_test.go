@@ -33,7 +33,7 @@ func TestHTTPDiscoveryCallScopeAndHeaderIsolation(t *testing.T) {
 	invalidAPI.APIID, invalidAPI.PathTemplate, invalidAPI.PublicPath = "00000000-0000-4000-8000-000000000002", "/other", "/v1/agent-apis/demo/other"
 	badName := "demo_bad"
 	invalidAPI.ToolName = &badName
-	invalidAPI.Inputs = []model.Input{{Name: "tickers", Location: "query", Type: "array"}}
+	invalidAPI.Inputs = []model.Input{{Name: "tickers", Location: "query", Type: "array", Required: true}}
 	manager := catalog.NewManager(func(context.Context) ([]model.Record, error) { return []model.Record{r, invalidAPI}, nil }, model.Overrides{Version: 1}, time.Minute, false)
 	if err := manager.Refresh(context.Background()); err != nil {
 		t.Fatal(err)

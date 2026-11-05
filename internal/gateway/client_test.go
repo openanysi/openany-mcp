@@ -13,6 +13,37 @@ import (
 	"time"
 )
 
+func TestOptionalArrayWithoutPolicyFailsBeforeGatewayDispatch(t *testing.T) {
+	var hits atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		hits.Add(1)
+		if req.URL.RawQuery != "" || req.Header.Get("Authorization") != "Bearer current-caller" {
+			t.Error("unexpected dispatch", req.URL.RawQuery, req.Header.Get("Authorization"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{}`))
+	}))
+	defer server.Close()
+	c, _ := New(server.URL, time.Second, time.Second, 1024, 4096)
+	defer c.Close()
+	r := model.Request{Method: "GET", PublicPath: "/v1/agent-apis/demo/list", RequestContentType: "none", Inputs: []model.Parameter{{Name: "filters", Location: "query", OmitNull: true}}}
+	for _, args := range []map[string]any{{"filters": []any{}}, {"filters": []any{"a"}}} {
+		res := c.Call(context.Background(), r, args, nil)
+		err := res.Value["error"].(map[string]any)
+		if !res.IsError || err["code"] != "openany_mcp_array_policy_missing" || err["stage"] != "validate" || err["execution_state"] != "not_started" || !strings.Contains(err["message"].(string), "filters") || hits.Load() != 0 {
+			t.Fatal("unsupported array was dispatched or error was hidden", res, hits.Load())
+		}
+	}
+	for _, args := range []map[string]any{{}, {"filters": nil}} {
+		if res := c.Call(context.Background(), r, args, http.Header{"Authorization": {"Bearer current-caller"}}); res.IsError {
+			t.Fatal("omitted or null optional array was blocked", res)
+		}
+	}
+	if hits.Load() != 2 {
+		t.Fatal("requests were lost or repeated", hits.Load())
+	}
+}
+
 func TestCallPreservesCredentialsAndPublicErrors(t *testing.T) {
 	var mu sync.Mutex
 	seen := map[string]int{}

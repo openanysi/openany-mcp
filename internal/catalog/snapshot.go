@@ -26,8 +26,12 @@ type Binding struct {
 	Request     model.Request
 }
 type Issue struct {
-	APIID  string `json:"api_id"`
-	Reason string `json:"reason"`
+	APIID              string `json:"api_id"`
+	ProviderID         string `json:"provider_id"`
+	Method             string `json:"method"`
+	PathTemplate       string `json:"path_template"`
+	RequestContentType string `json:"request_content_type"`
+	Reason             string `json:"reason"`
 }
 
 type Snapshot struct {
@@ -39,6 +43,7 @@ type Snapshot struct {
 	Pending     int
 	Quarantined int
 	Issues      []Issue
+	Warnings    []Issue
 }
 
 var namePattern = regexp.MustCompile(`^[a-z][a-z0-9_]{0,63}$`)
@@ -69,14 +74,15 @@ func Build(records []model.Record, overrides model.Overrides, checkUnnamed bool)
 			}
 		}
 		override := mergeOverride(policies[routeKey{r.ProviderID, r.Method, r.PathTemplate}], overrides.APIs[r.APIID])
-		binding, err := compileBinding(r, override)
+		binding, warnings, err := compileBinding(r, override)
 		if err != nil {
-			s.Issues = append(s.Issues, Issue{APIID: r.APIID, Reason: err.Error()})
+			s.Issues = append(s.Issues, issue(r, err.Error()))
 			if !pending {
 				s.Quarantined++
 			}
 			continue
 		}
+		s.Warnings = append(s.Warnings, warnings...)
 		if pending {
 			continue
 		}
@@ -112,56 +118,88 @@ func Build(records []model.Record, overrides model.Overrides, checkUnnamed bool)
 	return s, nil
 }
 
-func compileBinding(r model.Record, o model.Override) (*Binding, error) {
+func issue(r model.Record, reason string) Issue {
+	return Issue{APIID: r.APIID, ProviderID: r.ProviderID, Method: r.Method, PathTemplate: r.PathTemplate, RequestContentType: r.RequestContentType, Reason: reason}
+}
+
+func compileBinding(r model.Record, o model.Override) (*Binding, []Issue, error) {
 	if r.InputError != "" {
-		return nil, fmt.Errorf("api %s: %s", r.APIID, r.InputError)
+		return nil, nil, fmt.Errorf("api %s: %s", r.APIID, r.InputError)
 	}
 	if r.ToolName != nil && !namePattern.MatchString(*r.ToolName) {
-		return nil, fmt.Errorf("api %s: invalid public name", r.APIID)
+		return nil, nil, fmt.Errorf("api %s: invalid public name", r.APIID)
 	}
 	if !providerPattern.MatchString(r.ProviderID) || r.PublicPath != "/v1/agent-apis/"+r.ProviderID+r.PathTemplate || !strings.HasPrefix(r.PathTemplate, "/") || strings.HasPrefix(r.PathTemplate, "//") || strings.ContainsAny(r.PublicPath, "?#\\\x00\r\n") {
-		return nil, fmt.Errorf("api %s: invalid public route", r.APIID)
+		return nil, nil, fmt.Errorf("api %s: invalid public route", r.APIID)
 	}
 	for _, p := range strings.Split(r.PathTemplate, "/") {
 		if p == "." || p == ".." {
-			return nil, fmt.Errorf("api %s: unsafe static path", r.APIID)
+			return nil, nil, fmt.Errorf("api %s: unsafe static path", r.APIID)
 		}
 	}
-	if (r.Method != "GET" || r.RequestContentType != "none") && (r.Method != "POST" || r.RequestContentType != "application/json") {
-		return nil, fmt.Errorf("api %s: unsupported request encoding", r.APIID)
+	var warnings []Issue
+	source := r
+	warn := func(reason string) { warnings = append(warnings, issue(source, reason)) }
+	switch r.Method {
+	case "GET", "POST", "PUT", "PATCH", "DELETE":
+	default:
+		return nil, nil, fmt.Errorf("api %s: unsupported HTTP method", r.APIID)
+	}
+	hasBody := false
+	for _, in := range r.Inputs {
+		hasBody = hasBody || in.Location == "body"
+	}
+	if hasBody && (r.Method == "GET" || r.RequestContentType != "application/json") {
+		return nil, nil, fmt.Errorf("api %s: body inputs require a JSON body on a non-GET request", r.APIID)
+	}
+	if r.Method == "GET" && r.RequestContentType == "application/json" && !hasBody {
+		warn("bodyless GET request content type normalized to none")
+		r.RequestContentType = "none"
+	}
+	if r.RequestContentType != "none" && r.RequestContentType != "application/json" {
+		return nil, nil, fmt.Errorf("api %s: unsupported request encoding", r.APIID)
 	}
 	if !r.ConfigPresent {
-		return nil, fmt.Errorf("api %s: missing request config", r.APIID)
+		return nil, nil, fmt.Errorf("api %s: missing request config", r.APIID)
 	}
 	if r.UnknownParameters != "reject" && r.UnknownParameters != "ignore" {
-		return nil, fmt.Errorf("api %s: invalid unknown parameter policy", r.APIID)
+		return nil, nil, fmt.Errorf("api %s: invalid unknown parameter policy", r.APIID)
 	}
 	if o.ResponseMode != "" && o.ResponseMode != "json" && o.ResponseMode != "unsupported" {
-		return nil, fmt.Errorf("api %s: invalid response mode", r.APIID)
+		return nil, nil, fmt.Errorf("api %s: invalid response mode", r.APIID)
 	}
 	r.Inputs = append([]model.Input(nil), r.Inputs...)
 	for i, in := range r.Inputs {
+		if internalDescription.MatchString(in.Description) {
+			r.Inputs[i].Description = in.Name
+			warn("input description replaced with parameter name for public display: " + in.Name)
+		}
 		switch in.Location {
 		case "path", "query", "body", "header":
 		default:
-			return nil, fmt.Errorf("api %s: unsupported input location", r.APIID)
+			return nil, nil, fmt.Errorf("api %s: unsupported input location", r.APIID)
 		}
 		if in.Location == "header" && transport.ReservedHeader(in.Name) {
-			return nil, fmt.Errorf("api %s: reserved input header", r.APIID)
+			return nil, nil, fmt.Errorf("api %s: reserved input header", r.APIID)
 		}
 		if in.Location != "body" && in.Nullable && (in.Location != "query" || in.Required) {
-			return nil, fmt.Errorf("api %s: nullable %s input %s has no supported HTTP encoding; null omission requires an optional query parameter", r.APIID, in.Location, in.Name)
+			return nil, nil, fmt.Errorf("api %s: nullable %s input %s has no supported HTTP encoding; null omission requires an optional query parameter", r.APIID, in.Location, in.Name)
 		}
 		if in.Type == "array" && in.ItemType == "any" && (len(in.Schema) == 0 || string(in.Schema) == "null") && (in.Location != "body" || r.RequestContentType != "application/json") {
-			return nil, fmt.Errorf("api %s: array input %s with item_type any requires a JSON body", r.APIID, in.Name)
+			return nil, nil, fmt.Errorf("api %s: array input %s with item_type any requires a JSON body", r.APIID, in.Name)
 		}
 		if in.Location == "query" && in.Type == "array" {
 			p, ok := o.QueryArrays[in.Name]
 			if r.BillingMode == "rules" && p.Encoding == "repeated" {
-				return nil, fmt.Errorf("api %s: rules billing cannot accept repeated query keys", r.APIID)
+				return nil, nil, fmt.Errorf("api %s: rules billing cannot accept repeated query keys", r.APIID)
+			}
+			if !ok && !in.Required {
+				r.Inputs[i].Description += "\nOmit this optional parameter: its query array serialization policy is not configured. Supplying an array returns a local error before gateway dispatch."
+				warn("optional query array has no serialization policy: " + in.Name)
+				continue
 			}
 			if !ok || p.Source == "" || (p.Encoding != "csv" && p.Encoding != "repeated" && p.Encoding != "json") || (p.Empty != "omit" && p.Empty != "empty" && p.Empty != "reject") {
-				return nil, fmt.Errorf("api %s: query array %s needs sourced encoding", r.APIID, in.Name)
+				return nil, nil, fmt.Errorf("api %s: query array %s needs sourced encoding", r.APIID, in.Name)
 			}
 			if p.Empty == "reject" {
 				r.Inputs[i].NonEmpty = true
@@ -170,17 +208,18 @@ func compileBinding(r model.Record, o model.Override) (*Binding, error) {
 	}
 	request := projectRequest(r, o)
 	if err := transport.ValidateInputs(request.Inputs); err != nil {
-		return nil, fmt.Errorf("api %s: %w", r.APIID, err)
+		return nil, nil, fmt.Errorf("api %s: %w", r.APIID, err)
 	}
 	compiled, err := schema.Compile(r)
 	if err != nil {
-		return nil, fmt.Errorf("api %s: input schema invalid: %w", r.APIID, err)
+		return nil, nil, fmt.Errorf("api %s: input schema invalid: %w", r.APIID, err)
 	}
 	description := o.Description
 	if description == "" {
 		description = strings.TrimSpace(strings.Split(r.Description, "\n")[0])
 		if internalDescription.MatchString(description) {
-			return nil, fmt.Errorf("api %s: public description needs review", r.APIID)
+			description = r.Name
+			warn("public description replaced with API title for public display")
 		}
 	}
 	if description == "" {
@@ -193,7 +232,7 @@ func compileBinding(r model.Record, o model.Override) (*Binding, error) {
 	if o.ResponseMode == "unsupported" {
 		description += "\nUnsupported in this version: " + o.UnsupportedReason
 	}
-	return &Binding{APIID: r.APIID, ProviderID: r.ProviderID, Title: r.Name, Description: description, Input: compiled, Request: request}, nil
+	return &Binding{APIID: r.APIID, ProviderID: r.ProviderID, Title: r.Name, Description: description, Input: compiled, Request: request}, warnings, nil
 }
 
 func projectRequest(r model.Record, o model.Override) model.Request {
@@ -276,6 +315,7 @@ func (m *Manager) Status() map[string]any {
 		v["active"] = s.Active
 		v["pending"] = s.Pending
 		v["quarantined"] = s.Quarantined
+		v["warning_count"] = len(s.Warnings)
 		v["published"] = len(s.Tools)
 		v["catalog_hash"] = s.Hash
 	}
