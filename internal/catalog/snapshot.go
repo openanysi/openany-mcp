@@ -44,6 +44,7 @@ type Snapshot struct {
 	Quarantined int
 	Issues      []Issue
 	Warnings    []Issue
+	Discovery   *Discovery
 }
 
 var namePattern = regexp.MustCompile(`^[a-z][a-z0-9_]{0,63}$`)
@@ -257,6 +258,7 @@ func projectRequest(r model.Record, o model.Override) model.Request {
 type Loader func(context.Context) ([]model.Record, error)
 type Manager struct {
 	load         Loader
+	loadPricing  PricingLoader
 	overrides    model.Overrides
 	maxAge       time.Duration
 	checkUnnamed bool
@@ -270,6 +272,11 @@ type Manager struct {
 
 func NewManager(load Loader, o model.Overrides, maxAge time.Duration, checkUnnamed bool) *Manager {
 	return &Manager{load: load, overrides: o, maxAge: maxAge, checkUnnamed: checkUnnamed}
+}
+func NewManagerWithDiscovery(load Loader, o model.Overrides, maxAge time.Duration, checkUnnamed bool, prices PricingLoader) *Manager {
+	m := NewManager(load, o, maxAge, checkUnnamed)
+	m.loadPricing = prices
+	return m
 }
 func (m *Manager) Refresh(ctx context.Context) error {
 	m.refreshMu.Lock()
@@ -287,6 +294,15 @@ func (m *Manager) Refresh(ctx context.Context) error {
 			m.lastVerified = time.Now()
 			m.lastErr = false
 			m.mu.Unlock()
+			if m.loadPricing != nil {
+				prices, priceErr := m.loadPricing(ctx)
+				discovery := NewDiscovery(s, prices, priceErr == nil)
+				copySnapshot := *s
+				copySnapshot.Discovery = discovery
+				if old == nil || old.Hash != s.Hash || old.Discovery == nil || old.Discovery.Hash != discovery.Hash || old.Discovery.PricingAvailable != discovery.PricingAvailable {
+					m.current.Store(&copySnapshot)
+				}
+			}
 			return nil
 		}
 	}
