@@ -211,3 +211,19 @@ func TestGuidanceOffersOnlyValidNonStaleEmptyRequests(t *testing.T) {
 		t.Fatal("empty fallback bypassed required parameters", required)
 	}
 }
+
+func TestEmptyFallbackKeepsExampleCountBounded(t *testing.T) {
+	r := fixture("demo_optional")
+	r.Inputs = []model.Input{{Name: "city", Type: "string", Location: "query"}}
+	s, err := Build([]model.Record{r}, model.Overrides{Version: 1}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sample := PublicSample{Request: map[string]any{"query": map[string]any{"city": "<city>"}}}
+	d := NewDiscovery(s, nil, false, map[string]APIMetadata{r.APIID: {Samples: []PublicSample{sample, sample, sample}}})
+	detail, _ := d.Detail("demo_optional")
+	items := detail["examples"].(map[string]any)["items"].([]any)
+	if len(items) > 3 || items[0].(map[string]any)["kind"] != "empty_request" {
+		t.Fatal("empty fallback bypassed example bound", items)
+	}
+}

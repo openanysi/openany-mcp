@@ -47,7 +47,8 @@ func guidance(b *Binding, e discoveryEntry) map[string]any {
 	} else if len(templates) > 0 {
 		examples["status"] = "template_only"
 	}
-	examples["items"] = append(items, templates...)
+	items = append(items, templates...)
+	examples["items"] = items[:min(len(items), 3)]
 	hints := []any{}
 	requiredHints(b.Input.Document, b.Input.Document, "", "request", 0, &hints)
 	response := map[string]any{"status": "unavailable", "source": "public_sample_structure", "authoritative": false}

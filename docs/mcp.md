@@ -52,9 +52,9 @@ run_api({
 {"query":"帮我查询企业工商信息","limit":5}
 ```
 
-ranking 为 keyword：同时检索接口名、说明、路径、参数名、已有翻译和分类，支持有限中英文别名和自然语言填充词。识别到查询意图时，避开明显的删除/创建等路由；这只是搜索排序辅助，仍须阅读 API 的实际语义。它不是通用语义搜索，不保证任意中文业务表述都命中。搜索不到时尝试实际接口名、供应商标识或更具体的英文词。
+ranking 为 keyword：同时检索接口名、说明、路径、参数名、已有翻译和分类，支持有限中英文别名和词形归并。优先覆盖核心业务概念，再考虑最新、热点、历史、批量等意图及字段相关性；相同词在多个字段重复出现不会反复累加，英文完整词优先，避免 ai 误匹配 chain。时间意图帮助选择接口，不会自动填写业务日期或时间窗口。识别到查询意图时，避开明显的删除/创建等路由；这只是搜索排序辅助，仍须阅读 API 的实际语义。它不是通用语义搜索，不保证任意中文业务表述都命中。搜索不到时尝试实际接口名、供应商标识或更具体的英文词。
 
-metadata_available=false 表示分类、翻译或示例辅助读取暂不可用；此时可继续按原有接口名、描述或供应商搜索，分类筛选可能找不到结果。翻页携带 next_cursor，保持 query、全部筛选条件和 limit 一致；目录更新或游标失效后重新搜索。
+metadata_available=false 表示分类、翻译或示例辅助读取暂不可用；此时可继续按原有接口名、描述或供应商搜索，分类筛选可能找不到结果。翻页携带 next_cursor，保持 query、全部筛选条件和 limit 一致；目录、排序版本更新或游标失效后重新搜索。
 
 ### get_api
 
@@ -67,11 +67,11 @@ metadata_available=false 表示分类、翻译或示例辅助读取暂不可用�
 | 字段 | 含义 |
 | --- | --- |
 | required_inputs | 声明为必填的 JSON Pointer 路径、类型和已有说明；scope=request 是顶层必填，if_parent_is_object/each_present_item 是对象或数组元素存在时的要求 |
-| examples | 从已有公开 HTTP 请求样例转成 MCP input，尽量移除可选字段；每个示例必须同时通过当前 Schema 和 HTTP 编码器 |
+| examples | 从已有公开 HTTP 请求样例转成 MCP input，保留可选业务字段；每个样例必须同时通过当前 Schema 和 HTTP 编码器，模板还需替换占位符 |
 | price_summary | 精确美元字符串、计价单位和收费条件提示，is_quote 始终为 false；rules 模式仍需阅读完整规则 |
-| response_hint | 公开响应样例的结构、顶层字段或数组长度；不返回原始响应样例值，也不声称这是正式输出 Schema |
+| response_hint | 公开响应样例的结构、顶层字段或数组长度；supported_media_types 只说明 MCP 支持的响应类型，不保证本 API 的实际响应格式；不返回原始响应样例值 |
 
-examples.status 为 available、missing、stale 或 no_safe_valid_sample。服务最多读取每接口前三个、单个请求不超过16KiB的公开样例；缺少可用样例时不编造公司名、地址、Token 或其他业务参数。认证请求头不转成 input；发现凭证形态的声明参数则放弃该样例。示例校验范围由 validation=mcp_schema_and_http_encoding、supplier_verified=false 标明：它证明 MCP 能接收和编码请求，不能证明上游数据、权限、额外业务规则一定满足。详情仍以 input_schema 为准，条件分支和跨字段约束不能只看必填摘要。
+examples.status 为 available、template_only、missing、stale 或 no_safe_valid_sample。items[].kind 区分 example（完整公开样例）、template（占位模板）和 empty_request（校验通过的空请求）。模板通过 placeholder_paths 指明待替换字段，不能原样调用；template_only 表示尚无完整请求样例。没有完整样例但 input {} 通过当前 Schema 和 HTTP 编码校验时，提供 empty_request；不会用空请求掩盖过期样例。最多展示三个条目，完整或空请求样例优先于模板。服务最多读取每接口前三个、单个请求不超过16KiB的公开样例；缺少可用样例时不编造公司名、地址、Token 或其他业务参数。认证请求头不转成 input；发现凭证形态的声明参数则放弃该样例。示例校验范围由 validation=mcp_schema_and_http_encoding、supplier_verified=false 标明：它证明 MCP 能接收和编码请求，不能证明上游数据、权限、额外业务规则一定满足。详情仍以 input_schema 为准，条件分支和跨字段约束不能只看必填摘要。
 
 ### run_api
 
@@ -79,7 +79,9 @@ examples.status 为 available、missing、stale 或 no_safe_valid_sample。服�
 
 参数、版本、接口状态检查通过后，服务按原有编码规则向固定网关发出业务请求。返回 http_status、request_id、data 等原有结果信息；工具错误包含 code、stage、execution_state、next_action。参数 Schema 错误还返回最多10条 details（path、keyword、message），不回显提交的值；details_scope=input 时路径相对 input，arguments 时相对整个工具参数对象。MCP 不自动重试业务调用。
 
-成功执行后增加 summary，说明真实 JSON 结构、字段或实际返回数组项数，business_status=not_interpreted。HTTP 200 和这个摘要均不表示业务操作一定成功，不会推断供应商的总记录数、实际扣费或生成下载链接。
+支持有限 JSON（application/json、application/*+json）、UTF-8 text/plain 和 text/markdown。JSON 解析行为保持一致；文本和 Markdown 保留在原有结果结构的 data 字符串中，content_type 标明媒体类型。缺省或 utf-8 字符集的文本必须是有效 UTF-8。HTML、二进制和 SSE 不作为普通文本放行；JSON 类型但内容无效时也不会伪装成文本成功。
+
+成功读取响应后增加 summary，说明真实 JSON 结构、字段或实际返回数组项数；字符串说明 type=string 和 characters（Unicode 码点数），不生成新闻摘要等业务解释。business_status=not_interpreted。HTTP 200 和这个摘要均不表示业务操作一定成功，不会推断供应商的总记录数、实际扣费或生成下载链接。
 
 可以通过可选 output 控制展示：
 
@@ -97,12 +99,12 @@ examples.status 为 available、missing、stale 或 no_safe_valid_sample。服�
 | mode | 行为 |
 | --- | --- |
 | raw（默认） | 完整保留 data，另加结构摘要 |
-| summary | 只返回结构摘要和 HTTP/请求编号，省略 data |
+| summary | 只返回结构摘要和 HTTP/请求编号，省略 data；文本也只报告类型与长度 |
 | compact | 对根对象或指定数组元素选择 fields；数组最多显示 max_items 项，默认10，允许1至100 |
 
 items_path 是相对原始 data 的 RFC6901 JSON Pointer，空字符串选择根数组；嵌套数组必须显式指定路径。fields 为最多20个当前对象或数组元素的字面字段名，不是嵌套路径；不存在的字段会被省略。items_path、fields、max_items 仅用于 compact；items_path 或 max_items 要求目标是数组。服务不会自动寻找并截断某个嵌套数组，实际删减会标记 presentation.truncated=true。
 
-可提前判断的非法 output 配置在转发前拒绝。若执行后才发现路径不存在或结构不符，则返回 openany_mcp_output_unavailable、execution_state=completed，保留原始 data 和 request_id，明确提示不要为修正展示而重跑。输出裁剪不修改业务请求或计费，也不能挽救已超出网关响应/MCP原始结果限制的数据。
+可提前判断的非法 output 配置在转发前拒绝。若执行后才发现路径不存在或结构不符，则返回 openany_mcp_output_unavailable、execution_state=completed，保留原始 data 和 request_id，明确提示不要为修正展示而重跑。字符串不支持 compact 字段/数组投影，处理方式相同：返回原文与 completed 提示，不要为更改展示而重新调用。输出裁剪不修改业务请求或计费，也不能挽救已超出网关响应/MCP原始结果限制的数据。
 
 ## 价格与计费
 
@@ -126,6 +128,7 @@ pricing.status=available 表示公开价格数据可读，不代表已经为当�
 - openany_mcp_busy：本地业务调用并发已满，此次调用未开始。
 - openany_mcp_invalid_output：输出选项组合无效，未转发到网关；类型或范围错误也可能返回 invalid_input。
 - openany_mcp_output_unavailable：请求已经执行，无法按要求展示；先使用已返回的原始 data，不要自动重跑。
+- openany_mcp_unsupported_response / openany_mcp_invalid_response：响应格式、编码或 JSON 内容不受支持，保留 HTTP 状态、请求编号及有界 content_type 信息，不回显原始错误页面。HTTP 200 仍可能在 MCP 结果处理中失败，不能据此认定未执行或未扣费。
 - execution_state=unknown：请求可能已经执行或扣费，不要因为超时就重复提交。保存 request_id 供排查。
 
 api_version 包含该接口的 revision、Schema、公开价格和转发规则，只用于发现已知定义变化，不是认证凭证、幂等键或网关锁价令牌。本版本没有通用的自动去重或长任务恢复工具。结果大小限制沿用现有服务；业务结果过大时不会伪装成截断成功，添加摘要后也会重新检查输出预算。

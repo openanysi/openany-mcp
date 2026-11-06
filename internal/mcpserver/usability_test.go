@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -120,5 +121,86 @@ func TestRecoveryNeverEncouragesUnknownExecutionRetry(t *testing.T) {
 	action := result.Value["error"].(map[string]any)["next_action"].(string)
 	if !strings.Contains(action, "Do not retry") {
 		t.Fatal(action)
+	}
+}
+
+func TestMCPTextWorkflowAcrossAllEntrances(t *testing.T) {
+	var hits atomic.Int32
+	text := "# 今日新闻\n- 第一条\n- 第二条"
+	gw := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hits.Add(1)
+		if r.Method != "GET" || r.URL.String() != "/v1/agent-apis/demo/news" || r.Header.Get("Authorization") != "Bearer text-caller" || r.Header.Get("Accept") != "application/json" {
+			t.Error("dispatch contract changed")
+		}
+		w.Header().Set("Content-Type", "text/markdown; charset=utf-8")
+		w.Header().Set("X-Request-ID", "text-workflow")
+		w.Write([]byte(text))
+	}))
+	defer gw.Close()
+	client, _ := gateway.New(gw.URL, time.Second, time.Second, 4096, 8192)
+	defer client.Close()
+	name := "demo_news"
+	record := model.Record{APIID: "news", Name: "Latest news", Description: "News as Markdown", ProviderID: "demo", ToolName: &name, Status: "active", Method: "GET", RequestContentType: "none", PathTemplate: "/news", PublicPath: "/v1/agent-apis/demo/news", ConfigPresent: true, UnknownParameters: "reject"}
+	manager := catalog.NewManagerWithDiscovery(func(context.Context) ([]model.Record, error) { return []model.Record{record}, nil }, model.Overrides{Version: 1}, time.Minute, false, func(context.Context) (map[string]map[string]any, error) { return nil, nil })
+	if err := manager.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	s := httptest.NewServer(New(manager, client, Options{LiteEnabled: true}))
+	defer s.Close()
+	rpc := func(path, method string, params any) map[string]any {
+		t.Helper()
+		body, _ := json.Marshal(map[string]any{"jsonrpc": "2.0", "id": 1, "method": method, "params": params})
+		r, _ := http.NewRequest("POST", s.URL+path, bytes.NewReader(body))
+		r.Header.Set("Content-Type", "application/json")
+		r.Header.Set("Accept", "application/json, text/event-stream")
+		r.Header.Set("MCP-Protocol-Version", "2025-11-25")
+		r.Header.Set("Authorization", "Bearer text-caller")
+		response, err := http.DefaultClient.Do(r)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer response.Body.Close()
+		var envelope map[string]any
+		if err := json.NewDecoder(response.Body).Decode(&envelope); err != nil || envelope["error"] != nil {
+			t.Fatal("MCP RPC failed", err, envelope)
+		}
+		return envelope["result"].(map[string]any)
+	}
+	list := rpc("/mcp-lite", "tools/list", map[string]any{})
+	for _, value := range list["tools"].([]any) {
+		tool := value.(map[string]any)
+		if tool["name"] == "run_api" && !strings.Contains(tool["description"].(string), "Markdown") {
+			t.Fatal("text capability missing from tool guidance")
+		}
+	}
+	detail := rpc("/mcp-lite", "tools/call", map[string]any{"name": "get_api", "arguments": map[string]any{"api": name}})["structuredContent"].(map[string]any)
+	if detail["examples"].(map[string]any)["items"].([]any)[0].(map[string]any)["kind"] != "empty_request" {
+		t.Fatal("empty request guidance missing", detail)
+	}
+	args := map[string]any{"api": name, "api_version": detail["api_version"], "input": map[string]any{}}
+	for _, path := range []string{"/mcp-lite", "/mcp", "/mcp/demo"} {
+		params := map[string]any{"name": "run_api", "arguments": args}
+		if path != "/mcp-lite" {
+			params = map[string]any{"name": name, "arguments": map[string]any{}}
+		}
+		result := rpc(path, "tools/call", params)
+		content := result["structuredContent"].(map[string]any)
+		if result["isError"] == true || content["data"] != text || content["request_id"] != "text-workflow" {
+			t.Fatal("text lost through MCP", path, result)
+		}
+		var textCopy map[string]any
+		if err := json.Unmarshal([]byte(result["content"].([]any)[0].(map[string]any)["text"].(string)), &textCopy); err != nil || !reflect.DeepEqual(textCopy, content) {
+			t.Fatal("text-only MCP clients received different data", result)
+		}
+	}
+	args["output"] = map[string]any{"mode": "summary"}
+	summary := rpc("/mcp-lite", "tools/call", map[string]any{"name": "run_api", "arguments": args})["structuredContent"].(map[string]any)
+	if _, ok := summary["data"]; ok || summary["summary"].(map[string]any)["type"] != "string" {
+		t.Fatal("text summary failed", summary)
+	}
+	args["output"] = map[string]any{"mode": "compact", "fields": []string{"title"}}
+	compact := rpc("/mcp-lite", "tools/call", map[string]any{"name": "run_api", "arguments": args})["structuredContent"].(map[string]any)
+	if compact["data"] != text || compact["error"].(map[string]any)["execution_state"] != "completed" || hits.Load() != 5 {
+		t.Fatal("text projection discarded data or replayed request", compact, hits.Load())
 	}
 }
