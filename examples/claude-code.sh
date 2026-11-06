@@ -1,5 +1,5 @@
 #!/bin/sh
-# UNCONFIRMED: Authorization: Bearer is assumed; confirm with an authorized live tools/call.
+# CONFIRMED authentication header: Authorization: Bearer <OPENANY_API_KEY>.
 # Requires OPENANY_API_KEY in the private shell environment. Never hardcode a key.
 # The CLI may persist the expanded header in personal settings. Do not enable shell tracing.
 set -eu

@@ -186,3 +186,15 @@ Independent review identified stale versions on revision-only changes and auxili
 ### Default enabled follow-up — 2026-11-05
 
 User requested MCP lite enabled by default. The runtime fallback and .env.example now use true; an explicit false still disables auxiliary reads and the lightweight/document routes. Configuration regression was observed RED with the former default, then GREEN with the new fallback. Current connection docs/spec/plan were updated; earlier verification records describe the initial opt-in rollout. Existing private .env was not modified.
+
+## Public documentation authentication alignment — 2026-11-06
+
+The maintainer directed that the authentication header format be documented as
+confirmed: `Authorization: Bearer <OPENANY_API_KEY>`. README, all client examples
+and the English/Chinese agent snippets now share this contract. Public discovery
+and the absence of OAuth are unchanged. Credentials remain environment-backed.
+
+This is a maintainer-confirmed contract update, not a new live verification run.
+No authenticated production tools/call, paid supplier request, payment or registry
+publication was performed for this change. Earlier test records above retain
+their original scope; they are not retroactively reclassified as live success.

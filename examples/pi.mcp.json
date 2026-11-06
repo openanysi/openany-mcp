@@ -1,5 +1,5 @@
 {
-  "$comment": "UNCONFIRMED: Authorization: Bearer is assumed; confirm with an authorized live tools/call. Merge into ~/.pi/agent/mcp.json or .pi/mcp.json. CLI alternative: pi mcp add openany --url https://mcp.openany.si/mcp --bearer-token-env-var OPENANY_API_KEY",
+  "$comment": "CONFIRMED authentication header: Authorization: Bearer <OPENANY_API_KEY>. Merge into ~/.pi/agent/mcp.json or .pi/mcp.json. CLI alternative: pi mcp add openany --url https://mcp.openany.si/mcp --bearer-token-env-var OPENANY_API_KEY",
   "mcpServers": {
     "openany": {
       "url": "https://mcp.openany.si/mcp",

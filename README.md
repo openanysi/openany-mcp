@@ -20,17 +20,36 @@ or a guarantee that every model is exposed as an MCP tool. Use the current
 `tools/list` response and tool schemas to determine MCP availability. The
 separate model API base URL is https://api.openany.si/v1.
 
+## Optional lightweight endpoint
+
+When enabled and routed by the deployment, `https://mcp.openany.si/mcp-lite`
+uses the same Streamable HTTP transport and exposes just three tools:
+`search_apis`, `get_api` and `run_api`. It lets an agent search the API catalog,
+inspect one API's schema and pricing, then execute the selected API without
+loading the full independent-tool catalog into context.
+
+The implementation enables this interface by default; operators can disable
+it with `MCP_LITE_ENABLED=false`. Public deployment availability is a separate
+check. `search_apis` and `get_api` read metadata; `run_api` forwards a business
+request and may incur charges, requiring the caller's gateway credentials and
+spending authorization. Configure one endpoint, not both, unless your workflow
+explicitly needs both catalogs. See the [lightweight guide](docs/mcp.md).
+The examples and registry descriptor in this repository continue to use `/mcp`.
+
 ## Authentication
 
 - `tools/list` is public; discovery does not require an OpenAny API key.
 - Resource execution through `tools/call` requires an **OpenAny API key**.
   The gateway remains responsible for authentication, billing and execution.
 - **No OAuth:** this server does not implement an OAuth sign-in flow.
-- **ASSUMED / UNCONFIRMED:** the examples use
-  `Authorization: Bearer <OPENANY_API_KEY>`. This header must be confirmed
-  against a successful, authorized **live `tools/call`** before claiming that
-  authenticated integration works. Source code and local tests forward this
-  header, but that does not verify the deployed gateway's acceptance of it.
+- **Confirmed authentication header:**
+  `Authorization: Bearer <OPENANY_API_KEY>`. Supply an OpenAny API key through
+  `OPENANY_API_KEY`; the examples use this confirmed header format.
+
+The header format is confirmed by the maintainer for this documentation
+update. This is separate from validating a particular account, client version
+or business request. No new authenticated live call was performed during this
+update; see the [verification record](docs/verification.md) for test scope.
 
 Provide the key through `OPENANY_API_KEY` in the client's private environment
 or secret settings. Never hardcode a key in the repository, paste it into an
@@ -42,8 +61,8 @@ does not necessarily inherit a terminal's environment.
 
 Merge the appropriate snippet into existing settings rather than replacing
 unrelated servers. The files below contain environment references, not real
-keys. Every example marks the authorization header **UNCONFIRMED**; none is a
-claim of an end-to-end paid client test.
+keys. Every example uses the confirmed Bearer header format; none is a claim
+of an end-to-end paid test of every client.
 
 | Client | Example | Destination |
 | --- | --- | --- |
@@ -88,15 +107,14 @@ client documentation if a field or command is rejected.
    available usage or billing record. Do not equate HTTP 200 with business
    success. Never repeat an uncertain paid request automatically.
 
-No authenticated live `tools/call` was performed to validate these examples.
+No new authenticated live `tools/call` was performed during this documentation update.
 
 ## Registry metadata
 
 [`server.json`](server.json) is a draft descriptor for the official MCP
 registry's [2025-12-11 schema](https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json).
-Its required Authorization header describes the proposed authenticated-call
+Its required Authorization header describes the confirmed authenticated-call
 configuration, not a credential requirement for public `tools/list`.
-The header remains unconfirmed as explained above.
 
 The registry description is limited to 100 characters, so its wording is
 shorter than the full description above. The descriptor is version `0.1.0`;

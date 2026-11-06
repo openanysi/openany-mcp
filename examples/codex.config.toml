@@ -1,4 +1,4 @@
-# UNCONFIRMED: Authorization: Bearer is assumed; confirm with an authorized live tools/call.
+# CONFIRMED authentication header: Authorization: Bearer <OPENANY_API_KEY>.
 # Merge into ~/.codex/config.toml. Set OPENANY_API_KEY in the client environment.
 [mcp_servers.openany]
 url = "https://mcp.openany.si/mcp"

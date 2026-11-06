@@ -1,4 +1,4 @@
-# UNCONFIRMED: Authorization: Bearer is assumed; confirm with an authorized live tools/call.
+# CONFIRMED authentication header: Authorization: Bearer <OPENANY_API_KEY>.
 # Merge into ~/.hermes/config.yaml. Never hardcode a key here.
 # Default transport for url entries is Streamable HTTP; do NOT set transport: sse.
 # Prefer putting the real key in private ~/.hermes/.env as OPENANY_API_KEY.
