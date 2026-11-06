@@ -32,8 +32,8 @@ Files: catalog/guidance.go and tests.
 
 ### Task 3: Execution feedback and presentation
 Files: schema/errors.go, mcpserver/output.go, lite.go, execute.go and tests.
-- [ ] RED safe field errors and recovery actions; presentation validation/no-dispatch; clipping/summary retains request+fees and default raw data.
-- [ ] Implement additive lite feedback and explicit output options. Keep direct error behavior and original data default. Run tests/race/vet; commit.
+- [x] RED safe field errors and recovery actions; presentation validation/no-dispatch; clipping/summary retains request+fees and default raw data.
+- [x] Implement additive lite feedback and explicit output options. Keep direct error behavior and original data default. Run tests/race/vet; commit.
 
 ### Task 4: Docs, verification and review
 - [ ] Update public docs and verification record.

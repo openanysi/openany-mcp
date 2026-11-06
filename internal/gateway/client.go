@@ -112,11 +112,24 @@ func (c *Client) Call(ctx context.Context, r model.Request, args map[string]any,
 		return Failure("openany_mcp_gateway_http_error", "Gateway returned an unsuccessful HTTP status.", "gateway", "reported_failure", resp.StatusCode, id)
 	}
 	result := Result{Value: map[string]any{"http_status": resp.StatusCode, "request_id": id, "content_type": media, "data": data}}
+	return c.LimitResult(result)
+}
+
+// LimitResult also checks presentation metadata added by the lite endpoint.
+// It never retries the upstream call or changes its execution/charging state.
+func (c *Client) LimitResult(result Result) Result {
 	b, err := json.Marshal(result.Value)
 	escaped, escapeErr := json.Marshal(string(b))
 	if err != nil || escapeErr != nil || int64(len(b)+len(escaped))+1024 > c.maxResult {
-		return Failure("openany_mcp_result_too_large", "Result exceeds MCP output limit; execution completed.", "result", "completed", resp.StatusCode, id)
+		state := "completed"
+		if e, ok := result.Value["error"].(map[string]any); ok {
+			if original, ok := e["execution_state"].(string); ok {
+				state = original
+			}
+		}
+		return Failure("openany_mcp_result_too_large", "Result exceeds MCP output limit; inspect execution_state before deciding on another call.", "result", state, result.Value["http_status"], result.Value["request_id"])
 	}
 	return result
 }
+
 func (c *Client) Close() { c.http.CloseIdleConnections() }
