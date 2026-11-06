@@ -1,0 +1,8 @@
+# UNCONFIRMED: Authorization: Bearer is assumed; confirm with an authorized live tools/call.
+# Merge into ~/.codex/config.toml. Set OPENANY_API_KEY in the client environment.
+[mcp_servers.openany]
+url = "https://mcp.openany.si/mcp"
+bearer_token_env_var = "OPENANY_API_KEY"
+
+# CLI alternative:
+# codex mcp add openany --url https://mcp.openany.si/mcp --bearer-token-env-var OPENANY_API_KEY

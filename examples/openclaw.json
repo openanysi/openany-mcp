@@ -1,0 +1,16 @@
+{
+  "$comment": "UNCONFIRMED: Authorization: Bearer is assumed; confirm with an authorized live tools/call. Merge mcp.servers into ~/.openclaw/openclaw.json. IMPORTANT: transport must be streamable-http; omitting it defaults to sse, which this endpoint does not use. CLI alternative (also configure the env-backed header below): openclaw mcp add openany --url https://mcp.openany.si/mcp --transport streamable-http",
+  "mcp": {
+    "servers": {
+      "openany": {
+        "url": "https://mcp.openany.si/mcp",
+        "transport": "streamable-http",
+        "headers": {
+          "Authorization": "Bearer ${OPENANY_API_KEY}"
+        },
+        "connectionTimeoutMs": 10000,
+        "requestTimeoutMs": 30000
+      }
+    }
+  }
+}

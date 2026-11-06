@@ -1,0 +1,25 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "si.openany/openany",
+  "title": "OpenAny",
+  "version": "0.1.0",
+  "description": "One key, prepaid balance: 130 models and 3,200+ API tools via MCP. Pay per call; no subscription.",
+  "repository": {
+    "url": "https://github.com/openanysi/openany-mcp",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.openany.si/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "OpenAny API key as Bearer token. Required for tools/call.",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "$comment": "UNCONFIRMED: Authorization: Bearer is assumed; confirm with an authorized live tools/call. Merge mcpServers into ~/.cursor/mcp.json; keep OPENANY_API_KEY in the client environment.",
+  "mcpServers": {
+    "openany": {
+      "url": "https://mcp.openany.si/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:OPENANY_API_KEY}"
+      }
+    }
+  }
+}
