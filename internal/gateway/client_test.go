@@ -146,3 +146,86 @@ func TestUnsupportedResponseNeverDispatches(t *testing.T) {
 		t.Fatal(calls.Load(), result)
 	}
 }
+
+func TestFiniteResponseFormatsPreserveContract(t *testing.T) {
+	for _, tc := range []struct {
+		name, media, body, code string
+		text                    bool
+	}{
+		{"plain", "text/plain; charset=utf-8", "今天的 AI 新闻\n第二行", "", true},
+		{"markdown", "text/markdown; charset=UTF-8", "# News\n- [Source](https://example.com)", "", true},
+		{"empty text", "text/plain", "", "", true},
+		{"json", "application/json", `{"number":9007199254740993}`, "", false},
+		{"plus json", "application/problem+json", `{"number":9007199254740993}`, "", false},
+		{"invalid json", "application/json", "private-invalid-json", "openany_mcp_invalid_response", false},
+		{"invalid utf8", "text/plain", string([]byte{0xff, 0xfe}), "openany_mcp_invalid_response", false},
+		{"unsupported charset", "text/plain; charset=iso-8859-1", "private-text", "openany_mcp_unsupported_response", false},
+		{"html", "text/html", "<html>private-page</html>", "openany_mcp_unsupported_response", false},
+		{"binary", "application/octet-stream", "private-binary", "openany_mcp_unsupported_response", false},
+		{"stream", "text/event-stream", "private-stream", "openany_mcp_unsupported_response", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var hits atomic.Int32
+			s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				hits.Add(1)
+				if r.Header.Get("Accept") != "application/json" || r.Header.Get("Authorization") != "Bearer test-caller" {
+					t.Error("request contract changed")
+				}
+				w.Header().Set("Content-Type", tc.media)
+				w.Header().Set("X-Request-ID", "format-request")
+				w.Write([]byte(tc.body))
+			}))
+			defer s.Close()
+			c, _ := New(s.URL, time.Second, time.Second, 1024, 8192)
+			defer c.Close()
+			r := c.Call(context.Background(), model.Request{Method: "GET", PublicPath: "/test"}, nil, http.Header{"Authorization": {"Bearer test-caller"}})
+			if hits.Load() != 1 || r.Value["http_status"] != 200 || r.Value["request_id"] != "format-request" {
+				t.Fatal("request identity lost or replayed", r, hits.Load())
+			}
+			if tc.code != "" {
+				e, ok := r.Value["error"].(map[string]any)
+				if !r.IsError || !ok || e["code"] != tc.code || e["execution_state"] != "unknown" || r.Value["content_type"] == nil {
+					t.Fatal("missing safe format diagnostics", r)
+				}
+				b, _ := json.Marshal(r.Value)
+				if strings.Contains(string(b), "private-") {
+					t.Fatal("response body leaked through error", string(b))
+				}
+				return
+			}
+			if r.IsError {
+				t.Fatal(r)
+			}
+			if tc.text && r.Value["data"] != tc.body {
+				t.Fatal("text content changed", r)
+			}
+			if !tc.text && r.Value["data"].(map[string]any)["number"] != json.Number("9007199254740993") {
+				t.Fatal("JSON precision changed", r)
+			}
+		})
+	}
+}
+
+func TestTextResponseHonorsBothSizeLimits(t *testing.T) {
+	for _, tc := range []struct {
+		name, body, code string
+		response, result int64
+	}{
+		{"response limit", strings.Repeat("x", 100), "openany_mcp_response_unavailable", 50, 8192},
+		{"result limit", strings.Repeat("\\", 200), "openany_mcp_result_too_large", 4096, 2200},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "text/plain")
+				w.Write([]byte(tc.body))
+			}))
+			defer s.Close()
+			c, _ := New(s.URL, time.Second, time.Second, tc.response, tc.result)
+			defer c.Close()
+			r := c.Call(context.Background(), model.Request{Method: "GET", PublicPath: "/test"}, nil, nil)
+			if !r.IsError || r.Value["error"].(map[string]any)["code"] != tc.code {
+				t.Fatal("text escaped configured budget", r)
+			}
+		})
+	}
+}

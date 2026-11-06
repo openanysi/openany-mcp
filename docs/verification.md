@@ -198,3 +198,65 @@ This is a maintainer-confirmed contract update, not a new live verification run.
 No authenticated production tools/call, paid supplier request, payment or registry
 publication was performed for this change. Earlier test records above retain
 their original scope; they are not retroactively reclassified as live success.
+
+### Three-tool usability — 2026-11-06
+
+Branch `codex/mcp-tool-usability`, isolated worktree `/private/tmp/openany-mcp-tool-usability`, based on `aca891d` from the unchanged `dev` checkout. No deployment, merge, remote push, private configuration changes, migrations, grants or business API calls were performed.
+
+Implemented additive Lite guidance:
+
+- search_apis: public categories/platform/product/capability filters, public translations, limited Chinese/business aliases, factual match fields/terms, required-input brief and known limitations. Every filter/read-intent scope is bound to pagination. Existing precise-name searches retain priority.
+- get_api: public HTTP sample projection, exact-number preservation, current Schema and HTTP-encoder validation, best-effort optional-field removal, safe required-path hints, exact USD rate strings, rule/usage caveats and value-free response hints. Missing/invalid/stale examples remain explicit. Samples are not supplier verified.
+- run_api: bounded value-free field errors and recovery suggestions; explicit raw/compact/summary presentation after the original gateway call. Invalid configurations make zero calls. Post-execution shape mismatches preserve data/request ID and completed state. Output size is checked again after enrichment. Direct request/credential/admission behavior remains covered by the existing equality tests.
+
+Verification on final source:
+
+- `go test ./... -count=1`, `go test -race ./... -count=1`, `go vet ./...`, and `go build ./cmd/openany-mcp`: pass using the existing dependency cache. Gateway integration tests use local HTTP substitutes only.
+- Lite tools/list: exactly 3 tools, 3,198-byte JSON-RPC response in the workflow regression; below the existing 10KiB limit.
+- Opt-in `TestReadOnlyPublicMetadataIntegration`: database-enforced read-only session, single connection, local existing catalog only. Active956/direct956/lite956/public-metadata956; categorized956, populated API-name translations0; 659 bounded source samples loaded and 640 APIs offered at least one validated example. Every published detail serialized successfully. No gateway clients/calls are involved in this check.
+- Query projects only named public columns, never whole API/capability rows or supplier pricing/credentials/fixed authentication. Optional metadata IO does not hold the core refresh lock. Regression covers slow metadata with newer core revision, unavailable candidates, metadata failures, sample-only updates, immutable public samples, all cursor filters and nullable child requirements.
+
+Separate author self-review (no subagents permitted in this side conversation) found three important issues; each was reproduced RED then fixed GREEN: whole-row JSON translation projection unnecessarily required private-column access; sample-only updates did not publish fresh guidance; nullable-object children were presented as unconditional requirements. Final complete suite and race pass after those fixes. No deferred findings.
+
+Decision: missing auxiliary columns/permissions/data degrades classification/examples rather than preventing the original service from becoming ready. Operators need read access to the listed existing public columns for richer guidance; metadata_available reports failures. No database schema additions are necessary.
+
+Limits: the supplied production3,220-API figure and production data were not verified. Local translation coverage is zero, so actual local Chinese improvement comes from finite aliases; populated-translation behavior is covered by fixtures. No Grok Bot UI, production deployment, supplier acceptance, paid billing/charge or business-success interpretation was tested. The source samples can fail gateway-side business/cross-field rules beyond the MCP schema/encoder and never constitute a price quote.
+
+
+## 2026-11-06: response, ranking and example follow-up
+
+Scope approved in chat: fix finite response compatibility, keyword ranking and request-example guidance in the existing service. No new tools, endpoint paths, dependencies, database schema changes, credential storage or remote business calls.
+
+- Shared gateway decoder accepts finite JSON/+json plus UTF-8 plain text and Markdown. Existing JSON precision, Accept and credential headers, response/result budgets and no-replay behavior remain covered. Format failures retain HTTP status, request ID and bounded media type without echoing raw response bodies. Text raw/structural-summary/unsupported-compact behavior is tested.
+- Keyword ranking preserves latest/hot/history intent, uses Latin word boundaries and strongest-field scores, prefers explicitly named providers and strong business concepts over repeated metadata/cross-references. Ranking version is bound into discovery hashes/cursors; per-API execution versions and direct catalog hash boundaries remain tested. Twenty-four fixed query cases plus provider/cross-reference and cursor regressions passed.
+- Public examples keep optional business parameters, exact numbers and null values. Body results are cloned. Complete examples, placeholder templates and locally valid empty requests have distinct kinds; template-only samples are not advertised as complete. Embedded ${...}/{{...} placeholders are recognized; samples exceeding forty placeholder paths are rejected rather than silently giving incomplete replacement instructions. At most three items are displayed. Existing sensitive-value, schema, HTTP-encoding and stale-revision checks remain.
+- Mock MCP workflow exercised /mcp-lite, /mcp and /mcp/demo. Both structuredContent and serialized text content preserve Markdown. Summary omits content; compact on text returns the original data and completed-state guidance without replay.
+
+Verification on final code: go test ./..., go test -race ./..., go vet ./... and git diff --check passed. Database-enforced readonly local compatibility check passed for 956 active/direct/lite APIs with 659 source samples and 699 APIs offering a locally validated complete or empty-request example. This is not an upstream acceptance count. No gateway calls were made by the database check.
+
+An independent reviewer reproduced embedded-placeholder misclassification and silent forty-path truncation; both were reproduced locally before fixes, then passed regression tests. The README non-JSON wording conflict was corrected.
+
+Saved dev-snapshot probe (740 active / 700 published records, augmented only with a partial set of public metadata captured during the earlier live search; not a new live-environment test):
+
+| Query | First result after fix |
+| --- | --- |
+| Uniswap 兑换报价 | uniswap_post_v1_quote |
+| 帮我获取今天的AI热点新闻 | aihot_get_api_v1_agent_hot |
+| 帮我获取最新的AI新闻 | aihot_get_api_v1_items |
+| 查询以太坊地址的内部交易 | blockscout_get_chain_id_api_v2_addresses_address_hash_param_inte |
+| Codex 重置公告 | aihot_get_api_v1_agent_codex_resets |
+
+Limitations: supplier-specific missing business examples/descriptions still require catalog maintenance; no fabricated values or database writes were used. Exact Content-Type/body of the earlier dev request is still unverified. Dev/production images were not deployed or re-tested, and Grok Bot UI was not exercised. Keyword ranking is bounded and heuristic; missing auxiliary metadata can reduce precision. Existing running processes require restart to load a rebuilt local binary.
+
+
+## 2026-11-06: minimal search recovery guidance
+
+Approved scope: correct search-error next_action and regress existing execution-state behavior; no ranking or catalog-data changes.
+
+- Added invalid_search guidance to correct search parameters and omit an invalid/outdated cursor before restarting search_apis from the first page.
+- Existing details_scope=arguments now points to the called MCP tool inputSchema/error.details; API business-input errors still point to get_api.input_schema. Public error codes and execution states remain unchanged.
+- RED reproduced both incorrect get_api hints and the invalid-cursor MCP flow. GREEN covers invalid cursor, missing search criteria, invalid limit and a successful corrected search. The existing mock workflow asserts no business gateway calls before valid business execution; tool errors remain isError=true.
+- Regression table covers API business input, changed version, unavailable API, admission, output options and unknown/completed/reported_failure state precedence.
+- go test ./..., go test -race ./..., go vet ./... and git diff --check passed. No remote business calls, database writes or deployments were performed; Grok Bot behavior remains a separate client acceptance check.
+
+Follow-up table alignment: explicitly tell the agent to omit only an invalid cursor and preserve the current query, filters and limit. The stricter copy assertion was observed RED before the wording change, then the full Go suite passed. This is guidance to the caller, not an automatic server-side retry.

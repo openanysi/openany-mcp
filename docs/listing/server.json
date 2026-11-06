@@ -1,0 +1,22 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "si.openany/openany",
+  "title": "OpenAny MCP",
+  "description": "Discover APIs, inspect schemas and public pricing, and execute requests through a unified gateway.",
+  "version": "0.1.0",
+  "websiteUrl": "https://openany.si/",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.openany.si/mcp-lite",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Your OpenAny API key with the Bearer prefix: Bearer YOUR_OPENANY_KEY. Required for business API execution.",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

@@ -9,11 +9,13 @@ import (
 	"github.com/openany/openany-mcp/internal/schema"
 	"github.com/openany/openany-mcp/internal/transport"
 	"io"
+	"mime"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 type Result struct {
@@ -89,17 +91,38 @@ func (c *Client) Call(ctx context.Context, r model.Request, args map[string]any,
 		id = value
 	}
 	media := strings.ToLower(strings.TrimSpace(strings.Split(resp.Header.Get("Content-Type"), ";")[0]))
-	if media != "application/json" && !strings.HasSuffix(media, "+json") {
-		return Failure("openany_mcp_unsupported_response", "Gateway did not return a finite JSON response.", "gateway", "unknown", resp.StatusCode, id)
+	formatFailure := func(code, message string) Result {
+		result := Failure(code, message, "gateway", "unknown", resp.StatusCode, id)
+		result.Value["content_type"] = media[:min(len(media), 128)]
+		return result
+	}
+	isJSON := media == "application/json" || strings.HasSuffix(media, "+json")
+	isText := media == "text/plain" || media == "text/markdown"
+	if !isJSON && !isText {
+		return formatFailure("openany_mcp_unsupported_response", "Gateway response media type is unsupported; expected finite JSON, UTF-8 plain text or Markdown.")
+	}
+	if isText {
+		_, params, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil || (params["charset"] != "" && !strings.EqualFold(params["charset"], "utf-8")) {
+			return formatFailure("openany_mcp_unsupported_response", "Gateway text response must use UTF-8 encoding.")
+		}
 	}
 	raw, err := io.ReadAll(io.LimitReader(resp.Body, c.maxResponse+1))
 	if err != nil || int64(len(raw)) > c.maxResponse {
-		return Failure("openany_mcp_response_unavailable", "Gateway response could not be read within limits; execution may have completed.", "gateway", "unknown", resp.StatusCode, id)
+		return formatFailure("openany_mcp_response_unavailable", "Gateway response could not be read within limits; execution may have completed.")
 	}
 
-	data, err := schema.Decode(raw)
-	if err != nil {
-		return Failure("openany_mcp_invalid_response", "Gateway returned invalid JSON.", "gateway", "unknown", resp.StatusCode, id)
+	var data any
+	if isText {
+		if !utf8.Valid(raw) {
+			return formatFailure("openany_mcp_invalid_response", "Gateway text response contains invalid UTF-8.")
+		}
+		data = string(raw)
+	} else {
+		data, err = schema.Decode(raw)
+		if err != nil {
+			return formatFailure("openany_mcp_invalid_response", "Gateway returned invalid JSON.")
+		}
 	}
 	if obj, ok := data.(map[string]any); ok && obj["type"] == "openany_error" {
 		code, _ := obj["code"].(string)
@@ -112,11 +135,28 @@ func (c *Client) Call(ctx context.Context, r model.Request, args map[string]any,
 		return Failure("openany_mcp_gateway_http_error", "Gateway returned an unsuccessful HTTP status.", "gateway", "reported_failure", resp.StatusCode, id)
 	}
 	result := Result{Value: map[string]any{"http_status": resp.StatusCode, "request_id": id, "content_type": media, "data": data}}
+	return c.LimitResult(result)
+}
+
+// LimitResult also checks presentation metadata added by the lite endpoint.
+// It never retries the upstream call or changes its execution/charging state.
+func (c *Client) LimitResult(result Result) Result {
 	b, err := json.Marshal(result.Value)
 	escaped, escapeErr := json.Marshal(string(b))
 	if err != nil || escapeErr != nil || int64(len(b)+len(escaped))+1024 > c.maxResult {
-		return Failure("openany_mcp_result_too_large", "Result exceeds MCP output limit; execution completed.", "result", "completed", resp.StatusCode, id)
+		state := "completed"
+		if e, ok := result.Value["error"].(map[string]any); ok {
+			if original, ok := e["execution_state"].(string); ok {
+				state = original
+			}
+		}
+		message := "Result exceeds MCP output limit; execution completed."
+		if state != "completed" {
+			message = "Result exceeds MCP output limit; inspect execution_state before deciding on another call."
+		}
+		return Failure("openany_mcp_result_too_large", message, "result", state, result.Value["http_status"], result.Value["request_id"])
 	}
 	return result
 }
+
 func (c *Client) Close() { c.http.CloseIdleConnections() }
