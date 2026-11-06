@@ -93,3 +93,80 @@ func TestOptionalMetadataFailurePreservesCoreAndReportsUnavailable(t *testing.T)
 		t.Fatal("metadata failure poisoned core", m.Status())
 	}
 }
+
+func TestPublicMetadataQueryNeverReadsWholePrivateRecords(t *testing.T) {
+	for _, private := range []string{"to_jsonb(a)", "to_jsonb(cap)", "SELECT *", "fixed_headers", "fixed_body", "supplier_policy", "encrypted_key"} {
+		if strings.Contains(MetadataQuery, private) {
+			t.Fatal("metadata query requires whole-row/private access:", private)
+		}
+	}
+}
+func TestSampleOnlyRefreshPublishesGuidanceWithoutInvalidatingExecution(t *testing.T) {
+	record := fixture("demo_good")
+	label := "first"
+	manager := NewManagerWithDiscovery(func(context.Context) ([]model.Record, error) { return []model.Record{record}, nil }, model.Overrides{Version: 1}, time.Minute, false, func(context.Context) (map[string]map[string]any, error) { return nil, nil }, func(context.Context) (map[string]APIMetadata, error) {
+		return map[string]APIMetadata{record.APIID: {Samples: []PublicSample{{Name: label, Request: map[string]any{}}}}}, nil
+	})
+	if err := manager.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if err := manager.RefreshPricing(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	before := manager.Current()
+	label = "second"
+	if err := manager.RefreshPricing(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	after := manager.Current()
+	if before.Discovery.Hash == after.Discovery.Hash || after.Discovery.entries["demo_good"].metadata.Samples[0].Name != "second" {
+		t.Fatal("sample-only update was never published")
+	}
+	if before.Hash != after.Hash || before.Discovery.Version("demo_good") != after.Discovery.Version("demo_good") {
+		t.Fatal("sample display change invalidated execution")
+	}
+}
+
+func TestSlowMetadataCannotBlockCoreOrOfferOldRevisionSamples(t *testing.T) {
+	r := fixture("demo_good")
+	r.Revision = 1
+	entered, release, done := make(chan struct{}), make(chan struct{}), make(chan error, 1)
+	m := NewManagerWithDiscovery(func(context.Context) ([]model.Record, error) { return []model.Record{r}, nil }, model.Overrides{Version: 1}, time.Minute, false, func(context.Context) (map[string]map[string]any, error) { return nil, nil }, func(context.Context) (map[string]APIMetadata, error) {
+		close(entered)
+		<-release
+		return map[string]APIMetadata{r.APIID: {Revision: 1, Samples: []PublicSample{{Name: "old", Request: map[string]any{}}}}}, nil
+	})
+	if err := m.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	go func() { done <- m.RefreshPricing(context.Background()) }()
+	<-entered
+	r.Revision = 2
+	coreDone := make(chan error, 1)
+	go func() { coreDone <- m.Refresh(context.Background()) }()
+	select {
+	case err := <-coreDone:
+		if err != nil {
+			t.Error(err)
+		}
+	case <-time.After(time.Second):
+		t.Error("metadata IO blocked core refresh")
+	}
+	hash := m.Current().Hash
+	close(release)
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+	detail, _ := m.Current().Discovery.Detail("demo_good")
+	if m.Current().Hash != hash || !m.Ready() || detail["examples"].(map[string]any)["status"] != "stale" {
+		t.Fatal("late metadata replaced contract or offered stale example")
+	}
+}
+func TestUnavailableMetadataHidesOnlyLiteCandidate(t *testing.T) {
+	s := discoveryFixture(t)
+	available := false
+	d := NewDiscovery(s, nil, false, map[string]APIMetadata{"demo_weather": {Available: &available}})
+	if _, ok := d.Detail("demo_weather"); ok || s.Tools["demo_weather"] == nil {
+		t.Fatal("availability affected the wrong view")
+	}
+}

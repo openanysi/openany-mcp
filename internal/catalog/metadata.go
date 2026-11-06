@@ -41,9 +41,9 @@ type MetadataLoader func(context.Context) (map[string]APIMetadata, error)
 // This projection deliberately excludes upstream credentials, mappings, fixed bodies and costs.
 const MetadataQuery = `SELECT a.id::text,jsonb_build_object(
  'revision',a.revision,'categories',a.categories,'data_platform',COALESCE(a.data_platform,''),'data_product',COALESCE(a.data_product,''),
- 'name_translations',to_jsonb(a)->'name_translations','description_translations',to_jsonb(a)->'description_translations',
+ 'name_translations',a.name_translations,'description_translations',a.description_translations,
  'capability',jsonb_build_object('id',cap.id::text,'key',cap.key,'name',cap.name,'description',cap.description),
- 'capability_translations',to_jsonb(cap)->'name_translations',
+ 'capability_translations',cap.name_translations,
  'available',COALESCE(k.status::text='active' AND (a.capability_id IS NULL OR cap.status='active'),false),
  'samples',COALESCE((SELECT jsonb_agg(jsonb_build_object('name',v->'name','request',v->'request','http_status',v->'http_status',
  'response_shape',jsonb_build_object('type',jsonb_typeof(v->'response_body'),

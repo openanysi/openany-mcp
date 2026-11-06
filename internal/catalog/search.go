@@ -25,6 +25,7 @@ type discoveryEntry struct {
 	metadata         APIMetadata
 	limitations      []string
 	required         []string
+	samplesStale     bool
 }
 type MatchReason struct {
 	Fields []string `json:"fields"`
@@ -150,6 +151,7 @@ func NewDiscovery(s *Snapshot, prices map[string]map[string]any, available bool,
 	if len(metadata) > 0 {
 		metas = metadata[0]
 	}
+	d.MetadataAvailable = metas != nil
 	versions := map[string]string{}
 	index := map[string]any{}
 	for _, name := range s.Names {
@@ -159,7 +161,8 @@ func NewDiscovery(s *Snapshot, prices map[string]map[string]any, available bool,
 			continue
 		}
 		// Never offer samples from a different observed request-contract revision.
-		if m.Revision != 0 && m.Revision != b.Revision {
+		samplesStale := m.Revision != 0 && m.Revision != b.Revision
+		if samplesStale {
 			m.Samples = nil
 		}
 		m.Categories = publicCategories(m)
@@ -169,7 +172,7 @@ func NewDiscovery(s *Snapshot, prices map[string]map[string]any, available bool,
 		if !available {
 			p = map[string]any{"status": "unavailable"}
 		}
-		e := discoveryEntry{summary: short(b.Description, 160), pricing: p, metadata: m}
+		e := discoveryEntry{summary: short(b.Description, 160), pricing: p, metadata: m, samplesStale: samplesStale}
 		if purpose := localized(m.DescriptionTranslations); purpose != "" {
 			e.summary = short(purpose, 160)
 		} else if m.Capability.Description != "" {
@@ -228,7 +231,7 @@ func NewDiscovery(s *Snapshot, prices map[string]map[string]any, available bool,
 		e.version = digest([]any{name, b.APIID, b.Revision, b.ProviderID, b.Title, b.Description, b.Input.Document, b.Request, p})
 		d.entries[name] = e
 		versions[name] = e.version
-		index[name] = []any{e.fields, m.Categories, m.Platform, m.Product, m.Capability, e.summary}
+		index[name] = []any{e.fields, m.Categories, m.Platform, m.Product, m.Capability, e.summary, digest(m.Samples), e.samplesStale}
 	}
 	d.Hash = digest([]any{versions, index})
 	return d
@@ -239,7 +242,7 @@ func (d *Discovery) Detail(api string) (map[string]any, bool) {
 		return nil, false
 	}
 	b := d.snapshot.Tools[api]
-	detail := map[string]any{"api": api, "api_id": b.APIID, "title": b.Title, "provider": b.ProviderID, "description": b.Description, "method": b.Request.Method, "public_path": b.Request.PublicPath, "input_schema": b.Input.Document, "pricing": e.pricing, "api_version": e.version, "categories": e.metadata.Categories, "data_platform": e.metadata.Platform, "data_product": e.metadata.Product, "capability": e.metadata.Capability, "limitations": e.limitations}
+	detail := map[string]any{"api": api, "api_id": b.APIID, "title": b.Title, "provider": b.ProviderID, "description": b.Description, "method": b.Request.Method, "public_path": b.Request.PublicPath, "input_schema": b.Input.Document, "pricing": e.pricing, "api_version": e.version, "categories": e.metadata.Categories, "data_platform": e.metadata.Platform, "data_product": e.metadata.Product, "capability": e.metadata.Capability, "limitations": e.limitations, "metadata_available": d.MetadataAvailable}
 	for k, v := range guidance(b, e) {
 		detail[k] = v
 	}

@@ -96,6 +96,7 @@ func TestLiteWorkflowPreservesDirectCallsAndRejectsUnsafeDispatch(t *testing.T) 
 	if !ok {
 		t.Fatal("lightweight endpoint not available", list)
 	}
+	t.Logf("lite tools/list: %d bytes, %d tools", size, len(result["tools"].([]any)))
 	if len(result["tools"].([]any)) != 3 || size > 10*1024 || result["nextCursor"] != nil {
 		t.Fatal("unbounded lightweight tool list", size, list)
 	}

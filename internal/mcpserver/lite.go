@@ -62,7 +62,7 @@ func (h *Handler) newLiteServer() *mcp.Server {
 				if err != nil {
 					return toLiteMCP(gateway.Failure("openany_mcp_invalid_search", err.Error(), "validate", "not_started", nil, nil)), nil
 				}
-				return toLiteMCP(gateway.Result{Value: map[string]any{"results": result.Results, "total": result.Total, "ranking": result.Ranking, "next_cursor": result.NextCursor}}), nil
+				return toLiteMCP(gateway.Result{Value: map[string]any{"results": result.Results, "total": result.Total, "ranking": result.Ranking, "next_cursor": result.NextCursor, "metadata_available": d.MetadataAvailable}}), nil
 			case "get_api":
 				detail, ok := d.Detail(text("api"))
 				if !ok {

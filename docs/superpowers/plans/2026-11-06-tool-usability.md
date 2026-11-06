@@ -36,7 +36,7 @@ Files: schema/errors.go, mcpserver/output.go, lite.go, execute.go and tests.
 - [x] Implement additive lite feedback and explicit output options. Keep direct error behavior and original data default. Run tests/race/vet; commit.
 
 ### Task 4: Docs, verification and review
-- [ ] Update public docs and verification record.
-- [ ] Validate offline metadata and optional read-only local catalog; no real tools/call to gateway.
-- [ ] Separate self-review of complete diff, fix important issues with regressions.
-- [ ] Leave isolated branch with reviewable commits and clean state; do not merge into parent or push.
+- [x] Update public docs and verification record.
+- [x] Validate existing metadata and read-only local catalog; no real tools/call to gateway.
+- [x] Separate self-review of complete diff, fix important issues with regressions.
+- [x] Leave isolated branch with reviewable commits and clean state; do not merge into parent or push.

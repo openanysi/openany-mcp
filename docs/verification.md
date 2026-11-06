@@ -186,3 +186,26 @@ Independent review identified stale versions on revision-only changes and auxili
 ### Default enabled follow-up — 2026-11-05
 
 User requested MCP lite enabled by default. The runtime fallback and .env.example now use true; an explicit false still disables auxiliary reads and the lightweight/document routes. Configuration regression was observed RED with the former default, then GREEN with the new fallback. Current connection docs/spec/plan were updated; earlier verification records describe the initial opt-in rollout. Existing private .env was not modified.
+
+### Three-tool usability — 2026-11-06
+
+Branch `codex/mcp-tool-usability`, isolated worktree `/private/tmp/openany-mcp-tool-usability`, based on `aca891d` from the unchanged `dev` checkout. No deployment, merge, remote push, private configuration changes, migrations, grants or business API calls were performed.
+
+Implemented additive Lite guidance:
+
+- search_apis: public categories/platform/product/capability filters, public translations, limited Chinese/business aliases, factual match fields/terms, required-input brief and known limitations. Every filter/read-intent scope is bound to pagination. Existing precise-name searches retain priority.
+- get_api: public HTTP sample projection, exact-number preservation, current Schema and HTTP-encoder validation, best-effort optional-field removal, safe required-path hints, exact USD rate strings, rule/usage caveats and value-free response hints. Missing/invalid/stale examples remain explicit. Samples are not supplier verified.
+- run_api: bounded value-free field errors and recovery suggestions; explicit raw/compact/summary presentation after the original gateway call. Invalid configurations make zero calls. Post-execution shape mismatches preserve data/request ID and completed state. Output size is checked again after enrichment. Direct request/credential/admission behavior remains covered by the existing equality tests.
+
+Verification on final source:
+
+- `go test ./... -count=1`, `go test -race ./... -count=1`, `go vet ./...`, and `go build ./cmd/openany-mcp`: pass using the existing dependency cache. Gateway integration tests use local HTTP substitutes only.
+- Lite tools/list: exactly 3 tools, 3,198-byte JSON-RPC response in the workflow regression; below the existing 10KiB limit.
+- Opt-in `TestReadOnlyPublicMetadataIntegration`: database-enforced read-only session, single connection, local existing catalog only. Active956/direct956/lite956/public-metadata956; categorized956, populated API-name translations0; 659 bounded source samples loaded and 640 APIs offered at least one validated example. Every published detail serialized successfully. No gateway clients/calls are involved in this check.
+- Query projects only named public columns, never whole API/capability rows or supplier pricing/credentials/fixed authentication. Optional metadata IO does not hold the core refresh lock. Regression covers slow metadata with newer core revision, unavailable candidates, metadata failures, sample-only updates, immutable public samples, all cursor filters and nullable child requirements.
+
+Separate author self-review (no subagents permitted in this side conversation) found three important issues; each was reproduced RED then fixed GREEN: whole-row JSON translation projection unnecessarily required private-column access; sample-only updates did not publish fresh guidance; nullable-object children were presented as unconditional requirements. Final complete suite and race pass after those fixes. No deferred findings.
+
+Decision: missing auxiliary columns/permissions/data degrades classification/examples rather than preventing the original service from becoming ready. Operators need read access to the listed existing public columns for richer guidance; metadata_available reports failures. No database schema additions are necessary.
+
+Limits: the supplied production3,220-API figure and production data were not verified. Local translation coverage is zero, so actual local Chinese improvement comes from finite aliases; populated-translation behavior is covered by fixtures. No Grok Bot UI, production deployment, supplier acceptance, paid billing/charge or business-success interpretation was tested. The source samples can fail gateway-side business/cross-field rules beyond the MCP schema/encoder and never constitute a price quote.

@@ -15,6 +15,9 @@ import (
 // credentials or guess an upstream-specific request when the source example is missing.
 func guidance(b *Binding, e discoveryEntry) map[string]any {
 	examples := map[string]any{"status": "missing", "items": []any{}, "validation": "mcp_schema_and_http_encoding", "supplier_verified": false}
+	if e.samplesStale {
+		examples["status"] = "stale"
+	}
 	items := []any{}
 	for i, s := range e.metadata.Samples {
 		if i >= 3 {
@@ -329,7 +332,7 @@ func requiredHints(root, doc map[string]any, path, scope string, depth int, out 
 		field = resolved(root, field)
 		p := path + "/" + pointerPart(name)
 		*out = append(*out, map[string]any{"path": p, "type": field["type"], "description": publicText(stringValue(field["description"]), 240), "scope": scope})
-		requiredHints(root, field, p, scope, depth+1, out)
+		requiredHints(root, field, p, "if_parent_is_object", depth+1, out)
 		if items, ok := field["items"].(map[string]any); ok {
 			requiredHints(root, items, p+"/*", "each_present_item", depth+1, out)
 		}

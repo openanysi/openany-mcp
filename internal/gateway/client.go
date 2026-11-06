@@ -127,7 +127,11 @@ func (c *Client) LimitResult(result Result) Result {
 				state = original
 			}
 		}
-		return Failure("openany_mcp_result_too_large", "Result exceeds MCP output limit; inspect execution_state before deciding on another call.", "result", state, result.Value["http_status"], result.Value["request_id"])
+		message := "Result exceeds MCP output limit; execution completed."
+		if state != "completed" {
+			message = "Result exceeds MCP output limit; inspect execution_state before deciding on another call."
+		}
+		return Failure("openany_mcp_result_too_large", message, "result", state, result.Value["http_status"], result.Value["request_id"])
 	}
 	return result
 }

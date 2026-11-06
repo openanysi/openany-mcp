@@ -124,3 +124,26 @@ func TestSampleProjectionRespectsBodyPointersAndArrayEncoding(t *testing.T) {
 		t.Fatal("guessed absent encoding")
 	}
 }
+
+func TestRequiredHintsDoNotTreatNullableChildrenAsUnconditional(t *testing.T) {
+	root := map[string]any{"type": "object", "required": []any{"body"}, "properties": map[string]any{"body": map[string]any{"type": []any{"object", "null"}, "required": []any{"company"}, "properties": map[string]any{"company": map[string]any{"type": "string"}}}}}
+	out := []any{}
+	requiredHints(root, root, "", "request", 0, &out)
+	for _, v := range out {
+		hint := v.(map[string]any)
+		if hint["path"] == "/body/company" && hint["scope"] != "if_parent_is_object" {
+			t.Fatal("nullable parent makes child conditional", hint)
+		}
+	}
+}
+
+func TestDetailDoesNotMutateCachedPublicSample(t *testing.T) {
+	sample := goodSample()
+	before := mustJSON(t, sample.Request)
+	d := guidanceFixture(t, []PublicSample{sample})
+	a, _ := d.Detail("demo_company")
+	b, _ := d.Detail("demo_company")
+	if string(before) != string(mustJSON(t, sample.Request)) || string(mustJSON(t, a)) != string(mustJSON(t, b)) {
+		t.Fatal("get_api changed cached metadata")
+	}
+}
