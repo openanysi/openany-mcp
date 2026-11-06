@@ -29,7 +29,11 @@ func guidance(b *Binding, e discoveryEntry) map[string]any {
 			continue
 		}
 		item := map[string]any{"name": publicText(s.Name, 80), "input": args, "kind": "example"}
-		if paths := placeholderPaths(args); len(paths) > 0 {
+		paths, complete := placeholderPaths(args)
+		if !complete {
+			continue
+		}
+		if len(paths) > 0 {
 			item["kind"], item["placeholder_paths"] = "template", paths
 			templates = append(templates, item)
 		} else {
@@ -294,13 +298,13 @@ func validExample(b *Binding, args map[string]any) bool {
 	return err == nil
 }
 
-var templateValue = regexp.MustCompile(`^(?:<[A-Za-z_][A-Za-z0-9_. -]{0,79}>|\{\{[A-Za-z_][A-Za-z0-9_. -]{0,79}\}\}|\$\{[A-Za-z_][A-Za-z0-9_. -]{0,79}\}|YOUR_[A-Z0-9_]+|REPLACE_[A-Z0-9_]+)$`)
+var templateValue = regexp.MustCompile(`\{\{[A-Za-z_][A-Za-z0-9_. -]{0,79}\}\}|\$\{[A-Za-z_][A-Za-z0-9_. -]{0,79}\}|^(?:<[A-Za-z_][A-Za-z0-9_. -]{0,79}>|YOUR_[A-Z0-9_]+|REPLACE_[A-Z0-9_]+)$`)
 
-func placeholderPaths(value any) []string {
+func placeholderPaths(value any) ([]string, bool) {
 	paths := []string{}
 	var walk func(any, string)
 	walk = func(value any, path string) {
-		if len(paths) >= 40 {
+		if len(paths) > 40 {
 			return
 		}
 		switch v := value.(type) {
@@ -324,7 +328,7 @@ func placeholderPaths(value any) []string {
 		}
 	}
 	walk(value, "")
-	return paths
+	return paths, len(paths) <= 40
 }
 func requiredHints(root, doc map[string]any, path, scope string, depth int, out *[]any) {
 	if depth >= 8 || len(*out) >= 40 {

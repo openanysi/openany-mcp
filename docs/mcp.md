@@ -52,7 +52,7 @@ run_api({
 {"query":"帮我查询企业工商信息","limit":5}
 ```
 
-ranking 为 keyword：同时检索接口名、说明、路径、参数名、已有翻译和分类，支持有限中英文别名和词形归并。优先覆盖核心业务概念，再考虑最新、热点、历史、批量等意图及字段相关性；相同词在多个字段重复出现不会反复累加，英文完整词优先，避免 ai 误匹配 chain。时间意图帮助选择接口，不会自动填写业务日期或时间窗口。识别到查询意图时，避开明显的删除/创建等路由；这只是搜索排序辅助，仍须阅读 API 的实际语义。它不是通用语义搜索，不保证任意中文业务表述都命中。搜索不到时尝试实际接口名、供应商标识或更具体的英文词。
+ranking 为 keyword：同时检索接口名、说明、路径、参数名、已有翻译和分类，支持有限中英文别名和词形归并。明确提及供应商时优先匹配该供应商，随后优先考虑标题/能力中的核心业务概念覆盖，再考虑最新、热点、历史、批量等意图及字段相关性；说明中对其他接口的交叉引用只作为弱信号。相同词在多个字段重复出现不会反复累加，英文完整词优先，避免 ai 误匹配 chain。时间意图帮助选择接口，不会自动填写业务日期或时间窗口。识别到查询意图时，避开明显的删除/创建等路由；这只是搜索排序辅助，仍须阅读 API 的实际语义。它不是通用语义搜索，不保证任意中文业务表述都命中。搜索不到时尝试实际接口名、供应商标识或更具体的英文词。
 
 metadata_available=false 表示分类、翻译或示例辅助读取暂不可用；此时可继续按原有接口名、描述或供应商搜索，分类筛选可能找不到结果。翻页携带 next_cursor，保持 query、全部筛选条件和 limit 一致；目录、排序版本更新或游标失效后重新搜索。
 
@@ -71,7 +71,7 @@ metadata_available=false 表示分类、翻译或示例辅助读取暂不可用�
 | price_summary | 精确美元字符串、计价单位和收费条件提示，is_quote 始终为 false；rules 模式仍需阅读完整规则 |
 | response_hint | 公开响应样例的结构、顶层字段或数组长度；supported_media_types 只说明 MCP 支持的响应类型，不保证本 API 的实际响应格式；不返回原始响应样例值 |
 
-examples.status 为 available、template_only、missing、stale 或 no_safe_valid_sample。items[].kind 区分 example（完整公开样例）、template（占位模板）和 empty_request（校验通过的空请求）。模板通过 placeholder_paths 指明待替换字段，不能原样调用；template_only 表示尚无完整请求样例。没有完整样例但 input {} 通过当前 Schema 和 HTTP 编码校验时，提供 empty_request；不会用空请求掩盖过期样例。最多展示三个条目，完整或空请求样例优先于模板。服务最多读取每接口前三个、单个请求不超过16KiB的公开样例；缺少可用样例时不编造公司名、地址、Token 或其他业务参数。认证请求头不转成 input；发现凭证形态的声明参数则放弃该样例。示例校验范围由 validation=mcp_schema_and_http_encoding、supplier_verified=false 标明：它证明 MCP 能接收和编码请求，不能证明上游数据、权限、额外业务规则一定满足。详情仍以 input_schema 为准，条件分支和跨字段约束不能只看必填摘要。
+examples.status 为 available、template_only、missing、stale 或 no_safe_valid_sample。items[].kind 区分 example（完整公开样例）、template（占位模板）和 empty_request（校验通过的空请求）。模板通过 placeholder_paths 指明待替换字段（含字符串内部的 ${...}、{{...}}）；占位路径超过40项时放弃该样例，避免遗漏替换提示。模板不能原样调用；template_only 表示尚无完整请求样例。没有完整样例但 input {} 通过当前 Schema 和 HTTP 编码校验时，提供 empty_request；不会用空请求掩盖过期样例。最多展示三个条目，完整或空请求样例优先于模板。服务最多读取每接口前三个、单个请求不超过16KiB的公开样例；缺少可用样例时不编造公司名、地址、Token 或其他业务参数。认证请求头不转成 input；发现凭证形态的声明参数则放弃该样例。示例校验范围由 validation=mcp_schema_and_http_encoding、supplier_verified=false 标明：它证明 MCP 能接收和编码请求，不能证明上游数据、权限、额外业务规则一定满足。详情仍以 input_schema 为准，条件分支和跨字段约束不能只看必填摘要。
 
 ### run_api
 

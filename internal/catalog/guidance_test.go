@@ -227,3 +227,27 @@ func TestEmptyFallbackKeepsExampleCountBounded(t *testing.T) {
 		t.Fatal("empty fallback bypassed example bound", items)
 	}
 }
+
+func TestEmbeddedPlaceholdersRemainTemplates(t *testing.T) {
+	sample := goodSample()
+	sample.Request["body"].(map[string]any)["optional"] = "https://example.test/${account_id}?topic={{topic}}"
+	detail, _ := guidanceFixture(t, []PublicSample{sample}).Detail("demo_company")
+	examples := detail["examples"].(map[string]any)
+	if examples["status"] != "template_only" {
+		t.Fatal("embedded placeholders advertised as complete input", examples)
+	}
+}
+
+func TestTemplateWithTooManyPlaceholderPathsIsNotOffered(t *testing.T) {
+	sample := goodSample()
+	values := make([]any, 41)
+	for i := range values {
+		values[i] = "${account_id}"
+	}
+	sample.Request["body"].(map[string]any)["targets"] = values
+	detail, _ := guidanceFixture(t, []PublicSample{sample}).Detail("demo_company")
+	examples := detail["examples"].(map[string]any)
+	if examples["status"] != "no_safe_valid_sample" {
+		t.Fatal("incomplete placeholder guidance was offered", examples)
+	}
+}

@@ -64,7 +64,7 @@ type searchCursor struct {
 	Read                                                           bool
 }
 
-const searchRankingVersion = "intent-v2"
+const searchRankingVersion = "intent-v3"
 
 func digest(v any) string {
 	b, _ := json.Marshal(v)
@@ -153,6 +153,9 @@ func wordMatch(field, word string) int {
 				return 1
 			}
 		}
+	}
+	if word == "news" && containsWord(field, "hot topic") {
+		return 1
 	}
 	return 0
 }
@@ -312,10 +315,10 @@ func (d *Discovery) SearchFiltered(q SearchQuery) (SearchResult, error) {
 		return out, fmt.Errorf("provide business keywords or a filter")
 	}
 	type match struct {
-		name                    string
-		score, coverage, intent int
-		exact                   bool
-		reason                  MatchReason
+		name                            string
+		score, strong, coverage, intent int
+		exact, provider                 bool
+		reason                          MatchReason
 	}
 	matches := []match{}
 	fieldNames := []string{"api", "title", "description", "path_or_parameter", "translations", "classification_or_capability"}
@@ -350,24 +353,29 @@ func (d *Discovery) SearchFiltered(q SearchQuery) (SearchResult, error) {
 			continue
 		}
 		score := 0
-		coverage, intent := 0, 0
+		strong, coverage, intent := 0, 0, 0
 		fields := map[string]bool{}
 		terms := []string{}
 		for _, word := range words {
 			part := 0
+			primary := wordMatch(lexical(m.Product+" "+m.Capability.Name), word) > 0
 			for i, field := range e.fields {
 				if quality := wordMatch(field, word); quality > 0 {
 					part = max(part, weights[i]*quality)
 					fields[fieldNames[i]] = true
+					primary = primary || i == 0 || i == 1
 				}
 			}
 			if part > 0 {
 				score += part
 				terms = append(terms, word)
-				if modifier(word) {
+				if modifier(word) && primary {
 					intent++
-				} else {
+				} else if !modifier(word) {
 					coverage++
+					if primary {
+						strong++
+					}
 				}
 			}
 		}
@@ -395,17 +403,23 @@ func (d *Discovery) SearchFiltered(q SearchQuery) (SearchResult, error) {
 		if len(words) == 0 {
 			reason.Fields = []string{"filters"}
 		}
-		matches = append(matches, match{name: name, score: score, coverage: coverage, intent: intent, exact: exact, reason: reason})
+		matches = append(matches, match{name: name, score: score, strong: strong, coverage: coverage, intent: intent, exact: exact, provider: containsWord(normalizeSearch(q.Query), normalizeSearch(b.ProviderID)), reason: reason})
 	}
 	sort.Slice(matches, func(i, j int) bool {
 		if matches[i].exact != matches[j].exact {
 			return matches[i].exact
 		}
-		if matches[i].coverage != matches[j].coverage {
-			return matches[i].coverage > matches[j].coverage
+		if matches[i].provider != matches[j].provider {
+			return matches[i].provider
+		}
+		if matches[i].strong != matches[j].strong {
+			return matches[i].strong > matches[j].strong
 		}
 		if matches[i].intent != matches[j].intent {
 			return matches[i].intent > matches[j].intent
+		}
+		if matches[i].coverage != matches[j].coverage {
+			return matches[i].coverage > matches[j].coverage
 		}
 		if matches[i].score == matches[j].score {
 			return matches[i].name < matches[j].name

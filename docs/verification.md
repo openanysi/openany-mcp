@@ -209,3 +209,29 @@ Separate author self-review (no subagents permitted in this side conversation) f
 Decision: missing auxiliary columns/permissions/data degrades classification/examples rather than preventing the original service from becoming ready. Operators need read access to the listed existing public columns for richer guidance; metadata_available reports failures. No database schema additions are necessary.
 
 Limits: the supplied production3,220-API figure and production data were not verified. Local translation coverage is zero, so actual local Chinese improvement comes from finite aliases; populated-translation behavior is covered by fixtures. No Grok Bot UI, production deployment, supplier acceptance, paid billing/charge or business-success interpretation was tested. The source samples can fail gateway-side business/cross-field rules beyond the MCP schema/encoder and never constitute a price quote.
+
+
+## 2026-11-06: response, ranking and example follow-up
+
+Scope approved in chat: fix finite response compatibility, keyword ranking and request-example guidance in the existing service. No new tools, endpoint paths, dependencies, database schema changes, credential storage or remote business calls.
+
+- Shared gateway decoder accepts finite JSON/+json plus UTF-8 plain text and Markdown. Existing JSON precision, Accept and credential headers, response/result budgets and no-replay behavior remain covered. Format failures retain HTTP status, request ID and bounded media type without echoing raw response bodies. Text raw/structural-summary/unsupported-compact behavior is tested.
+- Keyword ranking preserves latest/hot/history intent, uses Latin word boundaries and strongest-field scores, prefers explicitly named providers and strong business concepts over repeated metadata/cross-references. Ranking version is bound into discovery hashes/cursors; per-API execution versions and direct catalog hash boundaries remain tested. Twenty-four fixed query cases plus provider/cross-reference and cursor regressions passed.
+- Public examples keep optional business parameters, exact numbers and null values. Body results are cloned. Complete examples, placeholder templates and locally valid empty requests have distinct kinds; template-only samples are not advertised as complete. Embedded ${...}/{{...} placeholders are recognized; samples exceeding forty placeholder paths are rejected rather than silently giving incomplete replacement instructions. At most three items are displayed. Existing sensitive-value, schema, HTTP-encoding and stale-revision checks remain.
+- Mock MCP workflow exercised /mcp-lite, /mcp and /mcp/demo. Both structuredContent and serialized text content preserve Markdown. Summary omits content; compact on text returns the original data and completed-state guidance without replay.
+
+Verification on final code: go test ./..., go test -race ./..., go vet ./... and git diff --check passed. Database-enforced readonly local compatibility check passed for 956 active/direct/lite APIs with 659 source samples and 699 APIs offering a locally validated complete or empty-request example. This is not an upstream acceptance count. No gateway calls were made by the database check.
+
+An independent reviewer reproduced embedded-placeholder misclassification and silent forty-path truncation; both were reproduced locally before fixes, then passed regression tests. The README non-JSON wording conflict was corrected.
+
+Saved dev-snapshot probe (740 active / 700 published records, augmented only with a partial set of public metadata captured during the earlier live search; not a new live-environment test):
+
+| Query | First result after fix |
+| --- | --- |
+| Uniswap 兑换报价 | uniswap_post_v1_quote |
+| 帮我获取今天的AI热点新闻 | aihot_get_api_v1_agent_hot |
+| 帮我获取最新的AI新闻 | aihot_get_api_v1_items |
+| 查询以太坊地址的内部交易 | blockscout_get_chain_id_api_v2_addresses_address_hash_param_inte |
+| Codex 重置公告 | aihot_get_api_v1_agent_codex_resets |
+
+Limitations: supplier-specific missing business examples/descriptions still require catalog maintenance; no fabricated values or database writes were used. Exact Content-Type/body of the earlier dev request is still unverified. Dev/production images were not deployed or re-tested, and Grok Bot UI was not exercised. Keyword ranking is bounded and heuristic; missing auxiliary metadata can reduce precision. Existing running processes require restart to load a rebuilt local binary.

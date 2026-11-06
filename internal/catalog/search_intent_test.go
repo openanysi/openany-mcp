@@ -140,3 +140,45 @@ func TestSearchCursorBindsTemporalIntentAndRankingVersion(t *testing.T) {
 		t.Fatal("ranking depends on metadata or altered execution contracts", result, err)
 	}
 }
+
+func TestNamedProviderBeatsOtherProvidersExtraKeywordCoverage(t *testing.T) {
+	a, b := fixture("uniswap_quote"), fixture("other_swap_quote")
+	a.APIID, a.ProviderID, a.Name, a.Description, a.PathTemplate, a.PublicPath = "uniswap", "uniswap", "Uniswap get a quote", "Use the native public HTTP contract", "/quote", "/v1/agent-apis/uniswap/quote"
+	b.APIID, b.ProviderID, b.Name, b.Description, b.PathTemplate, b.PublicPath = "other", "other", "Swap quote", "Get a swap quote", "/quote", "/v1/agent-apis/other/quote"
+	s, err := Build([]model.Record{a, b}, model.Overrides{Version: 1}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	d := NewDiscovery(s, nil, false)
+	r, err := d.Search("Uniswap 兑换报价", "", 5, "")
+	if err != nil || len(r.Results) != 2 || r.Results[0].Provider != "uniswap" {
+		t.Fatal("named supplier was displaced by generic keywords", r, err)
+	}
+}
+
+func TestNewsDiscoveryDoesNotPromoteStoryCrossReferences(t *testing.T) {
+	var records []model.Record
+	meta := map[string]APIMetadata{}
+	for _, item := range []struct{ name, title, description, product string }{
+		{"aihot_story", "AIHOT A story's timeline as an agent answer", "Latest developments, AI summary, only use URLs supplied by the hot answer", "stories"},
+		{"aihot_story_digest", "AIHOT Get a story with coverage timeline and AI digest", "Latest news about one story, use IDs from hot topics", "stories"},
+		{"aihot_hot", "AIHOT Current hot topics as an agent answer", "Current top ten by rank", "hot-topics"},
+		{"aihot_items", "AIHOT List recent public AI items", "Start here for feeds and widgets", "news-feeds"},
+	} {
+		r := fixture(item.name)
+		r.APIID, r.Name, r.Description, r.PathTemplate, r.PublicPath = item.name, item.title, item.description, "/"+item.name, "/v1/agent-apis/demo/"+item.name
+		records = append(records, r)
+		meta[r.APIID] = APIMetadata{Categories: []string{"news"}, Product: item.product}
+	}
+	s, err := Build(records, model.Overrides{Version: 1}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, metadata := range []map[string]APIMetadata{nil, meta} {
+		d := NewDiscovery(s, nil, false, metadata)
+		r, err := d.Search("帮我获取今天的AI热点新闻", "", 5, "")
+		if err != nil || len(r.Results) == 0 || strings.Contains(r.Results[0].API, "story") {
+			t.Fatal("a story detail displaced general news discovery", r, err)
+		}
+	}
+}
