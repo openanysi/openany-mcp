@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"github.com/openany/openany-mcp/internal/gateway"
 )
@@ -139,6 +140,7 @@ func structuralSummary(data any) map[string]any {
 		out["type"] = "null"
 	case string:
 		out["type"] = "string"
+		out["characters"] = utf8.RuneCountInString(v)
 	case bool:
 		out["type"] = "boolean"
 	default:

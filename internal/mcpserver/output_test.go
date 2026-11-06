@@ -70,3 +70,21 @@ func TestLiteAddedGuidanceHonorsConfiguredResultBudget(t *testing.T) {
 		t.Fatal("oversized result escaped configured limit")
 	}
 }
+
+func TestTextPresentationKeepsOriginalAndDoesNotInterpretBusiness(t *testing.T) {
+	text := "# 今日新闻\n第一条"
+	r := gateway.Result{Value: map[string]any{"data": text, "content_type": "text/markdown", "http_status": 200, "request_id": "text-result"}}
+	raw := present(r, outputOptions{Mode: "raw"})
+	summary := raw.Value["summary"].(map[string]any)
+	if raw.Value["data"] != text || summary["type"] != "string" || summary["characters"] != 10 || summary["business_status"] != "not_interpreted" {
+		t.Fatal(raw)
+	}
+	only := present(r, outputOptions{Mode: "summary"})
+	if _, ok := only.Value["data"]; ok || only.Value["request_id"] != "text-result" {
+		t.Fatal(only)
+	}
+	compact := withRecovery(present(r, outputOptions{Mode: "compact", Fields: []string{"title"}}))
+	if !compact.IsError || compact.Value["data"] != text || compact.Value["error"].(map[string]any)["execution_state"] != "completed" || !strings.Contains(compact.Value["error"].(map[string]any)["next_action"].(string), "do not rerun") {
+		t.Fatal(compact)
+	}
+}
