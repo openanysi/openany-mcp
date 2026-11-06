@@ -258,28 +258,34 @@ func projectRequest(r model.Record, o model.Override) model.Request {
 
 type Loader func(context.Context) ([]model.Record, error)
 type Manager struct {
-	load             Loader
-	loadPricing      PricingLoader
-	priceRefreshMu   sync.Mutex
-	prices           map[string]map[string]any
-	pricingAvailable bool
-	overrides        model.Overrides
-	maxAge           time.Duration
-	checkUnnamed     bool
-	current          atomic.Pointer[Snapshot]
-	mu               sync.Mutex
-	refreshMu        sync.Mutex
-	lastVerified     time.Time
-	lastErr          bool
-	draining         atomic.Bool
+	load              Loader
+	loadPricing       PricingLoader
+	loadMetadata      MetadataLoader
+	metadata          map[string]APIMetadata
+	metadataAvailable bool
+	priceRefreshMu    sync.Mutex
+	prices            map[string]map[string]any
+	pricingAvailable  bool
+	overrides         model.Overrides
+	maxAge            time.Duration
+	checkUnnamed      bool
+	current           atomic.Pointer[Snapshot]
+	mu                sync.Mutex
+	refreshMu         sync.Mutex
+	lastVerified      time.Time
+	lastErr           bool
+	draining          atomic.Bool
 }
 
 func NewManager(load Loader, o model.Overrides, maxAge time.Duration, checkUnnamed bool) *Manager {
 	return &Manager{load: load, overrides: o, maxAge: maxAge, checkUnnamed: checkUnnamed}
 }
-func NewManagerWithDiscovery(load Loader, o model.Overrides, maxAge time.Duration, checkUnnamed bool, prices PricingLoader) *Manager {
+func NewManagerWithDiscovery(load Loader, o model.Overrides, maxAge time.Duration, checkUnnamed bool, prices PricingLoader, metadata ...MetadataLoader) *Manager {
 	m := NewManager(load, o, maxAge, checkUnnamed)
 	m.loadPricing = prices
+	if len(metadata) > 0 {
+		m.loadMetadata = metadata[0]
+	}
 	return m
 }
 func (m *Manager) Refresh(ctx context.Context) error {
@@ -291,13 +297,14 @@ func (m *Manager) Refresh(ctx context.Context) error {
 		s, err = Build(records, m.overrides, m.checkUnnamed)
 		if err == nil {
 			if m.loadPricing != nil {
-				discovery := NewDiscovery(s, m.prices, m.pricingAvailable)
+				discovery := NewDiscovery(s, m.prices, m.pricingAvailable, m.metadata)
+				discovery.MetadataAvailable = m.metadataAvailable
 				enriched := *s
 				enriched.Discovery = discovery
 				s = &enriched
 			}
 			old := m.current.Load()
-			if old == nil || old.Hash != s.Hash || (s.Discovery != nil && (old.Discovery == nil || old.Discovery.Hash != s.Discovery.Hash || old.Discovery.PricingAvailable != s.Discovery.PricingAvailable)) {
+			if old == nil || old.Hash != s.Hash || (s.Discovery != nil && (old.Discovery == nil || old.Discovery.Hash != s.Discovery.Hash || old.Discovery.PricingAvailable != s.Discovery.PricingAvailable || old.Discovery.MetadataAvailable != s.Discovery.MetadataAvailable)) {
 				m.current.Store(s)
 			}
 			m.mu.Lock()
@@ -321,12 +328,19 @@ func (m *Manager) RefreshPricing(ctx context.Context) error {
 	m.priceRefreshMu.Lock()
 	defer m.priceRefreshMu.Unlock()
 	prices, err := m.loadPricing(ctx)
+	var metadata map[string]APIMetadata
+	var metadataErr error
+	if m.loadMetadata != nil {
+		metadata, metadataErr = m.loadMetadata(ctx)
+	}
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
 	m.refreshMu.Lock()
 	defer m.refreshMu.Unlock()
 	m.prices = prices
+	m.metadata = metadata
+	m.metadataAvailable = m.loadMetadata != nil && metadataErr == nil
 	m.pricingAvailable = err == nil
 	if err != nil {
 		m.prices = nil
@@ -335,8 +349,9 @@ func (m *Manager) RefreshPricing(ctx context.Context) error {
 		// Strip the old discovery pointer to avoid retaining a chain of generations.
 		core := *old
 		core.Discovery = nil
-		discovery := NewDiscovery(&core, m.prices, m.pricingAvailable)
-		if old.Discovery == nil || old.Discovery.Hash != discovery.Hash || old.Discovery.PricingAvailable != discovery.PricingAvailable {
+		discovery := NewDiscovery(&core, m.prices, m.pricingAvailable, m.metadata)
+		discovery.MetadataAvailable = m.metadataAvailable
+		if old.Discovery == nil || old.Discovery.Hash != discovery.Hash || old.Discovery.PricingAvailable != discovery.PricingAvailable || old.Discovery.MetadataAvailable != discovery.MetadataAvailable {
 			enriched := core
 			enriched.Discovery = discovery
 			m.current.Store(&enriched)
@@ -370,6 +385,9 @@ func (m *Manager) Status() map[string]any {
 		if m.loadPricing != nil {
 			v["lite_ready"] = v["ready"] == true && s.Discovery != nil
 			v["pricing_available"] = s.Discovery != nil && s.Discovery.PricingAvailable
+			if m.loadMetadata != nil {
+				v["metadata_available"] = s.Discovery != nil && s.Discovery.MetadataAvailable
+			}
 		}
 	}
 	return v

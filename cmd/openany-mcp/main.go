@@ -55,7 +55,7 @@ func run() int {
 			return 1
 		}
 		defer pricePool.Close()
-		manager = catalog.NewManagerWithDiscovery(catalog.PostgresLoader(pool, c.QueryTimeout), o, c.MaxAge, *check, catalog.PostgresPricingLoader(pricePool, c.QueryTimeout))
+		manager = catalog.NewManagerWithDiscovery(catalog.PostgresLoader(pool, c.QueryTimeout), o, c.MaxAge, *check, catalog.PostgresPricingLoader(pricePool, c.QueryTimeout), catalog.PostgresMetadataLoader(pricePool, c.QueryTimeout))
 	}
 	if *check {
 		if err = manager.Refresh(context.Background()); err != nil {

@@ -20,7 +20,7 @@ func (h *Handler) newLiteServer() *mcp.Server {
 		name, description string
 		inputs            []model.Input
 	}{
-		{"search_apis", "Find OpenAny APIs by keywords and optional provider. Returns a few summaries, not schemas. Start here, then call get_api for the selected API. Keyword search supports limited bilingual aliases; it is not general semantic search.", []model.Input{stringInput("query", false, 256), stringInput("provider", false, 64), {Name: "limit", Schema: json.RawMessage(`{"type":"integer","minimum":1,"maximum":10,"default":5}`)}, stringInput("cursor", false, 2048)}},
+		{"search_apis", "Find OpenAny APIs by keywords and optional provider. Returns a few summaries, not schemas. Start here, then call get_api for the selected API. Keyword search supports limited bilingual aliases; it is not general semantic search.", []model.Input{stringInput("query", false, 256), stringInput("provider", false, 64), stringInput("category", false, 128), stringInput("data_platform", false, 256), stringInput("data_product", false, 128), stringInput("capability", false, 256), {Name: "limit", Schema: json.RawMessage(`{"type":"integer","minimum":1,"maximum":10,"default":5}`)}, stringInput("cursor", false, 4096)}},
 		{"get_api", "Read one API's exact input_schema, public pricing, limitations and api_version. Use the api identifier returned by search_apis. Read this before executing. Discovery does not execute a paid API; displayed pricing is not a price lock.", []model.Input{stringInput("api", true, 64)}},
 		{"run_api", "Execute one selected OpenAny API using the caller's current gateway credentials. First call get_api. Pass its api and api_version, with input matching input_schema. This can incur charges and side effects. A timeout after dispatch has unknown execution/charging state: do not retry automatically.", []model.Input{stringInput("api", true, 64), {Name: "api_version", Required: true, Schema: json.RawMessage(`{"type":"string","pattern":"^[a-f0-9]{64}$"}`)}, {Name: "input", Required: true, Schema: json.RawMessage(`{"type":"object","additionalProperties":true}`)}}},
 	}
@@ -55,7 +55,7 @@ func (h *Handler) newLiteServer() *mcp.Server {
 					}
 					limit = int(n)
 				}
-				result, err := d.Search(text("query"), text("provider"), limit, text("cursor"))
+				result, err := d.SearchFiltered(catalog.SearchQuery{Query: text("query"), Provider: text("provider"), Category: text("category"), Platform: text("data_platform"), Product: text("data_product"), Capability: text("capability"), Limit: limit, Cursor: text("cursor")})
 				if err != nil {
 					return toMCP(gateway.Failure("openany_mcp_invalid_search", err.Error(), "validate", "not_started", nil, nil)), nil
 				}
@@ -69,7 +69,7 @@ func (h *Handler) newLiteServer() *mcp.Server {
 			case "run_api":
 				api := text("api")
 				binding := snapshot.Tools[api]
-				if binding == nil {
+				if binding == nil || d.Version(api) == "" {
 					return unavailableAPI(), nil
 				}
 				if d.Version(api) != text("api_version") {

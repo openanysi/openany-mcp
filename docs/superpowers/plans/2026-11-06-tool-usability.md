@@ -21,9 +21,9 @@
 
 ### Task 1: Public metadata and search
 Files: catalog/metadata.go, search.go, snapshot.go, mcpserver/lite.go, cmd main and tests.
-- [ ] RED tests for metadata-backed Chinese matching/filter/cursor isolation and failures preserving original core.
-- [ ] Read a public-only metadata projection; enrich immutable snapshots without changing core hash. Preserve old Search caller with a filtered companion method.
-- [ ] Expose bounded optional filters/match explanation. Run catalog/full suite; commit.
+- [x] RED tests for metadata-backed Chinese matching/filter/cursor isolation and failures preserving original core.
+- [x] Read a public-only metadata projection; enrich immutable snapshots without changing core hash. Preserve old Search caller with a filtered companion method.
+- [x] Expose bounded optional filters/match explanation. Run catalog/full suite; commit.
 
 ### Task 2: API detail guidance
 Files: catalog/guidance.go and tests.
