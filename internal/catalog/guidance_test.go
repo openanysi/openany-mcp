@@ -26,7 +26,7 @@ func guidanceFixture(t *testing.T, samples []PublicSample) *Discovery {
 func goodSample() PublicSample {
 	return PublicSample{Name: "public example", Request: map[string]any{"path": map[string]any{"id": "42"}, "query": map[string]any{"count": "10"}, "headers": map[string]any{"x-language": "zh-CN", "Authorization": "Bearer secret-credential"}, "body": map[string]any{"record": map[string]any{"number": json.Number("9007199254740993"), "nullable": nil}, "optional": "remove me"}}, HTTPStatus: 200, ResponseShape: map[string]any{"type": "object", "fields": []any{"results"}}}
 }
-func TestDetailOffersOnlyValidatedMinimalMCPExamples(t *testing.T) {
+func TestDetailPreservesValidatedBusinessExampleParameters(t *testing.T) {
 	d := guidanceFixture(t, []PublicSample{goodSample()})
 	detail, _ := d.Detail("demo_company")
 	examples, ok := detail["examples"].(map[string]any)
@@ -38,15 +38,15 @@ func TestDetailOffersOnlyValidatedMinimalMCPExamples(t *testing.T) {
 	}
 	items := examples["items"].([]any)
 	input := items[0].(map[string]any)["input"].(map[string]any)
-	if _, ok := input["count"]; ok {
-		t.Fatal("optional query survived minimal example")
+	if input["count"] != json.Number("10") || input["X-Language"] != "zh-CN" || items[0].(map[string]any)["kind"] != "example" {
+		t.Fatal("optional business parameters changed", input)
 	}
 	if _, err := d.snapshot.Tools["demo_company"].Input.Validate(mustJSON(t, input)); err != nil {
 		t.Fatal(err)
 	}
 	raw := string(mustJSON(t, detail))
-	if !strings.Contains(raw, "9007199254740993") || !strings.Contains(raw, `"nullable":null`) || strings.Contains(raw, "secret-credential") || strings.Contains(raw, "remove me") {
-		t.Fatal("example altered exact values, kept optional fields or leaked authentication")
+	if !strings.Contains(raw, "9007199254740993") || !strings.Contains(raw, `"nullable":null`) || strings.Contains(raw, "secret-credential") || !strings.Contains(raw, "remove me") {
+		t.Fatal("example altered business values or leaked authentication")
 	}
 	price := detail["price_summary"].(map[string]any)
 	if price["amount_usd"] != "0.001234" || price["is_quote"] != false {
@@ -145,5 +145,69 @@ func TestDetailDoesNotMutateCachedPublicSample(t *testing.T) {
 	b, _ := d.Detail("demo_company")
 	if string(before) != string(mustJSON(t, sample.Request)) || string(mustJSON(t, a)) != string(mustJSON(t, b)) {
 		t.Fatal("get_api changed cached metadata")
+	}
+	input := a["examples"].(map[string]any)["items"].([]any)[0].(map[string]any)["input"].(map[string]any)
+	input["body"].(map[string]any)["record"].(map[string]any)["number"] = json.Number("0")
+	c, _ := d.Detail("demo_company")
+	if string(before) != string(mustJSON(t, sample.Request)) || string(mustJSON(t, b)) != string(mustJSON(t, c)) {
+		t.Fatal("returned example shares mutable body with the snapshot")
+	}
+}
+
+func TestGuidanceDistinguishesTemplatesFromCompleteExamples(t *testing.T) {
+	sample := goodSample()
+	body := sample.Request["body"].(map[string]any)
+	body["record"].(map[string]any)["nullable"] = "<company_name>"
+	body["targets"] = []any{"{{address}}", "${chain_id}"}
+	detail, _ := guidanceFixture(t, []PublicSample{sample}).Detail("demo_company")
+	examples := detail["examples"].(map[string]any)
+	item := examples["items"].([]any)[0].(map[string]any)
+	if examples["status"] != "template_only" || item["kind"] != "template" || examples["supplier_verified"] != false {
+		t.Fatal("placeholder template advertised as a complete example", examples)
+	}
+	paths := item["placeholder_paths"].([]string)
+	if strings.Join(paths, ",") != "/body/record/nullable,/body/targets/0,/body/targets/1" {
+		t.Fatal("missing nested placeholder guidance", paths)
+	}
+	detail, _ = guidanceFixture(t, []PublicSample{sample, goodSample()}).Detail("demo_company")
+	examples = detail["examples"].(map[string]any)
+	if examples["status"] != "available" || examples["items"].([]any)[0].(map[string]any)["kind"] != "example" {
+		t.Fatal("complete examples should precede templates", examples)
+	}
+	invalid := goodSample()
+	invalid.Request["path"].(map[string]any)["id"] = "<numeric_id>"
+	detail, _ = guidanceFixture(t, []PublicSample{invalid}).Detail("demo_company")
+	if detail["examples"].(map[string]any)["status"] != "no_safe_valid_sample" {
+		t.Fatal("template bypassed current schema", detail)
+	}
+}
+
+func TestGuidanceOffersOnlyValidNonStaleEmptyRequests(t *testing.T) {
+	r := fixture("demo_empty")
+	s, err := Build([]model.Record{r}, model.Overrides{Version: 1}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	d := NewDiscovery(s, nil, false)
+	detail, _ := d.Detail("demo_empty")
+	examples := detail["examples"].(map[string]any)
+	if examples["status"] != "available" {
+		t.Fatal("valid empty request was not offered", examples)
+	}
+	item := examples["items"].([]any)[0].(map[string]any)
+	if item["kind"] != "empty_request" || len(item["input"].(map[string]any)) != 0 {
+		t.Fatal("fabricated values for a parameterless request", item)
+	}
+	if detail["response_hint"].(map[string]any)["supported_media_types"] == nil {
+		t.Fatal("service response capabilities missing")
+	}
+	d = NewDiscovery(s, nil, false, map[string]APIMetadata{r.APIID: {Revision: r.Revision + 1, Samples: []PublicSample{{Request: map[string]any{}}}}})
+	detail, _ = d.Detail("demo_empty")
+	if detail["examples"].(map[string]any)["status"] != "stale" {
+		t.Fatal("empty fallback hid stale samples", detail)
+	}
+	required, _ := guidanceFixture(t, nil).Detail("demo_company")
+	if required["examples"].(map[string]any)["status"] != "missing" {
+		t.Fatal("empty fallback bypassed required parameters", required)
 	}
 }

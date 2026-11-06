@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"encoding/json"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -18,7 +19,7 @@ func guidance(b *Binding, e discoveryEntry) map[string]any {
 	if e.samplesStale {
 		examples["status"] = "stale"
 	}
-	items := []any{}
+	items, templates := []any{}, []any{}
 	for i, s := range e.metadata.Samples {
 		if i >= 3 {
 			break
@@ -27,16 +28,26 @@ func guidance(b *Binding, e discoveryEntry) map[string]any {
 		if !ok {
 			continue
 		}
-		minimizeExample(b, args)
-		items = append(items, map[string]any{"name": publicText(s.Name, 80), "input": args})
+		item := map[string]any{"name": publicText(s.Name, 80), "input": args, "kind": "example"}
+		if paths := placeholderPaths(args); len(paths) > 0 {
+			item["kind"], item["placeholder_paths"] = "template", paths
+			templates = append(templates, item)
+		} else {
+			items = append(items, item)
+		}
 	}
 	if len(e.metadata.Samples) > 0 {
 		examples["status"] = "no_safe_valid_sample"
 	}
+	if len(items) == 0 && !e.samplesStale && validExample(b, map[string]any{}) {
+		items = append(items, map[string]any{"name": "Empty request (schema and HTTP encoding validated; not executed)", "input": map[string]any{}, "kind": "empty_request"})
+	}
 	if len(items) > 0 {
 		examples["status"] = "available"
-		examples["items"] = items
+	} else if len(templates) > 0 {
+		examples["status"] = "template_only"
 	}
+	examples["items"] = append(items, templates...)
 	hints := []any{}
 	requiredHints(b.Input.Document, b.Input.Document, "", "request", 0, &hints)
 	response := map[string]any{"status": "unavailable", "source": "public_sample_structure", "authoritative": false}
@@ -49,7 +60,8 @@ func guidance(b *Binding, e discoveryEntry) map[string]any {
 		response = map[string]any{"status": "available", "source": "public_sample_structure", "authoritative": false, "sample_http_status": s.HTTPStatus, "shape": shape}
 		break
 	}
-	return map[string]any{"examples": examples, "required_inputs": hints, "input_guidance": "Required paths describe declared requirements. Read input_schema for conditional and cross-field constraints. Examples pass the current MCP schema and HTTP encoder; upstream acceptance is not verified.", "price_summary": priceSummary(e.pricing), "response_hint": response}
+	response["supported_media_types"] = []string{"application/json", "application/*+json", "text/plain", "text/markdown"}
+	return map[string]any{"examples": examples, "required_inputs": hints, "input_guidance": "Read input_schema for conditional and cross-field constraints. Examples preserve public business parameters and pass the current MCP schema and HTTP encoder; upstream acceptance is not verified. Templates require replacement of placeholder_paths. An empty_request accepts input {} locally. supported_media_types describes service capabilities, not this API's guaranteed response format.", "price_summary": priceSummary(e.pricing), "response_hint": response}
 }
 func pointerPart(s string) string {
 	return strings.ReplaceAll(strings.ReplaceAll(s, "~", "~0"), "/", "~1")
@@ -258,7 +270,16 @@ func sampleArguments(b *Binding, request map[string]any) (map[string]any, bool) 
 	if sensitive(args) || !validExample(b, args) {
 		return nil, false
 	}
-	return args, true
+	// Projected bodies may still reference snapshot maps; detail results must own their values.
+	raw, err = json.Marshal(args)
+	if err != nil {
+		return nil, false
+	}
+	cloned, err := schema.Decode(raw)
+	if err != nil {
+		return nil, false
+	}
+	return cloned.(map[string]any), true
 }
 func validExample(b *Binding, args map[string]any) bool {
 	raw, err := json.Marshal(args)
@@ -271,50 +292,38 @@ func validExample(b *Binding, args map[string]any) bool {
 	_, err = transport.Encode(b.Request, args)
 	return err == nil
 }
-func minimizeExample(b *Binding, args map[string]any) {
-	// Remove optional object fields only when the entire current request still validates.
-	// Work on a private JSON clone: snapshots and source examples remain immutable.
-	raw, _ := json.Marshal(args)
-	v, _ := schema.Decode(raw)
-	copy, _ := v.(map[string]any)
-	for k := range args {
-		delete(args, k)
-	}
-	for k, v := range copy {
-		args[k] = v
-	}
-	budget := 128
-	var prune func(any)
-	prune = func(v any) {
-		if budget <= 0 {
+
+var templateValue = regexp.MustCompile(`^(?:<[A-Za-z_][A-Za-z0-9_. -]{0,79}>|\{\{[A-Za-z_][A-Za-z0-9_. -]{0,79}\}\}|\$\{[A-Za-z_][A-Za-z0-9_. -]{0,79}\}|YOUR_[A-Z0-9_]+|REPLACE_[A-Z0-9_]+)$`)
+
+func placeholderPaths(value any) []string {
+	paths := []string{}
+	var walk func(any, string)
+	walk = func(value any, path string) {
+		if len(paths) >= 40 {
 			return
 		}
-		switch x := v.(type) {
+		switch v := value.(type) {
 		case map[string]any:
-			keys := []string{}
-			for k := range x {
-				keys = append(keys, k)
+			keys := make([]string, 0, len(v))
+			for key := range v {
+				keys = append(keys, key)
 			}
 			sort.Strings(keys)
-			for _, k := range keys {
-				if budget <= 0 {
-					break
-				}
-				budget--
-				old := x[k]
-				delete(x, k)
-				if !validExample(b, args) {
-					x[k] = old
-					prune(old)
-				}
+			for _, key := range keys {
+				walk(v[key], path+"/"+pointerPart(key))
 			}
 		case []any:
-			for _, item := range x {
-				prune(item)
+			for i, item := range v {
+				walk(item, path+"/"+strconv.Itoa(i))
+			}
+		case string:
+			if templateValue.MatchString(strings.TrimSpace(v)) {
+				paths = append(paths, path)
 			}
 		}
 	}
-	prune(args)
+	walk(value, "")
+	return paths
 }
 func requiredHints(root, doc map[string]any, path, scope string, depth int, out *[]any) {
 	if depth >= 8 || len(*out) >= 40 {
