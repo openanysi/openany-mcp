@@ -277,6 +277,8 @@ func withRecovery(result gateway.Result) gateway.Result {
 		e["next_action"] = "Inspect the gateway error code and request_id. Check credentials, permission, quota and API parameters before deciding on another call."
 	default:
 		switch e["code"] {
+		case "openany_mcp_invalid_search":
+			e["next_action"] = "Correct search_apis query, filters or limit according to the error. For an invalid or outdated cursor, omit cursor and restart from the first page. The gateway was not called."
 		case "openany_mcp_api_changed":
 			e["next_action"] = "Call get_api again, review the current contract and price, then decide whether to execute."
 		case "openany_mcp_api_unavailable":
@@ -287,6 +289,9 @@ func withRecovery(result gateway.Result) gateway.Result {
 			e["next_action"] = "Correct output options. The gateway was not called."
 		default:
 			e["next_action"] = "Review get_api.input_schema and limitations; correct the request before trying again. The gateway was not called."
+			if e["details_scope"] == "arguments" {
+				e["next_action"] = "Correct the current MCP tool's arguments using its inputSchema and error.details. The gateway was not called."
+			}
 		}
 	}
 	return result

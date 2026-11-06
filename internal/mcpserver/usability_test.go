@@ -68,11 +68,37 @@ func TestLiteUsabilityWorkflowDoesNotChangeGatewayRequests(t *testing.T) {
 		if !ok {
 			t.Fatal(envelope)
 		}
-		return v["structuredContent"].(map[string]any)
+		content := v["structuredContent"].(map[string]any)
+		if content["error"] != nil && v["isError"] != true {
+			t.Fatal("tool error not marked for the MCP client", v)
+		}
+		return content
 	}
 	found := call("search_apis", map[string]any{"query": "帮我查询企业", "category": "company-data"})
 	if len(found["results"].([]any)) != 1 {
 		t.Fatal(found)
+	}
+	for _, bad := range []map[string]any{
+		{"query": "企业", "cursor": "invalid-cursor"},
+		{},
+		{"query": "企业", "limit": 100},
+	} {
+		failed := call("search_apis", bad)
+		e := failed["error"].(map[string]any)
+		action := e["next_action"].(string)
+		if e["execution_state"] != "not_started" || strings.Contains(action, "get_api.input_schema") {
+			t.Fatal("search error pointed to business schema", failed)
+		}
+		if e["code"] == "openany_mcp_invalid_search" && (!strings.Contains(action, "search_apis") || !strings.Contains(action, "cursor")) {
+			t.Fatal("search correction step missing", failed)
+		}
+		if e["details_scope"] == "arguments" && (!strings.Contains(action, "inputSchema") || !strings.Contains(action, "details")) {
+			t.Fatal("tool argument correction step missing", failed)
+		}
+		corrected := call("search_apis", map[string]any{"query": "企业", "limit": 5})
+		if len(corrected["results"].([]any)) != 1 {
+			t.Fatal("corrected search did not recover", corrected)
+		}
 	}
 	detail := call("get_api", map[string]any{"api": name})
 	if detail["examples"] == nil || detail["price_summary"] == nil {

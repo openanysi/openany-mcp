@@ -235,3 +235,14 @@ Saved dev-snapshot probe (740 active / 700 published records, augmented only wit
 | Codex 重置公告 | aihot_get_api_v1_agent_codex_resets |
 
 Limitations: supplier-specific missing business examples/descriptions still require catalog maintenance; no fabricated values or database writes were used. Exact Content-Type/body of the earlier dev request is still unverified. Dev/production images were not deployed or re-tested, and Grok Bot UI was not exercised. Keyword ranking is bounded and heuristic; missing auxiliary metadata can reduce precision. Existing running processes require restart to load a rebuilt local binary.
+
+
+## 2026-11-06: minimal search recovery guidance
+
+Approved scope: correct search-error next_action and regress existing execution-state behavior; no ranking or catalog-data changes.
+
+- Added invalid_search guidance to correct search parameters and omit an invalid/outdated cursor before restarting search_apis from the first page.
+- Existing details_scope=arguments now points to the called MCP tool inputSchema/error.details; API business-input errors still point to get_api.input_schema. Public error codes and execution states remain unchanged.
+- RED reproduced both incorrect get_api hints and the invalid-cursor MCP flow. GREEN covers invalid cursor, missing search criteria, invalid limit and a successful corrected search. The existing mock workflow asserts no business gateway calls before valid business execution; tool errors remain isError=true.
+- Regression table covers API business input, changed version, unavailable API, admission, output options and unknown/completed/reported_failure state precedence.
+- go test ./..., go test -race ./..., go vet ./... and git diff --check passed. No remote business calls, database writes or deployments were performed; Grok Bot behavior remains a separate client acceptance check.

@@ -123,7 +123,8 @@ pricing.status=available 表示公开价格数据可读，不代表已经为当�
 
 - openany_mcp_api_changed：定义或展示价格变化，重新 get_api，再决定是否执行。
 - openany_mcp_api_unavailable：接口不在当前可发布目录，重新搜索。
-- openany_mcp_invalid_input：参数不符合 Schema，在本地被拒绝。
+- openany_mcp_invalid_search：按错误说明修正 search_apis 的 query、筛选条件或 limit；游标失效时去掉 cursor，从第一页重新搜索。未调用业务网关。
+- openany_mcp_invalid_input：参数不符合 Schema，在本地被拒绝。details_scope=arguments 时按当前 MCP 工具的 inputSchema 和 error.details 修正工具参数；details_scope=input 时按 get_api.input_schema 修正业务 input，避免把搜索参数当成业务参数。
 - openany_mcp_array_policy_missing：省略该可选数组，或等待配置编码规则；未向网关发送请求。
 - openany_mcp_busy：本地业务调用并发已满，此次调用未开始。
 - openany_mcp_invalid_output：输出选项组合无效，未转发到网关；类型或范围错误也可能返回 invalid_input。

@@ -88,3 +88,44 @@ func TestTextPresentationKeepsOriginalAndDoesNotInterpretBusiness(t *testing.T) 
 		t.Fatal(compact)
 	}
 }
+
+func TestRecoveryActionsUseErrorScopeAndPreserveExecutionState(t *testing.T) {
+	for _, tc := range []struct {
+		name, code, state, scope string
+		want, avoid              []string
+	}{
+		{"search", "openany_mcp_invalid_search", "not_started", "", []string{"search_apis", "cursor", "first page"}, []string{"get_api"}},
+		{"tool arguments", "openany_mcp_invalid_input", "not_started", "arguments", []string{"arguments", "inputSchema", "details"}, []string{"get_api.input_schema"}},
+		{"business input", "openany_mcp_invalid_input", "not_started", "input", []string{"get_api.input_schema"}, nil},
+		{"version changed", "openany_mcp_api_changed", "not_started", "", []string{"get_api", "price"}, nil},
+		{"unavailable", "openany_mcp_api_unavailable", "not_started", "", []string{"search_apis"}, nil},
+		{"busy", "openany_mcp_busy", "not_started", "", []string{"wait", "did not start"}, nil},
+		{"output", "openany_mcp_invalid_output", "not_started", "", []string{"output", "gateway was not called"}, nil},
+		{"unknown overrides search hint", "openany_mcp_invalid_search", "unknown", "", []string{"do not retry", "request_id"}, []string{"gateway was not called", "search_apis"}},
+		{"completed overrides search hint", "openany_mcp_invalid_search", "completed", "", []string{"do not rerun", "request_id"}, []string{"gateway was not called", "search_apis"}},
+		{"reported failure overrides argument hint", "openany_mcp_invalid_input", "reported_failure", "arguments", []string{"gateway error", "request_id"}, []string{"gateway was not called", "inputSchema"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			result := gateway.Failure(tc.code, "test error", "validate", tc.state, nil, "request-1")
+			e := result.Value["error"].(map[string]any)
+			if tc.scope != "" {
+				e["details_scope"] = tc.scope
+			}
+			result = withRecovery(result)
+			if !result.IsError || e["code"] != tc.code || e["execution_state"] != tc.state || result.Value["request_id"] != "request-1" {
+				t.Fatal("recovery changed error identity", result)
+			}
+			action, _ := e["next_action"].(string)
+			for _, want := range tc.want {
+				if !strings.Contains(strings.ToLower(action), strings.ToLower(want)) {
+					t.Errorf("action %q missing %q", action, want)
+				}
+			}
+			for _, avoid := range tc.avoid {
+				if strings.Contains(strings.ToLower(action), strings.ToLower(avoid)) {
+					t.Errorf("action %q incorrectly includes %q", action, avoid)
+				}
+			}
+		})
+	}
+}
