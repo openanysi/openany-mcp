@@ -59,9 +59,12 @@ type SearchQuery struct {
 }
 type searchCursor struct {
 	Hash, Query, Provider, Category, Platform, Product, Capability string
+	RankingVersion                                                 string
 	Limit, Offset                                                  int
 	Read                                                           bool
 }
+
+const searchRankingVersion = "intent-v2"
 
 func digest(v any) string {
 	b, _ := json.Marshal(v)
@@ -84,23 +87,39 @@ func short(s string, n int) string {
 	return string(r)
 }
 
-var aliases = [][2]string{{"企业基本信息", "company profile"}, {"公司基本信息", "company profile"}, {"工商信息", "company profile"}, {"基本资料", "profile"}, {"内部交易", "internal transactions"}, {"兑换报价", "swap quote"}, {"反向链接", "backlinks"}, {"热点新闻", "news"}, {"人工智能", "ai"}, {"以太坊", "ethereum"}, {"天气", "weather"}, {"推特", "twitter"}, {"推文", "tweet"}, {"企业", "company"}, {"公司", "company"}, {"股票", "stock"}, {"地址", "address"}, {"报价", "quote"}, {"新闻", "news"}, {"创建", "create"}, {"删除", "delete"}, {"修改", "update"}, {"转账", "transfer"}, {"执行", "execute"}, {"取消", "cancel"}}
+var aliases = [][2]string{{"企业基本信息", "company profile"}, {"公司基本信息", "company profile"}, {"工商信息", "company profile"}, {"基本资料", "profile"}, {"内部交易", "internal transactions"}, {"兑换报价", "swap quote"}, {"反向链接", "backlinks"}, {"热点新闻", "hot news"}, {"人工智能", "ai"}, {"以太坊", "ethereum"}, {"最新的", "latest"}, {"今天的", "latest"}, {"最新", "latest"}, {"今天", "latest"}, {"最近", "latest"}, {"当前", "current"}, {"热点", "hot"}, {"热门", "hot"}, {"历史", "history"}, {"批量", "batch"}, {"详情", "detail"}, {"重置", "reset"}, {"公告", "announcement"}, {"天气", "weather"}, {"推特", "twitter"}, {"推文", "tweet"}, {"企业", "company"}, {"公司", "company"}, {"股票", "stock"}, {"地址", "address"}, {"报价", "quote"}, {"新闻", "news"}, {"创建", "create"}, {"删除", "delete"}, {"修改", "update"}, {"转账", "transfer"}, {"执行", "execute"}, {"取消", "cancel"}}
+
+var wordForms = map[string]string{
+	"transactions": "transaction", "tokens": "token", "quotes": "quote", "swaps": "swap", "swapping": "swap",
+	"resets": "reset", "announcements": "announcement", "topics": "topic", "items": "item", "backlinks": "backlink",
+	"historical": "history", "trending": "hot", "bulk": "batch", "details": "detail",
+}
 
 func lexical(s string) string {
 	s = strings.ToLower(s)
 	for _, a := range aliases {
 		s = strings.ReplaceAll(s, a[0], " "+a[1]+" ")
 	}
-	return normalizeSearch(s)
+	words := strings.Fields(normalizeSearch(s))
+	for i, word := range words {
+		if canonical, ok := wordForms[word]; ok {
+			words[i] = canonical
+		}
+	}
+	return strings.Join(words, " ")
 }
 func queryWords(s string) []string {
-	for _, p := range []string{"请帮我", "帮我", "查询一下", "查一下", "获取", "查询", "搜索", "检索", "查看", "今天的", "最新的", "今天", "最近", "某个", "某", "的", "一下", "请"} {
+	for _, p := range []string{"请帮我", "帮我", "查询一下", "查一下", "获取", "查询", "搜索", "检索", "查看", "某个", "某", "的", "一下", "请"} {
 		s = strings.ReplaceAll(s, p, " ")
 	}
 	stop := map[string]bool{"help": true, "me": true, "please": true, "find": true, "get": true, "fetch": true, "look": true, "up": true, "the": true, "a": true, "an": true, "for": true, "of": true, "my": true}
 	out := []string{}
 	seen := map[string]bool{}
 	for _, w := range strings.Fields(lexical(s)) {
+		switch w {
+		case "recent", "current", "today", "now", "live":
+			w = "latest"
+		}
 		if !stop[w] && !seen[w] {
 			out = append(out, w)
 			seen[w] = true
@@ -110,6 +129,32 @@ func queryWords(s string) []string {
 		out = out[:24]
 	}
 	return out
+}
+
+func modifier(word string) bool {
+	return word == "latest" || word == "hot" || word == "history" || word == "batch" || word == "detail"
+}
+
+func containsWord(field, word string) bool {
+	if strings.IndexFunc(word, func(r rune) bool { return r > unicode.MaxASCII }) >= 0 {
+		return strings.Contains(field, word)
+	}
+	return strings.Contains(" "+field+" ", " "+word+" ")
+}
+
+// Exact words beat temporal synonyms; fields are already normalized at refresh time.
+func wordMatch(field, word string) int {
+	if containsWord(field, word) {
+		return 2
+	}
+	if word == "latest" {
+		for _, alternative := range []string{"recent", "current", "today", "now", "live"} {
+			if containsWord(field, alternative) {
+				return 1
+			}
+		}
+	}
+	return 0
 }
 func readIntent(q string) bool {
 	l := strings.ToLower(q)
@@ -233,7 +278,7 @@ func NewDiscovery(s *Snapshot, prices map[string]map[string]any, available bool,
 		versions[name] = e.version
 		index[name] = []any{e.fields, m.Categories, m.Platform, m.Product, m.Capability, e.summary, digest(m.Samples), e.samplesStale}
 	}
-	d.Hash = digest([]any{versions, index})
+	d.Hash = digest([]any{searchRankingVersion, versions, index})
 	return d
 }
 func (d *Discovery) Detail(api string) (map[string]any, bool) {
@@ -267,13 +312,20 @@ func (d *Discovery) SearchFiltered(q SearchQuery) (SearchResult, error) {
 		return out, fmt.Errorf("provide business keywords or a filter")
 	}
 	type match struct {
-		name   string
-		score  int
-		reason MatchReason
+		name                    string
+		score, coverage, intent int
+		exact                   bool
+		reason                  MatchReason
 	}
 	matches := []match{}
 	fieldNames := []string{"api", "title", "description", "path_or_parameter", "translations", "classification_or_capability"}
-	weights := []int{8, 6, 2, 1, 7, 6}
+	weights := []int{8, 8, 4, 2, 4, 1}
+	coreWords := []string{}
+	for _, word := range words {
+		if !modifier(word) {
+			coreWords = append(coreWords, word)
+		}
+	}
 	for _, name := range d.snapshot.Names {
 		e, exists := d.entries[name]
 		if !exists {
@@ -298,26 +350,38 @@ func (d *Discovery) SearchFiltered(q SearchQuery) (SearchResult, error) {
 			continue
 		}
 		score := 0
+		coverage, intent := 0, 0
 		fields := map[string]bool{}
 		terms := []string{}
 		for _, word := range words {
 			part := 0
 			for i, field := range e.fields {
-				if strings.Contains(field, word) {
-					part += weights[i]
+				if quality := wordMatch(field, word); quality > 0 {
+					part = max(part, weights[i]*quality)
 					fields[fieldNames[i]] = true
 				}
 			}
 			if part > 0 {
 				score += part
 				terms = append(terms, word)
+				if modifier(word) {
+					intent++
+				} else {
+					coverage++
+				}
 			}
 		}
-		if len(words) > 0 && score == 0 {
+		if !exact && len(words) > 0 && (score == 0 || len(coreWords) > 0 && coverage == 0) {
 			continue
 		}
-		if exact {
-			score += 10000
+		if len(coreWords) > 1 {
+			phrase := strings.Join(coreWords, " ")
+			for _, i := range []int{1, 2, 4} {
+				if containsWord(e.fields[i], phrase) {
+					score += 4
+					break
+				}
+			}
 		}
 		reason := MatchReason{Fields: []string{}, Terms: terms}
 		for _, f := range fieldNames {
@@ -331,9 +395,18 @@ func (d *Discovery) SearchFiltered(q SearchQuery) (SearchResult, error) {
 		if len(words) == 0 {
 			reason.Fields = []string{"filters"}
 		}
-		matches = append(matches, match{name, score, reason})
+		matches = append(matches, match{name: name, score: score, coverage: coverage, intent: intent, exact: exact, reason: reason})
 	}
 	sort.Slice(matches, func(i, j int) bool {
+		if matches[i].exact != matches[j].exact {
+			return matches[i].exact
+		}
+		if matches[i].coverage != matches[j].coverage {
+			return matches[i].coverage > matches[j].coverage
+		}
+		if matches[i].intent != matches[j].intent {
+			return matches[i].intent > matches[j].intent
+		}
 		if matches[i].score == matches[j].score {
 			return matches[i].name < matches[j].name
 		}
@@ -350,7 +423,7 @@ func (d *Discovery) SearchFiltered(q SearchQuery) (SearchResult, error) {
 			return out, invalid
 		}
 		var c searchCursor
-		if json.Unmarshal(raw, &c) != nil || c.Hash != d.Hash || c.Query != normal || c.Provider != q.Provider || c.Category != q.Category || c.Platform != q.Platform || c.Product != q.Product || c.Capability != q.Capability || c.Limit != q.Limit || c.Read != read || c.Offset < 1 || c.Offset >= len(matches) {
+		if json.Unmarshal(raw, &c) != nil || c.RankingVersion != searchRankingVersion || c.Hash != d.Hash || c.Query != normal || c.Provider != q.Provider || c.Category != q.Category || c.Platform != q.Platform || c.Product != q.Product || c.Capability != q.Capability || c.Limit != q.Limit || c.Read != read || c.Offset < 1 || c.Offset >= len(matches) {
 			return out, invalid
 		}
 		start = c.Offset
@@ -370,7 +443,7 @@ func (d *Discovery) SearchFiltered(q SearchQuery) (SearchResult, error) {
 		out.Results = append(out.Results, APISummary{API: v.name, Title: short(b.Title, 120), Provider: b.ProviderID, Summary: e.summary, Method: b.Request.Method, Path: short(b.Request.PublicPath, 256), Categories: m.Categories, Platform: m.Platform, Product: m.Product, Capability: cap, Purpose: e.summary, MatchReason: v.reason, Limitations: e.limitations, RequiredInputs: e.required})
 	}
 	if end < len(matches) {
-		raw, _ := json.Marshal(searchCursor{Hash: d.Hash, Query: normal, Provider: q.Provider, Category: q.Category, Platform: q.Platform, Product: q.Product, Capability: q.Capability, Limit: q.Limit, Offset: end, Read: read})
+		raw, _ := json.Marshal(searchCursor{Hash: d.Hash, Query: normal, Provider: q.Provider, Category: q.Category, Platform: q.Platform, Product: q.Product, Capability: q.Capability, Limit: q.Limit, Offset: end, Read: read, RankingVersion: searchRankingVersion})
 		out.NextCursor = base64.RawURLEncoding.EncodeToString(raw)
 	}
 	return out, nil
