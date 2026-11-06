@@ -239,7 +239,11 @@ func (d *Discovery) Detail(api string) (map[string]any, bool) {
 		return nil, false
 	}
 	b := d.snapshot.Tools[api]
-	return map[string]any{"api": api, "api_id": b.APIID, "title": b.Title, "provider": b.ProviderID, "description": b.Description, "method": b.Request.Method, "public_path": b.Request.PublicPath, "input_schema": b.Input.Document, "pricing": e.pricing, "api_version": e.version, "categories": e.metadata.Categories, "data_platform": e.metadata.Platform, "data_product": e.metadata.Product, "capability": e.metadata.Capability, "limitations": e.limitations}, true
+	detail := map[string]any{"api": api, "api_id": b.APIID, "title": b.Title, "provider": b.ProviderID, "description": b.Description, "method": b.Request.Method, "public_path": b.Request.PublicPath, "input_schema": b.Input.Document, "pricing": e.pricing, "api_version": e.version, "categories": e.metadata.Categories, "data_platform": e.metadata.Platform, "data_product": e.metadata.Product, "capability": e.metadata.Capability, "limitations": e.limitations}
+	for k, v := range guidance(b, e) {
+		detail[k] = v
+	}
+	return detail, true
 }
 func (d *Discovery) Version(api string) string { return d.entries[api].version }
 func (d *Discovery) Search(query, provider string, limit int, cursor string) (SearchResult, error) {

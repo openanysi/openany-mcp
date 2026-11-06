@@ -27,8 +27,8 @@ Files: catalog/metadata.go, search.go, snapshot.go, mcpserver/lite.go, cmd main 
 
 ### Task 2: API detail guidance
 Files: catalog/guidance.go and tests.
-- [ ] RED pointer/query/header samples, precise numbers/null, sensitive/invalid samples, missing metadata, required-field and pricing/response hints.
-- [ ] Implement schema+encoder-checked examples, public pricing descriptions and bounded value-free shape hints. Run suites; commit.
+- [x] RED pointer/query/header samples, precise numbers/null, sensitive/invalid samples, missing metadata, required-field and pricing/response hints.
+- [x] Implement schema+encoder-checked examples, public pricing descriptions and bounded value-free shape hints. Run suites; commit.
 
 ### Task 3: Execution feedback and presentation
 Files: schema/errors.go, mcpserver/output.go, lite.go, execute.go and tests.
