@@ -246,3 +246,5 @@ Approved scope: correct search-error next_action and regress existing execution-
 - RED reproduced both incorrect get_api hints and the invalid-cursor MCP flow. GREEN covers invalid cursor, missing search criteria, invalid limit and a successful corrected search. The existing mock workflow asserts no business gateway calls before valid business execution; tool errors remain isError=true.
 - Regression table covers API business input, changed version, unavailable API, admission, output options and unknown/completed/reported_failure state precedence.
 - go test ./..., go test -race ./..., go vet ./... and git diff --check passed. No remote business calls, database writes or deployments were performed; Grok Bot behavior remains a separate client acceptance check.
+
+Follow-up table alignment: explicitly tell the agent to omit only an invalid cursor and preserve the current query, filters and limit. The stricter copy assertion was observed RED before the wording change, then the full Go suite passed. This is guidance to the caller, not an automatic server-side retry.

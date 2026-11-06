@@ -94,7 +94,7 @@ func TestRecoveryActionsUseErrorScopeAndPreserveExecutionState(t *testing.T) {
 		name, code, state, scope string
 		want, avoid              []string
 	}{
-		{"search", "openany_mcp_invalid_search", "not_started", "", []string{"search_apis", "cursor", "first page"}, []string{"get_api"}},
+		{"search", "openany_mcp_invalid_search", "not_started", "", []string{"search_apis", "omit only cursor", "keep the current query, filters and limit", "first page"}, []string{"get_api"}},
 		{"tool arguments", "openany_mcp_invalid_input", "not_started", "arguments", []string{"arguments", "inputSchema", "details"}, []string{"get_api.input_schema"}},
 		{"business input", "openany_mcp_invalid_input", "not_started", "input", []string{"get_api.input_schema"}, nil},
 		{"version changed", "openany_mcp_api_changed", "not_started", "", []string{"get_api", "price"}, nil},

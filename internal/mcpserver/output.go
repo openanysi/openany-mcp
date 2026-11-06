@@ -278,7 +278,7 @@ func withRecovery(result gateway.Result) gateway.Result {
 	default:
 		switch e["code"] {
 		case "openany_mcp_invalid_search":
-			e["next_action"] = "Correct search_apis query, filters or limit according to the error. For an invalid or outdated cursor, omit cursor and restart from the first page. The gateway was not called."
+			e["next_action"] = "Correct search_apis query, filters or limit according to the error. For an invalid or outdated cursor, omit only cursor, keep the current query, filters and limit, and restart search_apis from the first page. The gateway was not called."
 		case "openany_mcp_api_changed":
 			e["next_action"] = "Call get_api again, review the current contract and price, then decide whether to execute."
 		case "openany_mcp_api_unavailable":
