@@ -1,7 +1,8 @@
 # OpenAny MCP
 
-Remote MCP server for OpenAny — one API key and one prepaid balance for models
-and APIs via Streamable HTTP.
+OpenAny (https://openany.si) is the marketplace for agents: one key for 168+ AI
+models and 3,200+ APIs. No subscriptions, no per-provider signups. Top up once,
+pay per call. This repo is OpenAny's remote MCP server (Streamable HTTP).
 
 **Endpoint:** https://mcp.openany.si/mcp
 
@@ -13,7 +14,7 @@ and APIs via Streamable HTTP.
 and billing unit before approving a paid call.
 
 OpenAny provides model access and callable APIs under one API key and prepaid
-balance. The supplied catalog snapshot is approximately **130 models**,
+balance. The supplied catalog snapshot is approximately **168+ models**,
 **3,201 APIs** and **3,220 MCP tools**. These are approximate, changing catalog
 figures supplied for this documentation, not independently verified live counts
 or a guarantee that every model is exposed as an MCP tool. Use the current
@@ -111,15 +112,15 @@ No new authenticated live `tools/call` was performed during this documentation u
 
 ## Registry metadata
 
-[`server.json`](server.json) is a draft descriptor for the official MCP
+[`server.json`](server.json) is the descriptor for the official MCP
 registry's [2025-12-11 schema](https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json).
 Its required Authorization header describes the confirmed authenticated-call
 configuration, not a credential requirement for public `tools/list`.
 
 The registry description is limited to 100 characters, so its wording is
-shorter than the full description above. The descriptor is version `0.1.0`;
-its presence does not mean the server has been published to a registry or
-submitted to a directory. No `mcp-publisher publish` operation is part of setup.
+shorter than the full description above. Version `0.1.0` is published on the
+official MCP Registry as `si.openany/openany`. Local setup does not run
+`mcp-publisher publish`.
 
 ## Development
 
