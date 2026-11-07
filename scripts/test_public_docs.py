@@ -70,7 +70,7 @@ class PublicDocsTests(unittest.TestCase):
         for target in re.findall(r"\]\(([^)]+)\)", readme):
             if not target.startswith(("https://", "#")):
                 self.assertTrue((ROOT / target).exists(), target)
-        for text in ["Alephant AI LLC", "No OAuth", "Confirmed authentication header", "3,201", "3,220", "130", "no subscription", "https://api.openany.si/v1"]:
+        for text in ["Alephant AI LLC", "No OAuth", "Confirmed authentication header", "3,201", "3,220", "168+", "no subscription", "https://api.openany.si/v1"]:
             self.assertIn(text, readme)
         self.assertIn("No new authenticated live `tools/call`", readme)
         self.assertNotRegex(readme, r"(?i)unconfirmed|assumed")
