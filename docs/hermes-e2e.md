@@ -57,6 +57,8 @@ Commands against this lite tree, Hermes v0.23.0 (`2bd378ed1b8d6bf2192cb26e0a55ff
 
 Install from the git checkout of this lite commit is recorded with the catalog pin.
 
+`hermes plugins install "file:///workspace#plugins/openany" --no-enable --yes-deps` into a throwaway `HERMES_HOME` exited 0. Hermes warned that `file://` is an unreviewed local source. The installed copy was version `0.2.0`, URL `https://mcp.openany.si/mcp-lite`, header placeholder `Bearer ${OPENANY_API_KEY}`, trust `untrusted`. `hermes plugins enable openany` exited 0. With `OPENANY_API_KEY` unset, the connect probe raised `missing_credentials`: `MCP server 'openany': ${OPENANY_API_KEY} in url/headers is not set in this profile's .env or secret source`. No request was sent. `hermes plugins disable openany` and `hermes plugins remove openany` both exited 0. The installed directory was removed, and no file in that home contained `OPENANY_API_KEY`.
+
 ## Earlier package record
 
 Catalog pin before the lite default:
@@ -292,4 +294,4 @@ re-read the X announcement.
 - No pull request, including to this repository or to NousResearch/hermes-agent.
 - The catalog draft in `docs/hermes-catalog-draft.yaml` was not submitted.
 - No release, Typeform, X post, Discord message, or production deploy.
-- No authenticated end-to-end tool call, and no claim that one succeeded.
+- This workspace did not send an authenticated `tools/call`. The owner-run CoinGecko result is recorded in the follow-up section above.
