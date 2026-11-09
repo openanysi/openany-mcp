@@ -1,0 +1,11 @@
+[project]
+name = "openany-hermes"
+version = "0.2.1"
+description = "Python dependency for the OpenAny Hermes plugin. Hermes uses mcp to speak Streamable HTTP."
+requires-python = ">=3.11,<3.15"
+dependencies = [
+  "mcp==2.3.0",
+]
+
+[tool.uv]
+package = false

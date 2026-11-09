@@ -10,7 +10,8 @@ The package does not bundle a catalog and does not state how many models, APIs, 
 
 Agent Plugins v1, loaded by Hermes as a portable plugin:
 
-- `plugin.json` version `0.2.0`
+- `plugin.json` version `0.2.1`
+- `pyproject.toml` declares the Python package `mcp==2.3.0`
 - `mcp.json`
 - `skills/openany/SKILL.md`
 
@@ -78,6 +79,8 @@ hermes plugins enable openany
 
 A catalog install, after the entry exists, is `hermes plugins install openany`. Portable packages stay disabled until enabled.
 
+Enabling prepares `mcp==2.3.0` in Hermes's dependency environment. That is the package Hermes 0.23.0 uses for Streamable HTTP. Accept the prompt, or install with `--yes-deps --enable`. A stock Hermes install does not include `mcp` until this plugin asks for it. Do not pip install it into a separate environment. Start a new Hermes process after enablement so it loads the new environment.
+
 Set `OPENANY_API_KEY` through Hermes:
 
 - Desktop: Settings → Plugins → OpenAny → OpenAny API key
@@ -100,7 +103,8 @@ If a manual `mcp_servers.openany` entry remains, remove it with `hermes mcp remo
 
 | What you see | What it means |
 | --- | --- |
-| Plugin is installed but inactive | Portable packages install disabled. Run `hermes plugins enable openany`. |
+| Plugin is installed but inactive | Portable packages install disabled. Run `hermes plugins enable openany` and accept the Python dependency prompt. |
+| Debug log says `mcp package not installed -- MCP tool support disabled` | Hermes skipped MCP discovery because `mcp` was not importable. Enable the plugin so it can prepare `mcp==2.3.0`, then start a new process. A good connect logs `MCP server 'openany' (HTTP): registered 3 tool(s)`. |
 | `${OPENANY_API_KEY} in url/headers is not set` | Hermes will not open the server until the profile secret is set. This is not a successful discovery. |
 | Gateway HTTP 401 | The key was sent and OpenAny rejected it. Do not retry a paid call to fix authentication. |
 | `Portable MCP server 'openany' conflicts with native config` | A manual `mcp_servers.openany` entry is replacing the package. Remove that entry. The owner-run session had to do this before the plugin server loaded. |
