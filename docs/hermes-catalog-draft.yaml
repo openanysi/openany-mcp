@@ -6,7 +6,7 @@ name: openany
 repo: https://github.com/openanysi/openany-mcp
 sha: "faeb52caa024e5147c1f32388bf6eddbb864cead"
 subdir: plugins/openany
-description: Marketplace for agents — OpenAny remote MCP for Hermes over Streamable HTTP.
+description: Marketplace for agents. OpenAny remote MCP for Hermes over Streamable HTTP.
 maintainer: Alephant AI LLC
 tier: community
 category: tools
@@ -19,7 +19,7 @@ known_issues:
   - Hermes does not connect this server until OPENANY_API_KEY is set in the profile secret scope.
   - A config.yaml mcp_servers.openany entry skips this package server. Remove it.
   - The default URL is /mcp-lite. The full /mcp endpoint is truncated by Hermes 0.23.0 after 50 pages.
-  - The verified tool call used /mcp/coingecko, tool coingecko_get_api_v3_simple_price, request 420decad-3a6b-46f8-acff-53966bbd8b1c, tool cost 0, model calls 807 microUSD. It did not call lite run_api.
+  - "Verified on /mcp-lite 2026-11-09: Hermes called search_apis, get_api, then run_api (coingecko_get_api_v3_simple_price), request 362c623f-599e-472f-8c8b-6e2c79dd9ea9, tool cost 0, total run 2613 microUSD."
 capabilities:
   provides_tools: []
   provides_hooks: []

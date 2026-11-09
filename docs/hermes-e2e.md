@@ -42,8 +42,18 @@ did not see the key.
 - Tool cost 0
 - Model calls cost 807 microUSD total
 
-That is one authenticated tool result. It does not measure `run_api` on the
-lite server, and it does not set a price for any other tool.
+That is one authenticated tool result on the provider endpoint. It does not
+measure `run_api` on the lite server, and it does not set a price for any
+other tool.
+
+### Later owner-run on `/mcp-lite`
+
+A later session the same day used the packaged `/mcp-lite` server. Hermes
+called `search_apis`, then `get_api`, then `run_api` for
+`coingecko_get_api_v3_simple_price`. The gateway request was
+`362c623f-599e-472f-8c8b-6e2c79dd9ea9`. Tool cost was 0. The total run cost
+2613 microUSD. This workspace did not repeat that call. The result reported
+from that session was bitcoin at 74940 USD.
 
 The catalog draft pin for version `0.2.0` is the merge commit on `main`,
 `faeb52caa024e5147c1f32388bf6eddbb864cead`. `plugins/openany` at that commit
@@ -115,12 +125,12 @@ and `hermes plugins doctor` had already passed before that extra was installed.
 `hermes plugins validate /workspace/plugins/openany --install-deps`: exit 0.
 
 ```text
-✓ portable manifest — plugin.json parses (Agent Plugins v1)
-✓ manifest fields — name present
-✓ config schema — shape valid
-✓ server trust: openany — untrusted (Hermes asks before every write-capable tool call)
-✓ security scan — safe
-◆ Isolation — portable plugin (no Python): runs anywhere
+✓ portable manifest, plugin.json parses (Agent Plugins v1)
+✓ manifest fields, name present
+✓ config schema, shape valid
+✓ server trust: openany, untrusted (Hermes asks before every write-capable tool call)
+✓ security scan, safe
+◆ Isolation, portable plugin (no Python): runs anywhere
 Validation passed.
 ```
 
@@ -165,7 +175,7 @@ openany v0.1.0
 Status: enabled
 Source: user
 Key: openany
-Runs in: Hermes process — portable plugin (no Python): runs anywhere
+Runs in: Hermes process, portable plugin (no Python): runs anywhere
 ```
 
 The full list view, before enable, appended `provenance: drift` on this
