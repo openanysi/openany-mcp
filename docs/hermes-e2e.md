@@ -2,6 +2,13 @@
 
 Date: 2026-11-09. Repository branch `cursor/hermes-openany-plugin-beb6`.
 
+Catalog pin recorded in `docs/hermes-catalog-draft.yaml`:
+`b9bb897d6b0e6ce62da8226030854d92821927c1`.
+
+That commit contains the plugin and this validation record. The first package
+commit was `4b607c41973613070267654cba125be0d8219eb3`. The only plugin-tree
+change after it is one troubleshooting row in `plugins/openany/README.md`.
+
 This record separates static checks, public discovery, and authenticated
 execution. Public `tools/list` is not an authenticated `tools/call`. No
 OpenAny API key was available. No `tools/call` was sent. No production
