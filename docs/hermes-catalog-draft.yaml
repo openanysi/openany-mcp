@@ -1,0 +1,26 @@
+# DRAFT ONLY. Do not open a catalog PR and do not submit this file.
+# sha is 9d8a270, the commit that changes the plugin default to /mcp-lite.
+# The commit that writes this sha does not change plugins/openany.
+name: openany
+repo: https://github.com/openanysi/openany-mcp
+sha: "9d8a2707e3dce027cbf1d7f2d7263b6e6d2c18b2"
+subdir: plugins/openany
+description: Marketplace for agents — OpenAny remote MCP for Hermes over Streamable HTTP.
+maintainer: Alephant AI LLC
+tier: community
+category: tools
+requires_hermes: ">=0.23.0"
+version: "0.2.0"
+title: OpenAny
+readme: true
+docs_url: https://openany.si
+known_issues:
+  - Hermes does not connect this server until OPENANY_API_KEY is set in the profile secret scope.
+  - A config.yaml mcp_servers.openany entry skips this package server. Remove it.
+  - The default URL is /mcp-lite. The full /mcp endpoint is truncated by Hermes 0.23.0 after 50 pages.
+  - The verified tool call used /mcp/coingecko, tool coingecko_get_api_v3_simple_price, request 420decad-3a6b-46f8-acff-53966bbd8b1c, tool cost 0, model calls 807 microUSD. It did not call lite run_api.
+capabilities:
+  provides_tools: []
+  provides_hooks: []
+  provides_middleware: []
+  requires_env: []

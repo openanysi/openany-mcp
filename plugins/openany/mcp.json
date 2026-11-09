@@ -1,0 +1,12 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "openany": {
+      "type": "streamable-http",
+      "url": "https://mcp.openany.si/mcp-lite",
+      "headers": {
+        "Authorization": "Bearer ${OPENANY_API_KEY}"
+      }
+    }
+  }
+}
