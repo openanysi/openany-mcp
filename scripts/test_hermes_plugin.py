@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -30,7 +31,7 @@ class HermesPluginManifestTests(unittest.TestCase):
             "keywords", "license", "name", "repository", "version",
         ])
         self.assertEqual(self.plugin["name"], "openany")
-        self.assertEqual(self.plugin["version"], "0.2.0")
+        self.assertEqual(self.plugin["version"], "0.2.1")
         self.assertEqual(self.plugin["license"], "MIT")
         self.assertEqual(self.plugin["author"], {"name": "Alephant AI LLC", "url": "https://openany.si"})
         self.assertNotIn("requires_hermes", self.plugin)
@@ -41,6 +42,17 @@ class HermesPluginManifestTests(unittest.TestCase):
         self.assertEqual(secret["env"], SECRET)
         self.assertTrue(secret["required"])
         self.assertNotIn("costs", hermes["servers"]["openany"])
+
+    def test_pyproject_declares_the_hermes_mcp_pin(self):
+        document = tomllib.loads((PLUGIN / "pyproject.toml").read_text())
+        project = document["project"]
+        self.assertEqual(project["name"], "openany-hermes")
+        self.assertEqual(project["version"], "0.2.1")
+        self.assertEqual(project["requires-python"], ">=3.11,<3.15")
+        self.assertEqual(project["dependencies"], ["mcp==2.3.0"])
+        self.assertNotIn("build-system", document)
+        self.assertFalse(document["tool"]["uv"]["package"])
+        self.assertNotIn("\u2014", (PLUGIN / "pyproject.toml").read_text())
 
     def test_mcp_server_is_streamable_http_with_a_placeholder_header(self):
         self.assertEqual(self.mcp["$schema"], MCP_SCHEMA)

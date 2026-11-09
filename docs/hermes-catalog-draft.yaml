@@ -1,7 +1,7 @@
 # DRAFT ONLY. Do not open a catalog PR and do not submit this file.
 # sha is the merge commit on main. plugins/openany at that commit is
-# version 0.2.0 and https://mcp.openany.si/mcp-lite. This doc commit does
-# not change plugins/openany.
+# version 0.2.1 and https://mcp.openany.si/mcp-lite. The sha below is
+# replaced after this change is merged to main.
 name: openany
 repo: https://github.com/openanysi/openany-mcp
 sha: "faeb52caa024e5147c1f32388bf6eddbb864cead"
@@ -11,7 +11,7 @@ maintainer: Alephant AI LLC
 tier: community
 category: tools
 requires_hermes: ">=0.23.0"
-version: "0.2.0"
+version: "0.2.1"
 title: OpenAny
 readme: true
 docs_url: https://openany.si

@@ -55,11 +55,36 @@ called `search_apis`, then `get_api`, then `run_api` for
 2613 microUSD. This workspace did not repeat that call. The result reported
 from that session was bitcoin at 74940 USD.
 
-The catalog draft pin for version `0.2.0` is the merge commit on `main`,
-`faeb52caa024e5147c1f32388bf6eddbb864cead`. `plugins/openany` at that commit
-is version `0.2.0` with default URL `https://mcp.openany.si/mcp-lite`.
-`docs/hermes-catalog-draft.yaml` records that full SHA. The commit that
-writes the pin does not change `plugins/openany`.
+The catalog draft pin is the `main` commit that contains `plugins/openany`
+version `0.2.1`, including `pyproject.toml`. `docs/hermes-catalog-draft.yaml`
+records that full SHA. The commit that writes the pin does not change
+`plugins/openany`.
+
+## Streamable HTTP dependency
+
+Hermes 0.23.0 skips MCP discovery when the `mcp` package is not importable.
+The only log line is debug text: `mcp package not installed -- MCP tool support disabled`.
+A stock install does not put `mcp` in `$HERMES_HOME/installs/.../venv`.
+`hermes pm install --extra mcp` is a different command and can fail when
+Node, npm, or ripgrep are absent.
+
+`plugins/openany/pyproject.toml` declares `mcp==2.3.0`, the same pin as the
+Hermes 0.23.0 `mcp` extra. Enabling the plugin prepares that package in the
+Hermes dependency environment. No separate pip install is required. Accept
+the enable prompt, or pass `--yes-deps` with `--enable`, then start a new
+Hermes process.
+
+Clean check on 2026-11-09, fresh `HERMES_HOME`, Hermes v0.23.0, install of
+this plugin with `--yes-deps --enable`:
+
+- Install exit 0. Hermes listed the dependency `mcp==2.3.0` and prepared it.
+- The selected environment venv imported `mcp` 2.3.0. The PM runtime
+  interpreter did not, which is expected.
+- A new process using that environment connected to
+  `https://mcp.openany.si/mcp-lite` and registered 3 tools:
+  `get_api`, `run_api`, `search_apis`.
+- The check used a throwaway profile value for `OPENANY_API_KEY` and did not
+  record it. No paid `tools/call` was made.
 
 Commands against this lite tree, Hermes v0.23.0 (`2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19`), Python 3.14.10, `mcp==2.3.0`:
 
