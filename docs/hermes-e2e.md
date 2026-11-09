@@ -55,10 +55,10 @@ called `search_apis`, then `get_api`, then `run_api` for
 2613 microUSD. This workspace did not repeat that call. The result reported
 from that session was bitcoin at 74940 USD.
 
-The catalog draft pin is the `main` commit that contains `plugins/openany`
-version `0.2.1`, including `pyproject.toml`. `docs/hermes-catalog-draft.yaml`
-records that full SHA. The commit that writes the pin does not change
-`plugins/openany`.
+The catalog draft pin is `701970438d5d2b06cef5ad74757983ca7e50f7c1` on
+`main`. That commit contains `plugins/openany` version `0.2.1`, including
+`pyproject.toml`. `docs/hermes-catalog-draft.yaml` records that full SHA.
+The commit that writes the pin does not change `plugins/openany`.
 
 ## Streamable HTTP dependency
 
