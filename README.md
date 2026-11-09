@@ -72,6 +72,10 @@ of an end-to-end paid test of every client.
 | Codex | [codex.config.toml](examples/codex.config.toml) | `~/.codex/config.toml` |
 | Pi | [pi.mcp.json](examples/pi.mcp.json) | `~/.pi/agent/mcp.json` or `.pi/mcp.json` |
 | Hermes | [hermes.config.yaml](examples/hermes.config.yaml) | `~/.hermes/config.yaml` |
+
+The Hermes row is a manual `mcp_servers` example. The installable plugin is
+[plugins/openany](plugins/openany/README.md). A same-name `openany` server in
+`config.yaml` replaces that plugin's server.
 | OpenClaw | [openclaw.json](examples/openclaw.json) | `~/.openclaw/openclaw.json`, under `mcp.servers` |
 | Other clients | [generic.md](examples/generic.md) | Client-specific remote MCP settings |
 

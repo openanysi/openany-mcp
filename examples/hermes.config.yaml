@@ -2,6 +2,8 @@
 # Merge into ~/.hermes/config.yaml. Never hardcode a key here.
 # Default transport for url entries is Streamable HTTP; do NOT set transport: sse.
 # Prefer putting the real key in private ~/.hermes/.env as OPENANY_API_KEY.
+# Installable plugin: plugins/openany. This example is not that package.
+# A same-name openany server here replaces the plugin server and its trust gate.
 mcp_servers:
   openany:
     url: "https://mcp.openany.si/mcp"

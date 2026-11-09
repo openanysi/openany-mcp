@@ -1,0 +1,32 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "openany",
+  "version": "0.1.0",
+  "description": "Marketplace for agents. Connects Hermes to the OpenAny remote MCP server over Streamable HTTP.",
+  "author": {
+    "name": "Alephant AI LLC",
+    "url": "https://openany.si"
+  },
+  "homepage": "https://openany.si",
+  "repository": "https://github.com/openanysi/openany-mcp",
+  "license": "MIT",
+  "keywords": ["openany", "mcp", "marketplace", "agents"],
+  "extensions": {
+    "com.nousresearch.hermes": {
+      "config_schema": {
+        "api_key": {
+          "type": "secret",
+          "env": "OPENANY_API_KEY",
+          "label": "OpenAny API key",
+          "description": "Bearer token for the OpenAny MCP server. Hermes stores it in the active profile secret scope. The package never contains the key.",
+          "required": true
+        }
+      },
+      "servers": {
+        "openany": {
+          "trust": "untrusted"
+        }
+      }
+    }
+  }
+}
