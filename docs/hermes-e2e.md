@@ -45,8 +45,11 @@ did not see the key.
 That is one authenticated tool result. It does not measure `run_api` on the
 lite server, and it does not set a price for any other tool.
 
-The catalog draft pin for version `0.2.0` is the commit that contains this
-lite default. `docs/hermes-catalog-draft.yaml` records that full SHA.
+The catalog draft pin for version `0.2.0` is the merge commit on `main`,
+`faeb52caa024e5147c1f32388bf6eddbb864cead`. `plugins/openany` at that commit
+is version `0.2.0` with default URL `https://mcp.openany.si/mcp-lite`.
+`docs/hermes-catalog-draft.yaml` records that full SHA. The commit that
+writes the pin does not change `plugins/openany`.
 
 Commands against this lite tree, Hermes v0.23.0 (`2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19`), Python 3.14.10, `mcp==2.3.0`:
 

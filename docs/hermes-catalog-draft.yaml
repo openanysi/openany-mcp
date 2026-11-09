@@ -1,9 +1,10 @@
 # DRAFT ONLY. Do not open a catalog PR and do not submit this file.
-# sha is 9d8a270, the commit that changes the plugin default to /mcp-lite.
-# The commit that writes this sha does not change plugins/openany.
+# sha is the merge commit on main. plugins/openany at that commit is
+# version 0.2.0 and https://mcp.openany.si/mcp-lite. This doc commit does
+# not change plugins/openany.
 name: openany
 repo: https://github.com/openanysi/openany-mcp
-sha: "9d8a2707e3dce027cbf1d7f2d7263b6e6d2c18b2"
+sha: "faeb52caa024e5147c1f32388bf6eddbb864cead"
 subdir: plugins/openany
 description: Marketplace for agents — OpenAny remote MCP for Hermes over Streamable HTTP.
 maintainer: Alephant AI LLC
