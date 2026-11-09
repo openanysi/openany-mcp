@@ -1,28 +1,28 @@
 ---
 name: openany
-description: Call tools from the connected OpenAny marketplace MCP server. Calls can spend the user's OpenAny prepaid balance. Use only tools from the current tools/list, review the live price, and get approval before a paid call. A tools/list result is not an authenticated execution.
+description: Search the OpenAny catalog with search_apis, read one API with get_api, and call run_api only after the user approves the live price. The packaged server is https://mcp.openany.si/mcp-lite. A tools/list result is not an authenticated execution.
 ---
 
 # OpenAny
 
-OpenAny is a marketplace for agents. Use this skill only when the OpenAny MCP server from this plugin is connected in the current Hermes session.
+OpenAny is a marketplace for agents. Use this skill only when this plugin's MCP server is connected.
 
-## Before a call
+## Server
 
-- The packaged server is remote Streamable HTTP at `https://mcp.openany.si/mcp`.
-- Hermes sends `Authorization: Bearer` with the profile secret `OPENANY_API_KEY`. Do not ask the user to paste the key into the chat, and do not print the header or the profile environment.
-- `tools/list` can succeed without proving that a later `tools/call` is authenticated, priced, or successful.
-- This package does not declare per-tool prices. Do not invent a price, a model count, or an API count.
-- Call only tool names present in the current `tools/list`, with arguments that match that tool's current schema.
-- Hermes may show a shortened model-facing name when `mcp__openany__<tool>` exceeds 64 characters. Dispatch still uses the server's original tool name.
-- The server is `trust: untrusted`. A tool without `readOnlyHint: true` needs an approval before it runs, and the call fails closed when nobody can answer. Do not bypass that approval.
+The packaged server is remote Streamable HTTP at `https://mcp.openany.si/mcp-lite`. Its tools are `search_apis`, `get_api`, and `run_api`. Do not call tool names from the full `/mcp` catalog unless a different server is connected.
 
-## After a call
+Hermes sends `Authorization: Bearer` with the profile secret `OPENANY_API_KEY`. Do not ask the user to paste the key into the chat, and do not print the header or the profile environment.
 
-- Report the result that was actually returned, including gateway errors.
-- HTTP success is not business success and is not proof of the charge.
-- Do not retry a call whose execution or charging state is unknown.
+`https://mcp.openany.si/mcp` is a different server. Hermes 0.23.0 stops `tools/list` after 50 pages, so that server is not what this package connects. A provider path such as `https://mcp.openany.si/mcp/coingecko` lists only that provider.
 
-## Other endpoint
+## Call order
 
-`https://mcp.openany.si/mcp-lite` is a different public server. It is not connected by this package. Do not call `search_apis`, `get_api`, or `run_api` unless the user has pointed Hermes at that endpoint.
+1. `search_apis` with a business query or one returned filter. Read the summaries. Do not invent an API name.
+2. `get_api` with the `api` value from that search. Read `input_schema`, `api_version`, and the public price before execution.
+3. `run_api` only after the user approves the call. Pass that same `api`, the `api_version` from `get_api`, and `input` that matches `input_schema`.
+
+`run_api` can spend the user's OpenAny balance and can have side effects. This package does not declare a fixed price. Do not invent a price, a model count, or an API count.
+
+`tools/list` does not prove that a later `tools/call` is authenticated, priced, or successful. The server is `trust: untrusted`. A tool without `readOnlyHint: true` needs approval, and the call fails closed when nobody can answer. Do not bypass that approval. Do not retry a call whose execution or charging state is unknown.
+
+Report the result that was actually returned, including gateway errors. HTTP success is not business success and is not proof of the charge.

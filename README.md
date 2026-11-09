@@ -72,12 +72,17 @@ of an end-to-end paid test of every client.
 | Codex | [codex.config.toml](examples/codex.config.toml) | `~/.codex/config.toml` |
 | Pi | [pi.mcp.json](examples/pi.mcp.json) | `~/.pi/agent/mcp.json` or `.pi/mcp.json` |
 | Hermes | [hermes.config.yaml](examples/hermes.config.yaml) | `~/.hermes/config.yaml` |
-
-The Hermes row is a manual `mcp_servers` example. The installable plugin is
-[plugins/openany](plugins/openany/README.md). A same-name `openany` server in
-`config.yaml` replaces that plugin's server.
 | OpenClaw | [openclaw.json](examples/openclaw.json) | `~/.openclaw/openclaw.json`, under `mcp.servers` |
 | Other clients | [generic.md](examples/generic.md) | Client-specific remote MCP settings |
+
+The Hermes row is a manual `mcp_servers` example for the full `/mcp` endpoint.
+The installable plugin is [plugins/openany](plugins/openany/README.md). Its
+default is `https://mcp.openany.si/mcp-lite`, because Hermes 0.23.0 stops
+`tools/list` after 50 pages and the full endpoint is truncated at 2500 tools.
+A same-name `openany` server in `config.yaml` makes Hermes skip the plugin
+server. The owner-run session, the CoinGecko tool result, request
+`420decad-3a6b-46f8-acff-53966bbd8b1c`, tool cost 0, and 807 microUSD of model
+calls are recorded in [docs/hermes-e2e.md](docs/hermes-e2e.md).
 
 JSON does not support comments. The JSON examples use a top-level `$comment`
 annotation for the warning and CLI notes; only the `mcpServers` or `mcp` block

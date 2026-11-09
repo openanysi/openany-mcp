@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "openany"
 PLUGIN_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
 MCP_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json"
-ENDPOINT = "https://mcp.openany.si/mcp"
+ENDPOINT = "https://mcp.openany.si/mcp-lite"
 SECRET = "OPENANY_API_KEY"
 HEADER = "Bearer ${OPENANY_API_KEY}"
 
@@ -30,7 +30,7 @@ class HermesPluginManifestTests(unittest.TestCase):
             "keywords", "license", "name", "repository", "version",
         ])
         self.assertEqual(self.plugin["name"], "openany")
-        self.assertEqual(self.plugin["version"], "0.1.0")
+        self.assertEqual(self.plugin["version"], "0.2.0")
         self.assertEqual(self.plugin["license"], "MIT")
         self.assertEqual(self.plugin["author"], {"name": "Alephant AI LLC", "url": "https://openany.si"})
         self.assertNotIn("requires_hermes", self.plugin)
@@ -75,6 +75,11 @@ class HermesPluginManifestTests(unittest.TestCase):
             "not an authenticated",
             "Alephant AI LLC",
             "mcp-lite",
+            "50 pages",
+            "mcp_servers.openany",
+            "coingecko_get_api_v3_simple_price",
+            "420decad-3a6b-46f8-acff-53966bbd8b1c",
+            "807 microUSD",
         ):
             self.assertIn(phrase, self.readme)
         self.assertIn("../../docs/hermes-e2e.md", self.readme)
@@ -91,6 +96,12 @@ class HermesPluginManifestTests(unittest.TestCase):
         self.assertIn("OPENANY_API_KEY", self.skill)
         self.assertIn(ENDPOINT, self.skill)
         self.assertIn("readOnlyHint", self.skill)
+        for name in ("search_apis", "get_api", "run_api"):
+            self.assertIn(name, self.skill)
+        self.assertIn(
+            "The packaged server is remote Streamable HTTP at `https://mcp.openany.si/mcp-lite`.",
+            self.skill,
+        )
 
 
 if __name__ == "__main__":

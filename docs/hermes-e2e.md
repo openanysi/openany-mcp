@@ -2,12 +2,68 @@
 
 Date: 2026-11-09. Repository branch `cursor/hermes-openany-plugin-beb6`.
 
-Catalog pin recorded in `docs/hermes-catalog-draft.yaml`:
+## Default endpoint, 2026-11-09 follow-up
+
+Package version `0.2.0` connects to `https://mcp.openany.si/mcp-lite`.
+
+The full endpoint `https://mcp.openany.si/mcp` is not a reliable Hermes
+default. Hermes 0.23.0 stops `tools/list` after 50 pages and, on that URL,
+logs `tools pagination exceeded 50 pages; truncating at 2500 items`. An
+unauthenticated probe continued past page 50. Tools after the cap never
+reach the model.
+
+Options checked with unauthenticated `initialize` and `tools/list` only:
+
+| Endpoint | Hermes `mcp test` | Independent page walk | Catalog access |
+| --- | --- | --- | --- |
+| `/mcp-lite` | Exit 0, 2638ms, Auth none, 3 tools, no pagination warning | 1 page, 3 tools, no `nextCursor`. Server `OpenAny Lite` 0.1.0, protocol `2025-11-25`. Names: `get_api`, `run_api`, `search_apis`. None had `readOnlyHint`. | Search, read, and execute across the catalog through those three tools. |
+| `/mcp/coingecko` | Exit 0, 2921ms, Auth none, 55 tools, no pagination warning | 2 pages, 55 unique tools, cursor finished. Includes `coingecko_get_api_v3_simple_price`. | That provider only. |
+| `/mcp/not-a-real-provider` | not sent | HTTP 404 `404 page not found` | None. |
+| `/mcp` | Earlier same-day run: exit 0, 16674ms, 2500 tools, then the 50-page warning | Page 51 and 52 still returned tools | Incomplete under Hermes. |
+
+A user-configurable URL was not put in `mcp.json`. Hermes fails closed when a
+`${VAR}` in a remote URL is unset, and the portable manifest has no separate
+default. The working default is the literal lite URL. A provider server can
+be added under another `mcp_servers` name, with `trust: untrusted` and the
+same bearer placeholder. The name `openany` must not be reused.
+
+### Owner-run authenticated session
+
+Reported from a separate machine. This workspace did not repeat the call and
+did not see the key.
+
+- Hermes v0.23.0, `mcp==2.3.0`
+- Model `deepseek-v4.1-flash` through `https://api.openany.si/v1`
+- The installed portable plugin was used
+- Native `mcp_servers.openany` skipped the plugin server, so that entry was removed
+- The plugin URL for that session was `https://mcp.openany.si/mcp/coingecko`, not `/mcp` and not `/mcp-lite`
+- Tool `coingecko_get_api_v3_simple_price` returned `{"bitcoin":{"usd":75190}}`
+- Gateway request `420decad-3a6b-46f8-acff-53966bbd8b1c`
+- Tool cost 0
+- Model calls cost 807 microUSD total
+
+That is one authenticated tool result. It does not measure `run_api` on the
+lite server, and it does not set a price for any other tool.
+
+The catalog draft pin for version `0.2.0` is the commit that contains this
+lite default. `docs/hermes-catalog-draft.yaml` records that full SHA.
+
+Commands against this lite tree, Hermes v0.23.0 (`2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19`), Python 3.14.10, `mcp==2.3.0`:
+
+- `python3 scripts/test_hermes_plugin.py`: 5 tests, OK
+- `python3 scripts/test_public_docs.py`: 5 tests, OK
+- `hermes plugins validate /workspace/plugins/openany --install-deps`: exit 0, `Validation passed.`, JSON `"ok": true`, `"warnings": []`, security scan `safe`
+- `hermes plugins doctor /workspace/plugins/openany --ci`: exit 0, `manifest: openany 0.2.0`, `registrations: 0 tool(s), 0 hook(s)`
+
+Install from the git checkout of this lite commit is recorded with the catalog pin.
+
+## Earlier package record
+
+Catalog pin before the lite default:
 `b9bb897d6b0e6ce62da8226030854d92821927c1`.
 
-That commit contains the plugin and this validation record. The first package
-commit was `4b607c41973613070267654cba125be0d8219eb3`. The only plugin-tree
-change after it is one troubleshooting row in `plugins/openany/README.md`.
+The first package commit was `4b607c41973613070267654cba125be0d8219eb3`.
+Those commits point the plugin at `https://mcp.openany.si/mcp`.
 
 This record separates static checks, public discovery, and authenticated
 execution. Public `tools/list` is not an authenticated `tools/call`. No
