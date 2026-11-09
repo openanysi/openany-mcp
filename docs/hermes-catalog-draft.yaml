@@ -1,0 +1,27 @@
+# DRAFT ONLY. Do not open a catalog PR and do not submit this file.
+# sha is the plugin-package commit. A later docs commit may add this file
+# without changing plugins/openany. If the installed pin moves, change sha
+# to that full 40-character commit before submission.
+name: openany
+repo: https://github.com/openanysi/openany-mcp
+sha: "4b607c41973613070267654cba125be0d8219eb3"
+subdir: plugins/openany
+description: Marketplace for agents — OpenAny remote MCP for Hermes over Streamable HTTP.
+maintainer: Alephant AI LLC
+tier: community
+category: tools
+requires_hermes: ">=0.23.0"
+version: "0.1.0"
+title: OpenAny
+readme: true
+docs_url: https://openany.si
+known_issues:
+  - Hermes does not connect this server until OPENANY_API_KEY is set in the profile secret scope.
+  - A config.yaml mcp_servers.openany entry replaces this package server and its trust setting.
+  - Prices are not declared. No authenticated tools/call was verified for this pin.
+  - Hermes 0.23.0 stops tools/list after 50 pages. A public probe of /mcp continued past that cap.
+capabilities:
+  provides_tools: []
+  provides_hooks: []
+  provides_middleware: []
+  requires_env: []

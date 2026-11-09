@@ -83,6 +83,7 @@ If you also added a manual `mcp_servers.openany` entry, remove that separately w
 | `Portable MCP server 'openany' conflicts with native config` | A manual `mcp_servers.openany` entry is replacing the package. The manual entry's trust setting wins. |
 | Tools appear, then a call is blocked | `trust: untrusted` is waiting for approval, or the run is unattended and fails closed. |
 | `tools/list` works | Discovery only. It does not prove authentication, balance, or a successful `tools/call`. |
+| Some `/mcp` tools are missing | Hermes 0.23.0 stops `tools/list` after 50 pages. A public probe continued past that page, so this cap is not the whole server catalog. |
 | Long tool names look shortened | Hermes 0.23.0 clamps model-facing `mcp__openany__...` names to 64 characters. The server tool name is unchanged. |
 
 Logs must not include the API key. If a command prints `Authorization`, stop and redact it before sharing the output.
