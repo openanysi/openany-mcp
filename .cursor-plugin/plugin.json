@@ -1,0 +1,24 @@
+{
+  "name": "openany",
+  "version": "0.1.0",
+  "description": "Search OpenAny APIs, read one schema and public price, and run an approved call with your OpenAny API key.",
+  "author": {
+    "name": "Alephant AI LLC"
+  },
+  "homepage": "https://openany.si",
+  "repository": "https://github.com/openanysi/openany-mcp",
+  "license": "MIT",
+  "keywords": ["openany", "mcp", "marketplace", "agents"],
+  "mcpServers": ".mcp.json",
+  "variables": {
+    "type": "object",
+    "properties": {
+      "OPENANY_API_KEY": {
+        "type": "string",
+        "title": "OpenAny API key",
+        "description": "Bearer token for paid OpenAny calls. Set this in Cursor plugin settings. The repository does not contain the key."
+      }
+    },
+    "required": ["OPENANY_API_KEY"]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "openany": {
+      "url": "https://mcp.openany.si/mcp-lite",
+      "headers": {
+        "Authorization": "Bearer ${OPENANY_API_KEY}"
+      }
+    }
+  }
+}

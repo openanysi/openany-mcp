@@ -106,6 +106,70 @@ Client reference documentation: [Claude Code](https://code.claude.com/docs/en/mc
 Client versions and configuration support can change; consult the matching
 client documentation if a field or command is rejected.
 
+## Gemini CLI
+
+Install this repository as a Gemini CLI extension:
+
+```sh
+gemini extensions install https://github.com/openanysi/openany-mcp
+```
+
+[`gemini-extension.json`](gemini-extension.json) names the extension `openany`.
+It connects with `httpUrl` to `https://mcp.openany.si/mcp-lite` and sends
+`Authorization: Bearer ${OPENANY_API_KEY}`. The key is the sensitive setting
+`OPENANY_API_KEY`. Gemini CLI asks for it during install and stores it outside
+this repository. [`GEMINI.md`](GEMINI.md) is the extension context file.
+
+## Cursor
+
+[`.mcp.json`](.mcp.json) is the root file cursor.directory reads for an MCP
+server. [`.cursor-plugin/plugin.json`](.cursor-plugin/plugin.json) is the
+Cursor plugin manifest. It declares `OPENANY_API_KEY` as a required string
+variable and sets `mcpServers` to `.mcp.json`. The header in that file is
+`Authorization: Bearer ${OPENANY_API_KEY}`. Cursor fills the placeholder from
+the plugin setting. The file does not contain a key.
+
+A manual merge into `~/.cursor/mcp.json` is a different syntax. Use
+[`examples/cursor.mcp.json`](examples/cursor.mcp.json), which expands
+`${env:OPENANY_API_KEY}` and still points at `https://mcp.openany.si/mcp`.
+To use the lite URL outside the plugin, copy the server block from `.mcp.json`
+and change the header to `Bearer ${env:OPENANY_API_KEY}`.
+
+There is no root `mcp.json`. Cursor's plugin loader reads `.mcp.json` before
+`mcp.json` when both exist, so the manifest points at the one file.
+
+## OpenClaw
+
+[`plugins/openclaw/openany/SKILL.md`](plugins/openclaw/openany/SKILL.md) is an
+OpenClaw skill. Its front matter requires `OPENANY_API_KEY` and sets the
+homepage to https://openany.si. The skill tells the agent to add
+`https://mcp.openany.si/mcp-lite` under `mcp.servers` in
+`~/.openclaw/openclaw.json` with `transport` set to `streamable-http`, then
+to call `search_apis`, `get_api`, confirm the returned price, and only then
+`run_api`. See [the skill README](plugins/openclaw/openany/README.md).
+
+[`examples/openclaw.json`](examples/openclaw.json) remains the manual example
+for the full `/mcp` URL.
+
+## Which URL the install files use
+
+The Gemini CLI extension, the Cursor `.mcp.json` plugin, and the OpenClaw
+skill use `https://mcp.openany.si/mcp-lite`. Public `tools/list` on that URL
+returns `search_apis`, `get_api`, and `run_api` in a single page and does not
+send `nextCursor`. The full `https://mcp.openany.si/mcp` URL returns one tool
+per API, 50 tools per page, with `nextCursor` until the last page.
+
+That split matters for these clients. Cursor staff wrote in July 2026 and
+again in September 2026 that the desktop MCP client registers only the first
+`tools/list` page and does not follow `nextCursor`. Gemini CLI shortens a
+tool name longer than 63 characters. The first page of `/mcp` is 50 tools
+and is not the search, inspect, and run workflow. The lite URL keeps that
+workflow on three short names. The manual examples and
+[`server.json`](server.json) still use `/mcp`.
+
+Discovery for this choice was an unauthenticated `tools/list`. It was not an
+authenticated `tools/call`.
+
 ## Verify without accidentally spending
 
 1. Connect to the full endpoint URL using Streamable HTTP.
