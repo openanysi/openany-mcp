@@ -12,7 +12,7 @@ metadata:
 
 # OpenAny
 
-Use this skill when the user wants a model, a data source, or another tool API, and they have authorized OpenAny to spend against their prepaid balance. Skip it when the task can be finished with local files or tools already connected to this agent.
+Use this skill when the user wants a model, a data source, or another tool API, and they have authorized OpenAny to charge those calls. Skip it when the task can be finished with local files or tools already connected to this agent.
 
 ## Connect
 

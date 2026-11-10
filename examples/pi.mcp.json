@@ -6,7 +6,7 @@
       "headers": {
         "Authorization": "Bearer ${OPENANY_API_KEY}"
       },
-      "description": "OpenAny models and APIs — one key, one balance"
+      "description": "OpenAny models and APIs. One API key, pay per call, no monthly fee."
     }
   }
 }

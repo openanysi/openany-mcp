@@ -1,8 +1,8 @@
 # OpenAny MCP
 
 OpenAny (https://openany.si) is the marketplace for agents: one key for 168+ AI
-models and 3,200+ APIs. No subscriptions, no per-provider signups. Top up once,
-pay per call. This repo is OpenAny's remote MCP server (Streamable HTTP).
+models and 3,200+ APIs. No subscriptions, no per-provider signups. Pay per
+call, no monthly fee. This repo is OpenAny's remote MCP server (Streamable HTTP).
 
 **Endpoint:** https://mcp.openany.si/mcp
 
@@ -13,8 +13,8 @@ pay per call. This repo is OpenAny's remote MCP server (Streamable HTTP).
 **Pricing:** Pay per call, no subscription. Check the current resource price
 and billing unit before approving a paid call.
 
-OpenAny provides model access and callable APIs under one API key and prepaid
-balance. The supplied catalog snapshot is approximately **168+ models**,
+OpenAny provides model access and callable APIs under one API key, pay per
+call, no monthly fee. The supplied catalog snapshot is approximately **168+ models**,
 **3,201 APIs** and **3,220 MCP tools**. These are approximate, changing catalog
 figures supplied for this documentation, not independently verified live counts
 or a guarantee that every model is exposed as an MCP tool. Use the current
