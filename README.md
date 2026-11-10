@@ -21,6 +21,46 @@ or a guarantee that every model is exposed as an MCP tool. Use the current
 `tools/list` response and tool schemas to determine MCP availability. The
 separate model API base URL is https://api.openany.si/v1.
 
+## Configuration
+
+Add this remote server in a client that accepts a top-level `mcpServers`
+object. The header is the confirmed authentication header,
+`Authorization: Bearer <OPENANY_API_KEY>`. `${OPENANY_API_KEY}` is the
+environment placeholder for that key. Do not hardcode a key. Use one API
+key. Executing an API is pay per call, no monthly fee. `tools/list` is
+public and does not need a key.
+
+```json
+{
+  "mcpServers": {
+    "openany": {
+      "url": "https://mcp.openany.si/mcp-lite",
+      "headers": {
+        "Authorization": "Bearer ${OPENANY_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+This block uses the lightweight endpoint. The [client setup](#client-setup)
+examples remain in place, including files that point at
+`https://mcp.openany.si/mcp`.
+
+## Tools
+
+`https://mcp.openany.si/mcp-lite` exposes three tools. `search_apis` finds
+168+ models and 3,200+ APIs. Execution is pay per call, no monthly fee, with
+one API key.
+
+- `search_apis`: Find OpenAny models and APIs by keywords and optional kind (api, model, or all; default all), provider, category, data_platform, data_product or capability.
+- `get_api`: Read one model or API selected from search_apis.
+- `run_api`: Execute one selected OpenAny API, or send one selected model to chat completions, with the caller's current credentials.
+
+`https://mcp.openany.si/mcp` exposes 3,268 tools across 45 providers, led by
+tikhub (1,009), anyapi (337), justoneapi (301), scrapecreators (193), and
+qcc (170). The list is in [TOOLS.md](TOOLS.md).
+
 ## Optional lightweight endpoint
 
 When enabled and routed by the deployment, `https://mcp.openany.si/mcp-lite`
