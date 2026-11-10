@@ -2,7 +2,7 @@
 
 This folder is an OpenClaw skill for the hosted OpenAny MCP server. It is a separate package from `plugins/openany`, which Hermes loads.
 
-OpenAny (https://openany.si) is a marketplace for agents. One API key and a prepaid balance cover model and API calls. The skill tells an OpenClaw agent when to use that path, how to connect the lite MCP server, and the order of tool calls.
+OpenAny (https://openany.si) is a marketplace for agents. One API key covers model and API calls, pay per call, no monthly fee. The skill tells an OpenClaw agent when to use that path, how to connect the lite MCP server, and the order of tool calls.
 
 ## Files
 

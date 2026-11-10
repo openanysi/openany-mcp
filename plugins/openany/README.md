@@ -54,7 +54,7 @@ A missing provider id returns HTTP 404. Do not point this block at `/mcp` if you
 
 MCP traffic goes to OpenAny at `mcp.openany.si`, operated by Alephant AI LLC. After the secret is set, Hermes sends the bearer token on those requests.
 
-Resource execution is pay-per-call against the caller's OpenAny prepaid balance. This package does not set `costs` or `spend_limit`. `trust: untrusted` asks before each tool that lacks `readOnlyHint: true`, and fails closed for unattended runs when nobody can answer. The lite tools observed in public discovery had no `readOnlyHint`.
+Resource execution is pay-per-call, with no monthly fee. This package does not set `costs` or `spend_limit`. `trust: untrusted` asks before each tool that lacks `readOnlyHint: true`, and fails closed for unattended runs when nobody can answer. The lite tools observed in public discovery had no `readOnlyHint`.
 
 `search_apis` and `get_api` are catalog reads. `run_api` forwards a business request and can charge. This package does not claim a new measurement of that billing split beyond the tool descriptions returned by `tools/list`.
 
