@@ -48,7 +48,7 @@ run_api({
 
 每个候选包含 `kind`（`api` 或 `model`）、api、title、provider、summary、method、path，以及已有分类、平台、产品、能力、purpose、match_reason、required_inputs_brief 和已知 limitations。模型候选另有 `model_id`。目录里实际有的 `modalities`、`context_length`、`pricing_brief` 才会出现；没有的字段不会编造。模型分类固定包含 `models` 和 `llm`，`category=ai-generation` 也会命中模型。`capability=chat` 只命中目录模态或特性里包含 chat 的模型。match_reason 说明命中的字段和词，不代表供应商质量评分。缺失的 API 分类和能力不会凭空生成。返回摘要不包含完整 Schema。
 
-模型名或厂商品牌词（例如 deepseek、qwen、claude、anthropic）会把模型排在前面。任务词（例如翻译、写作、代码、看图）把模型和相关 API 混排。支持有限中英文别名，不是通用语义搜索。`models_available=false` 表示还没有成功读取过模型目录；`models_stale=true` 表示最近一次刷新失败，结果仍来自上一份成功目录。
+模型名或厂商品牌词（例如 deepseek、qwen、claude、anthropic）会把模型排在前面。任务词把模型和相关 API 混排。翻译、写作、代码，以及 translate、write、code，只命中输出模态包含 chat、coding 或 reasoning 的模型。输入模态里的 chat 只表示提示词通道，生图和视频模型不会因此命中这些词。看图和 vision 命中接受图像且输出文本的模型。画图、生图和 image generation 命中输出图像的模型。支持有限中英文别名，不是通用语义搜索。`models_available=false` 表示还没有成功读取过模型目录；`models_stale=true` 表示最近一次刷新失败，结果仍来自上一份成功目录。
 
 ```json
 {"query":"帮我查询企业工商信息","limit":5}

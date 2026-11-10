@@ -165,6 +165,114 @@ func TestModelCatalogRetainsLastSuccess(t *testing.T) {
 	}
 }
 
+func TestTextTaskWordsDoNotMatchImageGenerators(t *testing.T) {
+	raw := `{
+	  "data": [
+	    {"id":"deepseek-v4-flash","input_modalities":["chat","coding"],"output_modalities":["chat"],"is_ready":true},
+	    {"id":"Hy-Image-3.5-Preview","input_modalities":["chat","image"],"output_modalities":["image"],"supported_features":["image_generation"],"is_ready":true},
+	    {"id":"Midjourney-v7","input_modalities":["chat"],"output_modalities":["image"],"supported_features":["image_generation"],"is_ready":true},
+	    {"id":"qwen3.7-flash","input_modalities":["chat"],"output_modalities":["chat"],"supported_features":["vision"],"is_ready":true},
+	    {"id":"gemini-3.5-flash","input_modalities":["chat","image"],"output_modalities":["chat"],"is_ready":true},
+	    {"id":"hy-vision-2.0-instruct","input_modalities":["chat","image"],"output_modalities":["chat","image"],"supported_features":["vision"],"is_ready":true},
+	    {"id":"doubao-seed-2-1-pro","input_modalities":["chat","coding"],"output_modalities":["video"],"is_ready":true},
+	    {"id":"kimi-k2.7-code","input_modalities":["chat","coding"],"output_modalities":["chat","coding"],"is_ready":true}
+	  ]
+	}`
+	models, err := ParseModelCatalog([]byte(raw))
+	if err != nil {
+		t.Fatal(err)
+	}
+	translate := fixture("demo_translate")
+	translate.Name, translate.Description = "Translate text", "Translation between languages"
+	translate.PathTemplate, translate.PublicPath = "/translate", "/v1/agent-apis/demo/translate"
+	discovery := newDiscovery(mustBuild(t, []model.Record{translate}), nil, false, models, true, false)
+	byQuery := func(query string) map[string]bool {
+		t.Helper()
+		ids := map[string]bool{}
+		for _, id := range modelResultIDs(t, discovery, query) {
+			ids[id] = true
+		}
+		return ids
+	}
+	imageOnly := []string{"Hy-Image-3.5-Preview", "Midjourney-v7", "doubao-seed-2-1-pro"}
+	for _, query := range []string{"翻译", "写作", "代码", "translate", "write", "code"} {
+		got := byQuery(query)
+		for _, id := range imageOnly {
+			if got[id] {
+				t.Errorf("%s matched %s", query, id)
+			}
+		}
+	}
+	translated := byQuery("翻译")
+	if !translated["deepseek-v4-flash"] || translated["Hy-Image-3.5-Preview"] || translated["Midjourney-v7"] {
+		t.Fatal(translated)
+	}
+	mixed, err := discovery.Search("翻译", "", 10, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	kinds := map[string]bool{}
+	for _, item := range mixed.Results {
+		kinds[item.Kind] = true
+		if item.Kind == "model" && (item.ModelID == "Hy-Image-3.5-Preview" || item.ModelID == "Midjourney-v7") {
+			t.Fatal("image model interleaved into translation results", item.ModelID)
+		}
+	}
+	if !kinds["model"] || !kinds["api"] {
+		t.Fatal(mixed.Results)
+	}
+	coded := byQuery("代码")
+	if !coded["kimi-k2.7-code"] || !coded["deepseek-v4-flash"] || coded["doubao-seed-2-1-pro"] {
+		t.Fatal(coded)
+	}
+	vision := byQuery("看图")
+	for _, id := range []string{"qwen3.7-flash", "gemini-3.5-flash", "hy-vision-2.0-instruct"} {
+		if !vision[id] {
+			t.Errorf("看图 missed %s", id)
+		}
+	}
+	for _, id := range []string{"Hy-Image-3.5-Preview", "Midjourney-v7", "deepseek-v4-flash"} {
+		if vision[id] {
+			t.Errorf("看图 matched %s", id)
+		}
+	}
+	if !byQuery("vision")["gemini-3.5-flash"] || byQuery("vision")["Midjourney-v7"] {
+		t.Fatal(byQuery("vision"))
+	}
+	for _, query := range []string{"画图", "生图", "image generation"} {
+		got := byQuery(query)
+		for _, id := range []string{"Hy-Image-3.5-Preview", "Midjourney-v7", "hy-vision-2.0-instruct"} {
+			if !got[id] {
+				t.Errorf("%s missed %s", query, id)
+			}
+		}
+		for _, id := range []string{"qwen3.7-flash", "gemini-3.5-flash", "deepseek-v4-flash"} {
+			if got[id] {
+				t.Errorf("%s matched text model %s", query, id)
+			}
+		}
+	}
+}
+
+func modelResultIDs(t *testing.T, d *Discovery, query string) []string {
+	t.Helper()
+	q := SearchQuery{Query: query, Kind: "model", Limit: 10}
+	var ids []string
+	for {
+		result, err := d.SearchFiltered(q)
+		if err != nil {
+			t.Fatal(query, err)
+		}
+		for _, item := range result.Results {
+			ids = append(ids, item.ModelID)
+		}
+		if result.NextCursor == "" {
+			return ids
+		}
+		q.Cursor = result.NextCursor
+	}
+}
+
 func TestHTTPModelLoaderReadsCatalogWithoutCredentials(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/v1/models" || r.Header.Get("Authorization") != "" {
@@ -209,15 +317,52 @@ func TestOptionalLiveModelCatalogFile(t *testing.T) {
 	translate.PathTemplate, translate.PublicPath = "/translate", "/v1/agent-apis/demo/translate"
 	mixedSnapshot := mustBuild(t, []model.Record{translate})
 	mixed := newDiscovery(mixedSnapshot, nil, false, models, true, false)
+	byID := map[string]LLMModel{}
+	for _, item := range models {
+		byID[item.ID] = item
+	}
+	for _, query := range []string{"翻译", "写作", "代码", "translate", "write", "code"} {
+		for _, id := range modelResultIDs(t, mixed, query) {
+			if !byID[id].textOutput() {
+				t.Fatalf("%s matched %s in=%v out=%v", query, id, byID[id].InputModalities, byID[id].OutputModalities)
+			}
+		}
+	}
+	for _, id := range []string{"Hy-Image-3.5-Preview", "Midjourney-v7"} {
+		for _, query := range []string{"翻译", "看图", "vision"} {
+			for _, got := range modelResultIDs(t, mixed, query) {
+				if got == id {
+					t.Fatalf("%s matched %s", query, id)
+				}
+			}
+		}
+	}
+	draw := map[string]bool{}
+	for _, id := range modelResultIDs(t, mixed, "画图") {
+		draw[id] = true
+		if !byID[id].hasOutput("image") && !byID[id].hasFeature("image_generation") {
+			t.Fatalf("画图 matched %s", id)
+		}
+	}
+	if !draw["Hy-Image-3.5-Preview"] || !draw["Midjourney-v7"] {
+		t.Fatal("image generators missing from 画图", len(draw))
+	}
 	result, err := mixed.Search("翻译", "", 5, "")
 	if err != nil {
 		t.Fatal(err)
 	}
+	if testing.Verbose() {
+		labels := []string{}
+		for _, item := range result.Results {
+			labels = append(labels, item.Kind+":"+item.API)
+		}
+		t.Logf("翻译 page: %s", strings.Join(labels, ", "))
+	}
 	seen := map[string]bool{}
 	for _, item := range result.Results {
 		seen[item.Kind] = true
-		if item.Kind == "model" && item.PricingBrief == "" && item.ContextLength == 0 && len(item.Modalities) == 0 {
-			t.Fatal("model result omitted every catalog field", item)
+		if item.Kind == "model" && !byID[item.ModelID].textOutput() {
+			t.Fatal("image model interleaved", item.ModelID)
 		}
 	}
 	if !seen["model"] || !seen["api"] {
