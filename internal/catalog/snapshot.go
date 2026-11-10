@@ -261,11 +261,15 @@ type Manager struct {
 	load              Loader
 	loadPricing       PricingLoader
 	loadMetadata      MetadataLoader
+	loadModels        ModelLoader
 	metadata          map[string]APIMetadata
 	metadataAvailable bool
 	priceRefreshMu    sync.Mutex
 	prices            map[string]map[string]any
 	pricingAvailable  bool
+	models            []LLMModel
+	modelsLoaded      bool
+	modelsLastErr     bool
 	overrides         model.Overrides
 	maxAge            time.Duration
 	checkUnnamed      bool
@@ -288,6 +292,23 @@ func NewManagerWithDiscovery(load Loader, o model.Overrides, maxAge time.Duratio
 	}
 	return m
 }
+func (m *Manager) SetModelLoader(load ModelLoader) { m.loadModels = load }
+func (m *Manager) enrich(s *Snapshot) *Snapshot {
+	if m.loadPricing == nil {
+		return s
+	}
+	discovery := newDiscovery(s, m.prices, m.pricingAvailable, m.models, m.modelsLoaded, m.modelsLoaded && m.modelsLastErr, m.metadata)
+	discovery.MetadataAvailable = m.metadataAvailable
+	enriched := *s
+	enriched.Discovery = discovery
+	return &enriched
+}
+func discoveryChanged(old, next *Discovery) bool {
+	if old == nil || next == nil {
+		return old != next
+	}
+	return old.Hash != next.Hash || old.PricingAvailable != next.PricingAvailable || old.MetadataAvailable != next.MetadataAvailable || old.ModelsAvailable != next.ModelsAvailable || old.ModelsStale != next.ModelsStale
+}
 func (m *Manager) Refresh(ctx context.Context) error {
 	m.refreshMu.Lock()
 	defer m.refreshMu.Unlock()
@@ -297,14 +318,10 @@ func (m *Manager) Refresh(ctx context.Context) error {
 		s, err = Build(records, m.overrides, m.checkUnnamed)
 		if err == nil {
 			if m.loadPricing != nil {
-				discovery := NewDiscovery(s, m.prices, m.pricingAvailable, m.metadata)
-				discovery.MetadataAvailable = m.metadataAvailable
-				enriched := *s
-				enriched.Discovery = discovery
-				s = &enriched
+				s = m.enrich(s)
 			}
 			old := m.current.Load()
-			if old == nil || old.Hash != s.Hash || (s.Discovery != nil && (old.Discovery == nil || old.Discovery.Hash != s.Discovery.Hash || old.Discovery.PricingAvailable != s.Discovery.PricingAvailable || old.Discovery.MetadataAvailable != s.Discovery.MetadataAvailable)) {
+			if old == nil || old.Hash != s.Hash || (s.Discovery != nil && discoveryChanged(old.Discovery, s.Discovery)) {
 				m.current.Store(s)
 			}
 			m.mu.Lock()
@@ -333,6 +350,13 @@ func (m *Manager) RefreshPricing(ctx context.Context) error {
 	if m.loadMetadata != nil {
 		metadata, metadataErr = m.loadMetadata(ctx)
 	}
+	var nextModels []LLMModel
+	var modelsErr error
+	fetchedModels := false
+	if m.loadModels != nil {
+		nextModels, modelsErr = m.loadModels(ctx)
+		fetchedModels = true
+	}
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
@@ -345,16 +369,22 @@ func (m *Manager) RefreshPricing(ctx context.Context) error {
 	if err != nil {
 		m.prices = nil
 	}
+	if fetchedModels {
+		if modelsErr == nil {
+			m.models = nextModels
+			m.modelsLoaded = true
+			m.modelsLastErr = false
+		} else {
+			m.modelsLastErr = true
+		}
+	}
 	if old := m.current.Load(); old != nil {
 		// Strip the old discovery pointer to avoid retaining a chain of generations.
 		core := *old
 		core.Discovery = nil
-		discovery := NewDiscovery(&core, m.prices, m.pricingAvailable, m.metadata)
-		discovery.MetadataAvailable = m.metadataAvailable
-		if old.Discovery == nil || old.Discovery.Hash != discovery.Hash || old.Discovery.PricingAvailable != discovery.PricingAvailable || old.Discovery.MetadataAvailable != discovery.MetadataAvailable {
-			enriched := core
-			enriched.Discovery = discovery
-			m.current.Store(&enriched)
+		enriched := m.enrich(&core)
+		if discoveryChanged(old.Discovery, enriched.Discovery) {
+			m.current.Store(enriched)
 		}
 	}
 	return err
@@ -387,6 +417,11 @@ func (m *Manager) Status() map[string]any {
 			v["pricing_available"] = s.Discovery != nil && s.Discovery.PricingAvailable
 			if m.loadMetadata != nil {
 				v["metadata_available"] = s.Discovery != nil && s.Discovery.MetadataAvailable
+			}
+			if m.loadModels != nil && s.Discovery != nil {
+				v["models_available"] = s.Discovery.ModelsAvailable
+				v["models_stale"] = s.Discovery.ModelsStale
+				v["models_published"] = s.Discovery.ModelCount
 			}
 		}
 	}

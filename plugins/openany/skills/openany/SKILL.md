@@ -1,6 +1,6 @@
 ---
 name: openany
-description: Search the OpenAny catalog with search_apis, read one API with get_api, and call run_api only after the user approves the live price. The packaged server is https://mcp.openany.si/mcp-lite. A tools/list result is not an authenticated execution.
+description: Search OpenAny models and APIs with search_apis, read one result with get_api, and call run_api only after the user approves the live price. The packaged server is https://mcp.openany.si/mcp-lite. A tools/list result is not an authenticated execution.
 ---
 
 # OpenAny
@@ -17,8 +17,8 @@ Hermes sends `Authorization: Bearer` with the profile secret `OPENANY_API_KEY`. 
 
 ## Call order
 
-1. `search_apis` with a business query or one returned filter. Read the summaries. Do not invent an API name.
-2. `get_api` with the `api` value from that search. Read `input_schema`, `api_version`, and the public price before execution.
+1. `search_apis` with a business query or one returned filter. Results include models (`kind` = `model`) and APIs (`kind` = `api`). Read the summaries. Do not invent an API name or a model id.
+2. `get_api` with the `api` value from that search. Read `input_schema`, `api_version`, and the public price before execution. A model uses the chat completions input shape.
 3. `run_api` only after the user approves the call. Pass that same `api`, the `api_version` from `get_api`, and `input` that matches `input_schema`.
 
 `run_api` can spend the user's OpenAny balance and can have side effects. This package does not declare a fixed price. Do not invent a price, a model count, or an API count.

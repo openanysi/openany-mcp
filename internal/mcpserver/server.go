@@ -19,12 +19,13 @@ import (
 )
 
 type Options struct {
-	LiteEnabled bool
-	MaxBody     int64
-	MaxCalls    int
-	Hosts       []string
-	Origins     []string
-	Logger      *slog.Logger
+	LiteEnabled  bool
+	MaxBody      int64
+	MaxCalls     int
+	Hosts        []string
+	Origins      []string
+	Logger       *slog.Logger
+	ModelGateway *gateway.Client
 }
 type serverKey struct{}
 type snapshotKey struct{}
@@ -35,6 +36,7 @@ type viewSet struct {
 type Handler struct {
 	manager *catalog.Manager
 	gateway *gateway.Client
+	models  *gateway.Client
 	options Options
 	slots   chan struct{}
 	mu      sync.Mutex
@@ -53,7 +55,7 @@ func New(manager *catalog.Manager, client *gateway.Client, opts Options) *Handle
 	if opts.Logger == nil {
 		opts.Logger = slog.Default()
 	}
-	h := &Handler{manager: manager, gateway: client, options: opts, slots: make(chan struct{}, opts.MaxCalls)}
+	h := &Handler{manager: manager, gateway: client, models: opts.ModelGateway, options: opts, slots: make(chan struct{}, opts.MaxCalls)}
 	if opts.LiteEnabled {
 		h.lite = h.newLiteServer()
 	}

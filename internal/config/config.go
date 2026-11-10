@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/openany/openany-mcp/internal/model"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -12,7 +13,7 @@ import (
 
 type Config struct {
 	LiteEnabled                                                                    bool
-	DatabaseURL, GatewayURL, Listen, OverridesFile                                 string
+	DatabaseURL, GatewayURL, ModelsOrigin, Listen, OverridesFile                   string
 	Hosts, Origins                                                                 []string
 	Refresh, MaxAge, QueryTimeout, GatewayTimeout, ConnectTimeout, ShutdownTimeout time.Duration
 	MaxConns                                                                       int32
@@ -29,6 +30,10 @@ func Load() (Config, error) {
 	}
 	if c.DatabaseURL == "" || c.GatewayURL == "" {
 		return c, fmt.Errorf("POSTGRES_DATABASE_URL and OPENANY_GATEWAY_BASE_URL are required")
+	}
+	c.ModelsOrigin, err = parseModelsOrigin(value("OPENANY_MODELS_BASE_URL", "https://api.openany.si"))
+	if err != nil {
+		return c, err
 	}
 	durations := []struct {
 		name, def string
@@ -65,6 +70,19 @@ func Load() (Config, error) {
 		return c, fmt.Errorf("inconsistent timeout budgets")
 	}
 	return c, nil
+}
+func parseModelsOrigin(raw string) (string, error) {
+	u, err := url.Parse(raw)
+	if err != nil || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || (u.Scheme != "http" && u.Scheme != "https") {
+		return "", fmt.Errorf("invalid OPENANY_MODELS_BASE_URL")
+	}
+	switch strings.TrimSuffix(u.Path, "/") {
+	case "", "/v1":
+		u.Path, u.RawPath = "", ""
+		return u.String(), nil
+	default:
+		return "", fmt.Errorf("invalid OPENANY_MODELS_BASE_URL")
+	}
 }
 func value(k, d string) string {
 	if v := os.Getenv(k); v != "" {

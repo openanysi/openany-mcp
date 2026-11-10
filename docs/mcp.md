@@ -44,9 +44,11 @@ run_api({
 
 ### search_apis
 
-`query`：最多256个字符的业务关键词。还可按 `provider`、`category`、`data_platform`、`data_product`、`capability` 筛选；至少提供关键词或一个筛选条件。筛选值使用返回的实际标识，capability 接受 ID 或 key。`limit` 默认5、最多10。
+`query`：最多256个字符的业务关键词。还可按 `kind`、`provider`、`category`、`data_platform`、`data_product`、`capability` 筛选。`kind` 取 `api`、`model` 或 `all`，默认 `all`。`kind=api` 只返回 API，排序与只索引 API 时一致。至少提供关键词或一个筛选条件；只传 `kind=model` 时按模型 id 浏览。筛选值使用返回的实际标识，capability 接受 ID 或 key。`limit` 默认5、最多10。
 
-每个候选包含原有 api、title、provider、summary、method、path，以及已有分类、平台、产品、能力、purpose、match_reason、required_inputs_brief 和已知 limitations。match_reason 说明命中的字段和词，不代表供应商质量评分。缺失的分类和能力不会凭空生成。返回摘要不包含完整 Schema。
+每个候选包含 `kind`（`api` 或 `model`）、api、title、provider、summary、method、path，以及已有分类、平台、产品、能力、purpose、match_reason、required_inputs_brief 和已知 limitations。模型候选另有 `model_id`。目录里实际有的 `modalities`、`context_length`、`pricing_brief` 才会出现；没有的字段不会编造。模型分类固定包含 `models` 和 `llm`，`category=ai-generation` 也会命中模型。`capability=chat` 只命中目录模态或特性里包含 chat 的模型。match_reason 说明命中的字段和词，不代表供应商质量评分。缺失的 API 分类和能力不会凭空生成。返回摘要不包含完整 Schema。
+
+模型名或厂商品牌词（例如 deepseek、qwen、claude、anthropic）会把模型排在前面。任务词（例如翻译、写作、代码、看图）把模型和相关 API 混排。支持有限中英文别名，不是通用语义搜索。`models_available=false` 表示还没有成功读取过模型目录；`models_stale=true` 表示最近一次刷新失败，结果仍来自上一份成功目录。
 
 ```json
 {"query":"帮我查询企业工商信息","limit":5}
@@ -58,7 +60,9 @@ metadata_available=false 表示分类、翻译或示例辅助读取暂不可用�
 
 ### get_api
 
-必填 `api`。返回精确的 `input_schema`、公开 `pricing`、`api_version`、描述、方法、公开路径和 API ID。参数说明可能包含暂不支持的可选数组限制。
+必填 `api`。API 返回精确的 `input_schema`、公开 `pricing`、`api_version`、描述、方法、公开路径和 API ID。参数说明可能包含暂不支持的可选数组限制。
+
+模型的 `kind` 为 `model`。`input_schema` 是 chat completions 形状：必填 `messages`，每项需要 `role` 和 `content`，其余字段可以附加。`model` 可省略，省略时执行阶段会填入 `model_id`；如果传入，必须等于该 `model_id`。`stream: true` 会在本地拒绝。`pricing` 是模型目录原始价格，`pricing_brief` 只在目录给出非零价格时出现。目录里的 prompt、completion、input_cache_read 按每个 token 的美元计价，`pricing_brief` 把这三项乘以 1000000 后写成每百万 token；image、request、duration 按目录原值展示。展示价格不是锁价。
 
 `input_schema` 与现有直连工具的参数 Schema 一致。保留 body、query、path、header 参数原有的顶层参数名和 Schema 引用结构，不要自行重组为另一种参数格式。API ID 用于排查问题；执行仍传 api。
 
@@ -75,7 +79,9 @@ examples.status 为 available、template_only、missing、stale 或 no_safe_vali
 
 ### run_api
 
-必填 `api`、`api_version`、`input`。input 是一个符合刚读取的 input_schema 的对象，也就是原直连工具的 arguments。大整数按 JSON 数值准确传入。
+必填 `api`、`api_version`、`input`。API 的 input 是一个符合刚读取的 input_schema 的对象，也就是原直连工具的 arguments。大整数按 JSON 数值准确传入。
+
+模型调用使用同一组参数。服务把 input 发到模型源站的 `POST /v1/chat/completions`，并附上本次请求的调用方凭证。未写 `model` 时使用目录中的 `model_id`。这可能产生费用。`stream: true` 不会发出请求。超时后的执行和扣费状态同样视为未知，不要自动重试。
 
 参数、版本、接口状态检查通过后，服务按原有编码规则向固定网关发出业务请求。返回 http_status、request_id、data 等原有结果信息；工具错误包含 code、stage、execution_state、next_action。参数 Schema 错误还返回最多10条 details（path、keyword、message），不回显提交的值；details_scope=input 时路径相对 input，arguments 时相对整个工具参数对象。MCP 不自动重试业务调用。
 
@@ -108,7 +114,7 @@ items_path 是相对原始 data 的 RFC6901 JSON Pointer，空字符串选择根
 
 ## 价格与计费
 
-search_apis、get_api 读取目录，不会执行收费业务 API。run_api 可能产生费用和业务副作用。
+search_apis、get_api 读取目录，不会执行收费调用。run_api 对 API 和模型都可能产生费用和业务副作用。模型价格来自 `GET /v1/models`，不套用下面的 fixed、usage、rules 形状。
 
 pricing.status=available 表示公开价格数据可读，不代表已经为当前参数报价，也不保证网关接受执行。
 
@@ -154,7 +160,9 @@ api_version 包含该接口的 revision、Schema、公开价格和转发规则�
 
 变量未设置或为空时默认开启。如果 .env 中已显式设置为 false，仍会关闭；删除该配置或改为 true 即可开启。源码开发也需要先加载环境变量。run-local.sh 运行 bin/openany-mcp，修改代码后先重新构建。
 
-/readyz 中 ready 继续表示原目录状态；启用后还会显示 lite_ready、pricing_available 和 metadata_available。价格或辅助资料读取失败不让原目录失败；get_api 明确返回价格 unavailable 或缺少可用示例，search_apis/get_api 也报告 metadata_available。辅助资料刷新不改变原目录 hash；示例单独更新会刷新展示但不会让旧 api_version 失效。目录尚未完成轻量准备时，/mcp-lite 暂时返回503。/docs/mcp 不依赖目录就绪。
+/readyz 中 ready 继续表示原目录状态；启用后还会显示 lite_ready、pricing_available 和 metadata_available。模型目录启用后另外显示 models_available、models_stale 和 models_published。价格、辅助资料或模型目录读取失败不让原目录失败。模型目录失败时保留上一份成功结果，并标记 models_stale。get_api 明确返回价格 unavailable 或缺少可用示例，search_apis/get_api 也报告 metadata_available。辅助资料刷新不改变原目录 hash；示例单独更新会刷新展示但不会让旧 api_version 失效。模型目录不进入 `/mcp` 的目录 hash。目录尚未完成轻量准备时，/mcp-lite 暂时返回503。/docs/mcp 不依赖目录就绪。
+
+模型目录默认从 `https://api.openany.si/v1/models` 读取，不发送 API key。可用 `OPENANY_MODELS_BASE_URL` 改成另一个源站，只接受 origin，或带 `/v1` 路径的同一 origin。进程需要能访问该源站。模型执行发往同一源站的 `/v1/chat/completions`，使用调用方自己的 key。不在服务配置里保存模型调用密钥。
 
 生产环境需设置 MCP_PUBLIC_HOSTS；有浏览器 Origin 时配置 MCP_ALLOWED_ORIGINS。反向代理应放行 /mcp-lite 和 /docs/mcp，按现有要求透传调用方凭证并关闭业务重试。已有环境配置中的显式 false 会覆盖默认开启行为。
 
