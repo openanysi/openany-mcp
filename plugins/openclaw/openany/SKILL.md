@@ -42,8 +42,8 @@ This skill connects to `https://mcp.openany.si/mcp-lite`. That server exposes `s
 
 ## Call order
 
-1. Call `search_apis` with the user's task, or with one filter that search returned. Read the summaries. Do not invent an API name.
-2. Call `get_api` with the `api` value from that search. Read `input_schema`, `api_version`, and the public price.
+1. Call `search_apis` with the user's task, or with one filter that search returned. Read the summaries. A result with `kind` = `model` is a model; `kind` = `api` is an API. Do not invent an API name or a model id.
+2. Call `get_api` with the `api` value from that search. Read `input_schema`, `api_version`, and the public price. For a model, send chat completions input and use only the price fields `get_api` returned.
 3. Tell the user the price `get_api` returned and wait for approval.
 4. Call `run_api` only after that approval. Pass the same `api`, the `api_version` from `get_api`, and an `input` object that matches `input_schema`.
 

@@ -1,6 +1,6 @@
 # Connect to OpenAny MCP
 
-OpenAny MCP lets agents discover APIs, inspect their input schemas and public pricing, and execute requests through a unified gateway.
+OpenAny MCP lets agents discover models and APIs, inspect input schemas and public pricing, and execute requests with one API key. Pay per call, no monthly fee.
 
 ## Connection
 
@@ -18,9 +18,9 @@ Connect to this one endpoint and confirm that these three tools appear:
 
 | Tool | Purpose |
 | --- | --- |
-| `search_apis` | Find API candidates by keywords and optional provider |
-| `get_api` | Read a candidate's exact input schema, public pricing, limitations and version |
-| `run_api` | Execute the selected API with the caller's credentials |
+| `search_apis` | Find model and API candidates by keywords, kind, and optional provider |
+| `get_api` | Read a candidate's input schema, public or catalog pricing, limitations and version |
+| `run_api` | Execute the selected API, or send the selected model to chat completions, with the caller's credentials |
 
 ## Discovery example
 

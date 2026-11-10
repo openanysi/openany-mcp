@@ -25,9 +25,13 @@ separate model API base URL is https://api.openany.si/v1.
 
 When enabled and routed by the deployment, `https://mcp.openany.si/mcp-lite`
 uses the same Streamable HTTP transport and exposes just three tools:
-`search_apis`, `get_api` and `run_api`. It lets an agent search the API catalog,
-inspect one API's schema and pricing, then execute the selected API without
-loading the full independent-tool catalog into context.
+`search_apis`, `get_api` and `run_api`. One search covers the current model
+catalog and the API catalog. `get_api` reads the selected model or API.
+`run_api` executes an API through the gateway, or posts a model call to
+`/v1/chat/completions` on the model API origin, using the caller's key.
+Model ids, modalities, context length and pricing are taken from the live
+`GET /v1/models` response and are omitted when that response does not provide
+them. Pay per call, no monthly fee, one API key.
 
 The implementation enables this interface by default; operators can disable
 it with `MCP_LITE_ENABLED=false`. Public deployment availability is a separate

@@ -2,7 +2,7 @@
 
 OpenAny (https://openany.si) is a marketplace for agents. This portable Hermes plugin connects to OpenAny's hosted MCP server over Streamable HTTP.
 
-The default URL is `https://mcp.openany.si/mcp-lite`. That server exposes `search_apis`, `get_api`, and `run_api`, so an agent can search the catalog, read one API, and execute it. Hermes 0.23.0 stops `tools/list` after 50 pages. The full endpoint `https://mcp.openany.si/mcp` exceeds that cap and is truncated at 2500 tools, which hides the rest of the catalog. A provider path such as `https://mcp.openany.si/mcp/coingecko` fits under the cap but lists only that provider.
+The default URL is `https://mcp.openany.si/mcp-lite`. That server exposes `search_apis`, `get_api`, and `run_api`, so an agent can search models and APIs, read one result, and execute it. Hermes 0.23.0 stops `tools/list` after 50 pages. The full endpoint `https://mcp.openany.si/mcp` exceeds that cap and is truncated at 2500 tools, which hides the rest of the catalog. A provider path such as `https://mcp.openany.si/mcp/coingecko` fits under the cap but lists only that provider.
 
 The package does not bundle a catalog and does not state how many models, APIs, or tools OpenAny offers.
 

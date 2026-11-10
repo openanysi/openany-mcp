@@ -8,8 +8,8 @@ The server tools are `search_apis`, `get_api`, and `run_api`. Gemini CLI sends `
 
 ## Call order
 
-1. Call `search_apis` with the user's task, or with one filter that search returned. Read the summaries. Do not invent an API name.
-2. Call `get_api` with the `api` value from that search. Read `input_schema`, `api_version`, and the public price.
+1. Call `search_apis` with the user's task, or with one filter that search returned. Results can be models (`kind` = `model`) or APIs (`kind` = `api`). Read the summaries. Do not invent an API name or a model id.
+2. Call `get_api` with the `api` value from that search. Read `input_schema`, `api_version`, and the public price. For a model, the schema is chat completions and the price comes only from fields the model catalog returned.
 3. Tell the user the price `get_api` returned and wait for approval.
 4. Call `run_api` only after that approval. Pass the same `api`, the `api_version` from `get_api`, and an `input` object that matches `input_schema`.
 

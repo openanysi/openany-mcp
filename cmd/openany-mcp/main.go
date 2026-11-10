@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/openany/openany-mcp/internal/catalog"
 	"github.com/openany/openany-mcp/internal/config"
@@ -56,6 +57,7 @@ func run() int {
 		}
 		defer pricePool.Close()
 		manager = catalog.NewManagerWithDiscovery(catalog.PostgresLoader(pool, c.QueryTimeout), o, c.MaxAge, *check, catalog.PostgresPricingLoader(pricePool, c.QueryTimeout), catalog.PostgresMetadataLoader(pricePool, c.QueryTimeout))
+		manager.SetModelLoader(catalog.HTTPModelLoader(c.ModelsOrigin, c.QueryTimeout))
 	}
 	if *check {
 		if err = manager.Refresh(context.Background()); err != nil {
@@ -73,9 +75,18 @@ func run() int {
 		return 1
 	}
 	defer client.Close()
+	var modelClient *gateway.Client
+	if c.LiteEnabled {
+		modelClient, err = gateway.New(c.ModelsOrigin, c.GatewayTimeout, c.ConnectTimeout, c.MaxResponse, c.MaxResult)
+		if err != nil {
+			logger.Error(err.Error())
+			return 1
+		}
+		defer modelClient.Close()
+	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	handler := mcpserver.New(manager, client, mcpserver.Options{LiteEnabled: c.LiteEnabled, MaxBody: c.MaxBody, MaxCalls: c.MaxCalls, Hosts: c.Hosts, Origins: c.Origins, Logger: logger})
+	handler := mcpserver.New(manager, client, mcpserver.Options{LiteEnabled: c.LiteEnabled, MaxBody: c.MaxBody, MaxCalls: c.MaxCalls, Hosts: c.Hosts, Origins: c.Origins, Logger: logger, ModelGateway: modelClient})
 	server := &http.Server{Addr: c.Listen, Handler: handler, ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 32 << 10}
 	done := make(chan error, 1)
 	go func() { done <- server.ListenAndServe() }()
@@ -109,6 +120,7 @@ func run() int {
 			ticker := time.NewTicker(c.Refresh)
 			defer ticker.Stop()
 			logged, failed := false, false
+			modelState := ""
 			for {
 				err := manager.RefreshPricing(ctx)
 				if ctx.Err() != nil {
@@ -122,6 +134,13 @@ func run() int {
 					}
 					logged = true
 					failed = err != nil
+				}
+				if status := manager.Status(); status["models_published"] != nil {
+					state := fmt.Sprintf("%v %v %v", status["models_available"], status["models_stale"], status["models_published"])
+					if state != modelState {
+						logger.Info("model catalog", "available", status["models_available"], "stale", status["models_stale"], "published", status["models_published"])
+						modelState = state
+					}
 				}
 				select {
 				case <-ctx.Done():

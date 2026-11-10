@@ -159,4 +159,10 @@ func (c *Client) LimitResult(result Result) Result {
 	return result
 }
 
+func (c *Client) PostChatCompletion(ctx context.Context, payload map[string]any, headers http.Header) Result {
+	root := ""
+	request := model.Request{Method: "POST", PublicPath: "/v1/chat/completions", RequestContentType: "application/json", Inputs: []model.Parameter{{Name: "body", Location: "body", Pointer: &root}}}
+	return c.Call(ctx, request, map[string]any{"body": payload}, headers)
+}
+
 func (c *Client) Close() { c.http.CloseIdleConnections() }

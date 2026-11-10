@@ -19,4 +19,14 @@ func TestLiteFlagDefaultsOnAndValidatesValues(t *testing.T) {
 	if _, err = Load(); err == nil {
 		t.Fatal("invalid boolean accepted")
 	}
+	t.Setenv("MCP_LITE_ENABLED", "true")
+	t.Setenv("OPENANY_MODELS_BASE_URL", "https://api.openany.si/v1")
+	c, err = Load()
+	if err != nil || c.ModelsOrigin != "https://api.openany.si" {
+		t.Fatal(c.ModelsOrigin, err)
+	}
+	t.Setenv("OPENANY_MODELS_BASE_URL", "https://api.openany.si/v1/models")
+	if _, err = Load(); err == nil {
+		t.Fatal("model catalog path accepted")
+	}
 }
