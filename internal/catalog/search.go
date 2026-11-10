@@ -95,12 +95,14 @@ func short(s string, n int) string {
 	return string(r)
 }
 
-var aliases = [][2]string{{"企业基本信息", "company profile"}, {"公司基本信息", "company profile"}, {"工商信息", "company profile"}, {"基本资料", "profile"}, {"内部交易", "internal transactions"}, {"兑换报价", "swap quote"}, {"反向链接", "backlinks"}, {"热点新闻", "hot news"}, {"人工智能", "ai"}, {"以太坊", "ethereum"}, {"通义千问", "qwen"}, {"深度求索", "deepseek"}, {"月之暗面", "kimi"}, {"最新的", "latest"}, {"今天的", "latest"}, {"最新", "latest"}, {"今天", "latest"}, {"最近", "latest"}, {"当前", "current"}, {"热点", "hot"}, {"热门", "hot"}, {"历史", "history"}, {"批量", "batch"}, {"详情", "detail"}, {"重置", "reset"}, {"公告", "announcement"}, {"天气", "weather"}, {"推特", "twitter"}, {"推文", "tweet"}, {"企业", "company"}, {"公司", "company"}, {"股票", "stock"}, {"地址", "address"}, {"报价", "quote"}, {"新闻", "news"}, {"创建", "create"}, {"删除", "delete"}, {"修改", "update"}, {"转账", "transfer"}, {"执行", "execute"}, {"取消", "cancel"}, {"写作", "writing"}, {"翻译", "translation"}, {"代码", "code"}, {"看图", "vision"}, {"对话", "chat"}, {"嵌入", "embedding"}, {"模型", "model"}}
+var aliases = [][2]string{{"企业基本信息", "company profile"}, {"公司基本信息", "company profile"}, {"工商信息", "company profile"}, {"基本资料", "profile"}, {"内部交易", "internal transactions"}, {"兑换报价", "swap quote"}, {"反向链接", "backlinks"}, {"热点新闻", "hot news"}, {"人工智能", "ai"}, {"以太坊", "ethereum"}, {"通义千问", "qwen"}, {"深度求索", "deepseek"}, {"月之暗面", "kimi"}, {"最新的", "latest"}, {"今天的", "latest"}, {"最新", "latest"}, {"今天", "latest"}, {"最近", "latest"}, {"当前", "current"}, {"热点", "hot"}, {"热门", "hot"}, {"历史", "history"}, {"批量", "batch"}, {"详情", "detail"}, {"重置", "reset"}, {"公告", "announcement"}, {"天气", "weather"}, {"推特", "twitter"}, {"推文", "tweet"}, {"企业", "company"}, {"公司", "company"}, {"股票", "stock"}, {"地址", "address"}, {"报价", "quote"}, {"新闻", "news"}, {"创建", "create"}, {"删除", "delete"}, {"修改", "update"}, {"转账", "transfer"}, {"执行", "execute"}, {"取消", "cancel"}, {"写作", "writing"}, {"翻译", "translation"}, {"代码", "code"}, {"看图", "vision"}, {"画图", "imagegen"}, {"生图", "imagegen"}, {"image generation", "imagegen"}, {"对话", "chat"}, {"嵌入", "embedding"}, {"模型", "model"}}
 
 var wordForms = map[string]string{
 	"transactions": "transaction", "tokens": "token", "quotes": "quote", "swaps": "swap", "swapping": "swap",
 	"resets": "reset", "announcements": "announcement", "topics": "topic", "items": "item", "backlinks": "backlink",
 	"historical": "history", "trending": "hot", "bulk": "batch", "details": "detail", "models": "model",
+	"translate": "translation", "translating": "translation", "translations": "translation",
+	"write": "writing", "writes": "writing", "wrote": "writing",
 }
 
 func lexical(s string) string {

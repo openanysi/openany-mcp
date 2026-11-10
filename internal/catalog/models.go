@@ -313,12 +313,25 @@ func (m LLMModel) modalityList() []string {
 }
 
 func (m LLMModel) hasModality(name string) bool {
-	for _, item := range m.modalityList() {
+	return hasToken(m.InputModalities, name) || hasToken(m.OutputModalities, name)
+}
+
+func hasToken(values []string, name string) bool {
+	for _, item := range values {
 		if strings.EqualFold(item, name) {
 			return true
 		}
 	}
 	return false
+}
+
+func (m LLMModel) hasInput(name string) bool  { return hasToken(m.InputModalities, name) }
+func (m LLMModel) hasOutput(name string) bool { return hasToken(m.OutputModalities, name) }
+
+// textOutput is a catalog output of chat, coding, or reasoning.
+// Input "chat" is only the prompt channel and is also set on image and video models.
+func (m LLMModel) textOutput() bool {
+	return m.hasOutput("chat") || m.hasOutput("coding") || m.hasOutput("reasoning")
 }
 
 func (m LLMModel) hasFeature(name string) bool {
@@ -363,15 +376,19 @@ func (m LLMModel) matchesCategory(want string) bool {
 
 func (m LLMModel) taskText() string {
 	parts := []string{"model", "llm"}
-	if m.hasModality("chat") {
-		parts = append(parts, "chat", "completion", "writing", "translation", "写作", "翻译")
-	}
 	id := lexical(m.ID)
-	if m.hasModality("coding") || containsWord(id, "code") {
-		parts = append(parts, "code", "coding", "代码")
+	if m.textOutput() {
+		parts = append(parts, "chat", "completion", "writing", "translation")
+		if m.hasInput("coding") || m.hasOutput("coding") || containsWord(id, "code") {
+			parts = append(parts, "code", "coding")
+		}
+		// vision feature counts as image input. This catalog often records it there instead of input_modalities.
+		if m.hasInput("image") || m.hasFeature("vision") {
+			parts = append(parts, "vision")
+		}
 	}
-	if m.hasModality("image") || m.hasFeature("vision") || m.hasFeature("image_generation") {
-		parts = append(parts, "vision", "image", "看图")
+	if m.hasOutput("image") || m.hasFeature("image_generation") {
+		parts = append(parts, "imagegen")
 	}
 	if m.hasModality("audio") || m.hasFeature("audio_input") || m.hasFeature("audio_output") {
 		parts = append(parts, "audio")
@@ -380,7 +397,7 @@ func (m LLMModel) taskText() string {
 		parts = append(parts, "video")
 	}
 	if m.hasFeature("embedding") || containsWord(id, "embedding") {
-		parts = append(parts, "embedding", "嵌入")
+		parts = append(parts, "embedding")
 	}
 	return strings.Join(parts, " ")
 }
