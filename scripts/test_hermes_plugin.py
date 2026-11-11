@@ -77,7 +77,7 @@ class HermesPluginManifestTests(unittest.TestCase):
 
     def test_readme_discloses_network_billing_install_and_removal(self):
         for phrase in (
-            "marketplace for agents",
+            "the open marketplace for agents",
             "mcp.openany.si",
             "pay-per-call",
             "OPENANY_API_KEY",

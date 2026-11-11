@@ -1,6 +1,6 @@
 # OpenAny
 
-OpenAny (https://openany.si) is a marketplace for agents. This extension connects to the lite MCP server at `https://mcp.openany.si` over Streamable HTTP. `/mcp-lite` is the same server.
+OpenAny (https://openany.si) is the open marketplace for agents. This extension connects to the lite MCP server at `https://mcp.openany.si` over Streamable HTTP. `/mcp-lite` is the same server.
 
 The server tools are `openany_overview`, `search_apis`, `get_api`, and `run_api`. `Authorization: Bearer <OpenAny API key>` is optional. Browsing, search, and pricing work without a key. Only `run_api` needs it. Gemini CLI sends `Authorization: Bearer` with the extension setting `OPENANY_API_KEY` when that setting is present. Do not ask the user to paste the key into the chat, and do not print the header.
 
