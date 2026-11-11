@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "openany",
   "version": "0.2.1",
-  "description": "Marketplace for agents. Connects to OpenAny's lite MCP server so an agent can search the catalog, read one API, and run an approved call.",
+  "description": "The open marketplace for agents. Connects to OpenAny's lite MCP server so an agent can search the catalog, read one API, and run an approved call.",
   "author": {
     "name": "Alephant AI LLC",
     "url": "https://openany.si"

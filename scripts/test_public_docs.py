@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ENDPOINT = "https://mcp.openany.si"
 RECOMMENDED = "https://mcp.openany.si"
 FULL_CATALOG = "https://mcp.openany.si/mcp"
-REGISTRY_DESCRIPTION = "The marketplace for agents: 3,200+ APIs and 168+ AI models, one key. Browse free; pay per call."
+REGISTRY_DESCRIPTION = "The open marketplace for agents: 3,200+ APIs and 168+ AI models, one key. Browse free; pay per call."
 
 
 class PublicDocsTests(unittest.TestCase):
@@ -27,7 +27,7 @@ class PublicDocsTests(unittest.TestCase):
         self.assertEqual(data["$schema"], "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json")
         self.assertEqual(data["name"], "si.openany/openany")
         self.assertEqual(data["title"], "OpenAny")
-        self.assertEqual(data["version"], "0.1.2")
+        self.assertEqual(data["version"], "0.1.3")
         self.assertEqual(data["description"], REGISTRY_DESCRIPTION)
         self.assertLessEqual(len(data["description"]), 100)
         self.assertEqual(data["websiteUrl"], "https://openany.si")
