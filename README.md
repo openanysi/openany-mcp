@@ -1,6 +1,6 @@
 # OpenAny MCP
 
-One MCP for 3,200+ APIs and 100+ AI models: search APIs, inspect schemas and pricing, and run calls with one OpenAny key. Browsing is free; pay per call.
+One MCP for 3,200+ APIs and 168+ AI models: search APIs, inspect schemas and pricing, and run calls with one OpenAny key. Browsing is free; pay per call.
 
 OpenAny (https://openany.si) is a remote MCP server. The recommended endpoint is the lite server.
 
@@ -217,8 +217,7 @@ Its Authorization header is optional. The value is `Bearer {OPENANY_API_KEY}`,
 Browsing does not need the key. `run_api` does.
 
 The registry description is limited to 100 characters, so its wording is
-shorter than the full description above. Version `0.1.1` is published on the
-official MCP Registry as `si.openany/openany`. Local setup does not run
+shorter than the full description above. [`server.json`](server.json) matches the published Registry record `si.openany/openany` `0.1.2`, the latest. Local setup does not run
 `mcp-publisher publish`.
 
 [`glama.json`](glama.json) names the Glama maintainer for this repository.
