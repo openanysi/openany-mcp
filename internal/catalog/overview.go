@@ -70,6 +70,8 @@ func (d *Discovery) Overview() map[string]any {
 		"models_by_modality": modalities,
 		"models_available":   d.ModelsAvailable,
 		"models_stale":       d.ModelsStale,
+		"example_questions":  d.exampleQuestions(),
+		"next_step_hint":     overviewNextStep,
 	}
 }
 

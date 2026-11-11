@@ -1,5 +1,15 @@
 # OpenAny MCP
 
+## Get started in 3 steps
+
+1. Add `https://mcp.openany.si` to your MCP client.
+2. Click "Get started with OpenAny" (`openany-start`) if your client shows it, or say "What can OpenAny do for me?"
+3. Ask something you can use right away, such as recent tweets from a Twitter user, backlinks for a domain, the price of bitcoin, a company's registration, the latest CPI, or an image.
+
+Browsing and pricing need no key. Create a key at https://openany.si/dashboard?page=api-keys only when executing, and put it in the client's secure connector settings, never in chat.
+
+<!-- developer-docs -->
+
 This guide is English by default. It is Chinese when `Accept-Language` prefers zh. `?lang=zh` or `?lang=en` overrides that. A request whose `Accept` includes `text/html` is HTML; otherwise the response is text/plain.
 
 Paste `https://mcp.openany.si` into any MCP client. The transport is Streamable HTTP. `/mcp-lite` is the same lightweight server. When executing a business API, send this header on every request:

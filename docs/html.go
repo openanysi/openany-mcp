@@ -6,7 +6,7 @@ import (
 	"unicode/utf8"
 )
 
-const guideCSS = `body{margin:0;background:#f6f7f4;color:#1c1c1b;font:16px/1.5 ui-sans-serif,system-ui,sans-serif}main{max-width:46rem;margin:0 auto;padding:2rem 1.25rem 4rem}h1,h2,h3{line-height:1.25}code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}pre{overflow:auto;padding:0.9rem 1rem;background:#fff;border:1px solid #d9d6cc;border-radius:8px}code{background:#efece4;padding:0.1em 0.3em;border-radius:4px}pre code{background:transparent;padding:0}table{border-collapse:collapse;width:100%;background:#fff}th,td{border:1px solid #d9d6cc;padding:0.4rem 0.6rem;text-align:left;vertical-align:top}a{color:#0b5} `
+const guideCSS = `body{margin:0;background:#f6f7f4;color:#1c1c1b;font:16px/1.5 ui-sans-serif,system-ui,sans-serif}main{max-width:46rem;margin:0 auto;padding:2rem 1.25rem 4rem}h1,h2,h3{line-height:1.25}code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}pre{overflow:auto;padding:0.9rem 1rem;background:#fff;border:1px solid #d9d6cc;border-radius:8px}code{background:#efece4;padding:0.1em 0.3em;border-radius:4px}pre code{background:transparent;padding:0}table{border-collapse:collapse;width:100%;background:#fff}th,td{border:1px solid #d9d6cc;padding:0.4rem 0.6rem;text-align:left;vertical-align:top}a{color:#0b5}details{margin-top:2rem}summary{cursor:pointer;font-weight:600}`
 
 // HTML renders a small, safe subset of the connection guide.
 // It does not load scripts or remote stylesheets.
@@ -26,15 +26,16 @@ func HTML(markdown, lang string) string {
 	b.WriteString("</title><style>")
 	b.WriteString(guideCSS)
 	b.WriteString("</style></head><body><main>")
-	b.WriteString(renderMarkdown(markdown))
+	b.WriteString(renderMarkdown(markdown, lang))
 	b.WriteString("</main></body></html>")
 	return b.String()
 }
 
-func renderMarkdown(markdown string) string {
+func renderMarkdown(markdown, lang string) string {
 	lines := strings.Split(strings.ReplaceAll(markdown, "\r\n", "\n"), "\n")
 	var b strings.Builder
 	var para []string
+	details := false
 	flush := func() {
 		if len(para) == 0 {
 			return
@@ -85,6 +86,18 @@ func renderMarkdown(markdown string) string {
 				b.WriteString("</tr>")
 			}
 			b.WriteString("</tbody></table>")
+			continue
+		}
+		if trim == "<!-- developer-docs -->" {
+			flush()
+			summary := "Developer docs"
+			if lang == "zh" {
+				summary = "开发者文档"
+			}
+			b.WriteString("<details><summary>")
+			b.WriteString(html.EscapeString(summary))
+			b.WriteString("</summary>")
+			details = true
 			continue
 		}
 		if trim == "" {
@@ -149,6 +162,9 @@ func renderMarkdown(markdown string) string {
 		para = append(para, trim)
 	}
 	flush()
+	if details {
+		b.WriteString("</details>")
+	}
 	return b.String()
 }
 

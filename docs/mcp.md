@@ -1,5 +1,15 @@
 # OpenAny MCP 接入
 
+## 三步开始使用
+
+1. 把 `https://mcp.openany.si` 加到 MCP 客户端。
+2. 如果客户端有这个按钮，点「开始使用 OpenAny」（`openany-start`）；否则说「OpenAny 能帮我做什么？」
+3. 可以直接问：某个推特用户最近的推文、域名的反向链接、比特币价格、公司工商信息、美国 CPI，或画一张图。
+
+浏览和看价格不需要密钥。只有执行时才到 https://openany.si/dashboard?page=api-keys 创建密钥，并放进客户端的安全连接器设置，不要发到聊天里。
+
+<!-- developer-docs -->
+
 本文默认英文。`Accept-Language` 偏好 zh 时返回中文，也可以用 `?lang=zh` 或 `?lang=en` 指定。请求的 `Accept` 包含 `text/html` 时返回 HTML，否则返回 text/plain。
 
 推荐把 `https://mcp.openany.si` 粘贴到任意 MCP 客户端。传输方式为 Streamable HTTP。`/mcp-lite` 是同一轻量服务。执行业务 API 时，在每个请求中携带：

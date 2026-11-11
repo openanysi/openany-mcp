@@ -23,9 +23,15 @@ func TestGuideHTMLRendersStructureAndEscapes(t *testing.T) {
 		if strings.Contains(rendered, "<script") || strings.Contains(rendered, "\n# ") {
 			t.Fatal("raw markdown or script leaked")
 		}
+		if !strings.Contains(rendered, "<details><summary>Developer docs</summary>") {
+			t.Fatal("developer docs were not collapsed")
+		}
+		if strings.Index(rendered, "https://mcp.openany.si") > strings.Index(rendered, "<details>") {
+			t.Fatal("get started is not above the developer docs")
+		}
 	}
 	zh := HTML(MCP, "zh")
-	if !strings.Contains(zh, "lang=\"zh\"") || !strings.Contains(zh, "接入") {
+	if !strings.Contains(zh, "lang=\"zh\"") || !strings.Contains(zh, "接入") || !strings.Contains(zh, "<summary>开发者文档</summary>") {
 		t.Fatal("chinese guide lost its text")
 	}
 }
