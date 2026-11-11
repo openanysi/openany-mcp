@@ -3,7 +3,7 @@
   "mcpServers": {
     "openany": {
       "type": "streamable-http",
-      "url": "https://mcp.openany.si/mcp-lite",
+      "url": "https://mcp.openany.si",
       "headers": {
         "Authorization": "Bearer ${OPENANY_API_KEY}"
       }

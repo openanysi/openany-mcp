@@ -30,11 +30,12 @@ The local installation includes `.env` (reader role) and `.env.maintenance` (nam
 
 The installed local `.env` uses port 3335 because the original smoke server occupies 3333. `.env.example` retains the configurable default 3333.
 
-Lightweight discovery is enabled by default. Rebuild the binary and restart to use it; set `MCP_LITE_ENABLED=false` to disable it. The original full/provider URLs remain available. New Agents should connect only to `/mcp-lite` to avoid loading the full catalog. [Public connection guide](mcp.md) ships at `/docs/mcp` when enabled.
+Lightweight discovery is enabled by default. Rebuild the binary and restart to use it; set `MCP_LITE_ENABLED=false` to disable it. The original full/provider URLs remain available. New Agents should connect to `https://mcp.openany.si` (locally, the server root) to avoid loading the full catalog. [Public connection guide](mcp.md) ships at `/` for browser GET and at `/docs/mcp` when enabled.
 
 Endpoints:
 
-- `http://127.0.0.1:3335/mcp-lite` — exactly `search_apis`, `get_api`, `run_api` when enabled.
+- `http://127.0.0.1:3335/` — same lite server as `/mcp-lite` for MCP requests. A browser GET returns the connection guide and does not require catalog readiness.
+- `http://127.0.0.1:3335/mcp-lite` — `openany_overview`, `search_apis`, `get_api`, `run_api` when enabled.
 - `http://127.0.0.1:3335/docs/mcp` — public plain-text connection guide when enabled; available before catalog readiness.
 
 - `http://127.0.0.1:3335/mcp` — complete catalog.

@@ -1,7 +1,6 @@
 # OpenAny MCP 接入
 
-推荐普通 Agent 使用轻量入口：`https://<你的 MCP 域名>/mcp-lite`。
-传输方式为 Streamable HTTP。执行业务 API 时，在每个请求中携带：
+推荐把 `https://mcp.openany.si` 粘贴到任意 MCP 客户端。传输方式为 Streamable HTTP。`/mcp-lite` 是同一轻量服务。执行业务 API 时，在每个请求中携带：
 
 ```text
 Authorization: Bearer YOUR_OPENANY_KEY
@@ -13,20 +12,24 @@ MCP 不保存备用业务密钥；认证、权限、限流和计费由网关处�
 
 | 路径 | 内容 |
 | --- | --- |
-| `/mcp-lite` | search_apis、get_api、run_api 三个固定工具，推荐 |
-| `/mcp` | 所有独立 API 工具，适合已有精确调用配置 |
+| `/` | 与 `/mcp-lite` 相同的轻量服务。MCP POST 走工具协议；浏览器 GET 返回本文 |
+| `/mcp-lite` | openany_overview、search_apis、get_api、run_api，与 `/` 相同 |
+| `/mcp` | 所有独立 API 工具，不含模型，适合已有精确调用配置 |
 | `/mcp/{provider_id}` | 指定供应商的独立工具 |
 | `/docs/mcp` | 本接入文档，轻量功能启用后公开提供 |
 
-通常只配置一个入口。把全量入口同时连接到 Agent，仍会加载完整目录。
+通常只配置一个入口。把全量入口同时连接到 Agent，仍会加载完整目录，而且那里没有模型。
 
-在 Grok Bot 或其他支持远程 MCP 的客户端中，填写服务器 URL、Streamable HTTP 和 Authorization 请求头。不同客户端的配置格式不同；这里的 HTTP 联调不代表所有版本的客户端 UI 都已经验证。新配置后重新连接并检查三个工具是否出现。
+在 Grok Bot 或其他支持远程 MCP 的客户端中，填写服务器 URL、Streamable HTTP 和 Authorization 请求头。不同客户端的配置格式不同；这里的 HTTP 联调不代表所有版本的客户端 UI 都已经验证。新配置后重新连接并检查四个工具是否出现。
 
 ## Agent 的调用顺序
 
+用户问 OpenAny 有什么时，先调用 openany_overview，按类别介绍数据 API，按模态介绍 AI 模型，并给出两边的数量。然后：
+
 1. search_apis 搜索需要的能力。
-2. get_api 查看选中 API 的完整输入 Schema、价格、调用限制和版本。
-3. run_api 执行一次业务请求。
+2. get_api 查看选中 API 或模型的完整输入 Schema、价格、调用限制和版本。
+3. 向用户确认 get_api 返回的当前价格。
+4. run_api 执行一次业务请求。
 
 API 标识 `api` 使用已有的公开工具名。不要猜工具名，不要直接传 URL。
 
@@ -42,13 +45,17 @@ run_api({
 
 上面是调用形状示意，不是可原样执行的 JSON。工具调用本身仍使用标准 MCP tools/call 消息。
 
+### openany_overview
+
+无参数。读取当前目录快照，不调用收费网关。返回 `api_count`、`model_count`、按供应商和人类类别分组的 API，以及按主模态分组的模型 id。类别为 social/content、crypto/on-chain、company & leads、SEO/search/scraping、finance/macro、legal、e-commerce/real estate/travel、other。模型模态为 chat/reasoning、image、video、audio；没有文本输出、图像、视频或音频的模型归入 other。数量来自当前快照，不要在文档或提示词里写死。`models_available=false` 时模型数量不能当成产品里没有模型。
+
 ### search_apis
 
 `query`：最多256个字符的业务关键词。还可按 `kind`、`provider`、`category`、`data_platform`、`data_product`、`capability` 筛选。`kind` 取 `api`、`model` 或 `all`，默认 `all`。`kind=api` 只返回 API，排序与只索引 API 时一致。至少提供关键词或一个筛选条件；只传 `kind=model` 时按模型 id 浏览。筛选值使用返回的实际标识，capability 接受 ID 或 key。`limit` 默认5、最多10。
 
 每个候选包含 `kind`（`api` 或 `model`）、api、title、provider、summary、method、path，以及已有分类、平台、产品、能力、purpose、match_reason、required_inputs_brief 和已知 limitations。模型候选另有 `model_id`。目录里实际有的 `modalities`、`context_length`、`pricing_brief` 才会出现；没有的字段不会编造。模型分类固定包含 `models` 和 `llm`，`category=ai-generation` 也会命中模型。`capability=chat` 只命中目录模态或特性里包含 chat 的模型。match_reason 说明命中的字段和词，不代表供应商质量评分。缺失的 API 分类和能力不会凭空生成。返回摘要不包含完整 Schema。
 
-模型名或厂商品牌词（例如 deepseek、qwen、claude、anthropic）会把模型排在前面。任务词把模型和相关 API 混排。翻译、写作、代码，以及 translate、write、code，只命中输出模态包含 chat、coding 或 reasoning 的模型。输入模态里的 chat 只表示提示词通道，生图和视频模型不会因此命中这些词。看图和 vision 命中接受图像且输出文本的模型。画图、生图和 image generation 命中输出图像的模型。支持有限中英文别名，不是通用语义搜索。`models_available=false` 表示还没有成功读取过模型目录；`models_stale=true` 表示最近一次刷新失败，结果仍来自上一份成功目录。
+模型名或厂商品牌词（例如 deepseek、qwen、claude、anthropic）会把模型排在前面。任务词把模型和相关 API 混排。翻译、写作、代码、对话，以及 translate、write、code、chat、completion，只命中输出模态包含 chat、coding 或 reasoning 的模型。输入模态里的 chat 只表示提示词通道，统一的 `/v1/chat/completions` 路径也不是聊天模型信号，生图和视频模型不会因此命中这些词，也不会排在文本模型前面。看图和 vision 命中接受图像且输出文本的模型。画图、生图和 image generation 命中输出图像的模型。支持有限中英文别名，不是通用语义搜索。`models_available=false` 表示还没有成功读取过模型目录；`models_stale=true` 表示最近一次刷新失败，结果仍来自上一份成功目录。
 
 ```json
 {"query":"帮我查询企业工商信息","limit":5}
@@ -114,7 +121,7 @@ items_path 是相对原始 data 的 RFC6901 JSON Pointer，空字符串选择根
 
 ## 价格与计费
 
-search_apis、get_api 读取目录，不会执行收费调用。run_api 对 API 和模型都可能产生费用和业务副作用。模型价格来自 `GET /v1/models`，不套用下面的 fixed、usage、rules 形状。
+openany_overview、search_apis、get_api 读取目录，不会执行收费调用。run_api 对 API 和模型都可能产生费用和业务副作用。模型价格来自 `GET /v1/models`，不套用下面的 fixed、usage、rules 形状。
 
 pricing.status=available 表示公开价格数据可读，不代表已经为当前参数报价，也不保证网关接受执行。
 
@@ -160,10 +167,10 @@ api_version 包含该接口的 revision、Schema、公开价格和转发规则�
 
 变量未设置或为空时默认开启。如果 .env 中已显式设置为 false，仍会关闭；删除该配置或改为 true 即可开启。源码开发也需要先加载环境变量。run-local.sh 运行 bin/openany-mcp，修改代码后先重新构建。
 
-/readyz 中 ready 继续表示原目录状态；启用后还会显示 lite_ready、pricing_available 和 metadata_available。模型目录启用后另外显示 models_available、models_stale 和 models_published。价格、辅助资料或模型目录读取失败不让原目录失败。模型目录失败时保留上一份成功结果，并标记 models_stale。get_api 明确返回价格 unavailable 或缺少可用示例，search_apis/get_api 也报告 metadata_available。辅助资料刷新不改变原目录 hash；示例单独更新会刷新展示但不会让旧 api_version 失效。模型目录不进入 `/mcp` 的目录 hash。目录尚未完成轻量准备时，/mcp-lite 暂时返回503。/docs/mcp 不依赖目录就绪。
+/readyz 中 ready 继续表示原目录状态；启用后还会显示 lite_ready、pricing_available 和 metadata_available。模型目录启用后另外显示 models_available、models_stale 和 models_published。价格、辅助资料或模型目录读取失败不让原目录失败。模型目录失败时保留上一份成功结果，并标记 models_stale。get_api 明确返回价格 unavailable 或缺少可用示例，search_apis/get_api 也报告 metadata_available。辅助资料刷新不改变原目录 hash；示例单独更新会刷新展示但不会让旧 api_version 失效。模型目录不进入 `/mcp` 的目录 hash。目录尚未完成轻量准备时，`/` 的 MCP 请求和 /mcp-lite 暂时返回503。浏览器 GET `/` 与 /docs/mcp 不依赖目录就绪。
 
 模型目录默认从 `https://api.openany.si/v1/models` 读取，不发送 API key。可用 `OPENANY_MODELS_BASE_URL` 改成另一个源站，只接受 origin，或带 `/v1` 路径的同一 origin。进程需要能访问该源站。模型执行发往同一源站的 `/v1/chat/completions`，使用调用方自己的 key。不在服务配置里保存模型调用密钥。
 
-生产环境需设置 MCP_PUBLIC_HOSTS；有浏览器 Origin 时配置 MCP_ALLOWED_ORIGINS。反向代理应放行 /mcp-lite 和 /docs/mcp，按现有要求透传调用方凭证并关闭业务重试。已有环境配置中的显式 false 会覆盖默认开启行为。
+生产环境需设置 MCP_PUBLIC_HOSTS；有浏览器 Origin 时配置 MCP_ALLOWED_ORIGINS。反向代理应放行 `/`、/mcp-lite 和 /docs/mcp，按现有要求透传调用方凭证并关闭业务重试。已有环境配置中的显式 false 会覆盖默认开启行为。
 
-三个入口共用同进程资源与业务并发额度。需要更强隔离时，用同一镜像单独部署轻量实例，再把 /mcp-lite 路由到该实例。
+`/`、/mcp-lite 和全量入口共用同进程资源与业务并发额度。需要更强隔离时，用同一镜像单独部署轻量实例，再把 `/` 和 /mcp-lite 路由到该实例。

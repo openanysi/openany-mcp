@@ -4,7 +4,7 @@ OpenAny (https://openany.si) is the marketplace for agents: one key for 168+ AI
 models and 3,200+ APIs. No subscriptions, no per-provider signups. Pay per
 call, no monthly fee. This repo is OpenAny's remote MCP server (Streamable HTTP).
 
-**Endpoint:** https://mcp.openany.si/mcp
+**Endpoint:** https://mcp.openany.si
 
 **Transport:** Streamable HTTP, not legacy SSE.
 
@@ -34,7 +34,7 @@ public and does not need a key.
 {
   "mcpServers": {
     "openany": {
-      "url": "https://mcp.openany.si/mcp-lite",
+      "url": "https://mcp.openany.si",
       "headers": {
         "Authorization": "Bearer ${OPENANY_API_KEY}"
       }
@@ -49,10 +49,11 @@ examples remain in place, including files that point at
 
 ## Tools
 
-`https://mcp.openany.si/mcp-lite` exposes three tools. `search_apis` finds
+`https://mcp.openany.si` is the lightweight server. `https://mcp.openany.si/mcp-lite` is the same server. It exposes four tools. `openany_overview` reports live catalog counts. `search_apis` finds
 168+ models and 3,200+ APIs. Execution is pay per call, no monthly fee, with
 one API key.
 
+- `openany_overview`: Return the current data API count, AI model count, APIs grouped by category, and models grouped by modality. No arguments, and it does not call the paid gateway.
 - `search_apis`: Find OpenAny models and APIs by keywords and optional kind (api, model, or all; default all), provider, category, data_platform, data_product or capability.
 - `get_api`: Read one model or API selected from search_apis.
 - `run_api`: Execute one selected OpenAny API, or send one selected model to chat completions, with the caller's current credentials.
@@ -63,9 +64,9 @@ qcc (170). The list is in [TOOLS.md](TOOLS.md).
 
 ## Optional lightweight endpoint
 
-When enabled and routed by the deployment, `https://mcp.openany.si/mcp-lite`
-uses the same Streamable HTTP transport and exposes just three tools:
-`search_apis`, `get_api` and `run_api`. One search covers the current model
+When enabled and routed by the deployment, `https://mcp.openany.si` and
+`https://mcp.openany.si/mcp-lite` use the same Streamable HTTP transport and expose four tools:
+`openany_overview`, `search_apis`, `get_api` and `run_api`. One search covers the current model
 catalog and the API catalog. `get_api` reads the selected model or API.
 `run_api` executes an API through the gateway, or posts a model call to
 `/v1/chat/completions` on the model API origin, using the caller's key.
@@ -75,11 +76,11 @@ them. Pay per call, no monthly fee, one API key.
 
 The implementation enables this interface by default; operators can disable
 it with `MCP_LITE_ENABLED=false`. Public deployment availability is a separate
-check. `search_apis` and `get_api` read metadata; `run_api` forwards a business
+check. `openany_overview`, `search_apis` and `get_api` read metadata; `run_api` forwards a business
 request and may incur charges, requiring the caller's gateway credentials and
 spending authorization. Configure one endpoint, not both, unless your workflow
 explicitly needs both catalogs. See the [lightweight guide](docs/mcp.md).
-The examples and registry descriptor in this repository continue to use `/mcp`.
+The manual examples continue to use `/mcp`. The registry descriptor uses the recommended root URL.
 
 ## Authentication
 
@@ -121,7 +122,7 @@ of an end-to-end paid test of every client.
 
 The Hermes row is a manual `mcp_servers` example for the full `/mcp` endpoint.
 The installable plugin is [plugins/openany](plugins/openany/README.md). Its
-default is `https://mcp.openany.si/mcp-lite`, because Hermes 0.23.0 stops
+default is `https://mcp.openany.si`, because Hermes 0.23.0 stops
 `tools/list` after 50 pages and the full endpoint is truncated at 2500 tools.
 A same-name `openany` server in `config.yaml` makes Hermes skip the plugin
 server. The owner-run session, the CoinGecko tool result, request
@@ -159,7 +160,7 @@ gemini extensions install https://github.com/openanysi/openany-mcp
 ```
 
 [`gemini-extension.json`](gemini-extension.json) names the extension `openany`.
-It connects with `httpUrl` to `https://mcp.openany.si/mcp-lite` and sends
+It connects with `httpUrl` to `https://mcp.openany.si` and sends
 `Authorization: Bearer ${OPENANY_API_KEY}`. The key is the sensitive setting
 `OPENANY_API_KEY`. Gemini CLI asks for it during install and stores it outside
 this repository. [`GEMINI.md`](GEMINI.md) is the extension context file.
@@ -187,7 +188,7 @@ There is no root `mcp.json`. Cursor's plugin loader reads `.mcp.json` before
 [`plugins/openclaw/openany/SKILL.md`](plugins/openclaw/openany/SKILL.md) is an
 OpenClaw skill. Its front matter requires `OPENANY_API_KEY` and sets the
 homepage to https://openany.si. The skill tells the agent to add
-`https://mcp.openany.si/mcp-lite` under `mcp.servers` in
+`https://mcp.openany.si` under `mcp.servers` in
 `~/.openclaw/openclaw.json` with `transport` set to `streamable-http`, then
 to call `search_apis`, `get_api`, confirm the returned price, and only then
 `run_api`. See [the skill README](plugins/openclaw/openany/README.md).
@@ -198,8 +199,8 @@ for the full `/mcp` URL.
 ## Which URL the install files use
 
 The Gemini CLI extension, the Cursor `.mcp.json` plugin, and the OpenClaw
-skill use `https://mcp.openany.si/mcp-lite`. Public `tools/list` on that URL
-returns `search_apis`, `get_api`, and `run_api` in a single page and does not
+skill use `https://mcp.openany.si`. Public `tools/list` on that URL
+returns `openany_overview`, `search_apis`, `get_api`, and `run_api` in a single page and does not
 send `nextCursor`. The full `https://mcp.openany.si/mcp` URL returns one tool
 per API, 50 tools per page, with `nextCursor` until the last page.
 
@@ -207,9 +208,9 @@ That split matters for these clients. Cursor staff wrote in July 2026 and
 again in September 2026 that the desktop MCP client registers only the first
 `tools/list` page and does not follow `nextCursor`. Gemini CLI shortens a
 tool name longer than 63 characters. The first page of `/mcp` is 50 tools
-and is not the search, inspect, and run workflow. The lite URL keeps that
-workflow on three short names. The manual examples and
-[`server.json`](server.json) still use `/mcp`.
+and is not the search, inspect, and run workflow. The recommended URL keeps that
+workflow on four short names. The manual examples still use `/mcp`.
+[`server.json`](server.json) uses `https://mcp.openany.si`.
 
 Discovery for this choice was an unauthenticated `tools/list`. It was not an
 authenticated `tools/call`.

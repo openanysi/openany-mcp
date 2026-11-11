@@ -6,7 +6,7 @@ OpenAny MCP lets agents discover models and APIs, inspect input schemas and publ
 
 | Setting | Value |
 | --- | --- |
-| Server URL | `https://mcp.openany.si/mcp-lite` |
+| Server URL | `https://mcp.openany.si` |
 | Transport | Streamable HTTP |
 | Authentication for execution | `Authorization: Bearer YOUR_OPENANY_KEY` |
 | Website | https://openany.si/ |
@@ -14,10 +14,11 @@ OpenAny MCP lets agents discover models and APIs, inspect input schemas and publ
 
 Create an account and obtain your own key through the [OpenAny API key page](https://openany.si/dashboard?page=api-keys). Configure the URL and Authorization header in a client that supports remote Streamable HTTP MCP servers and custom headers. Store the key in the client's secret store or private configuration. The endpoint does not provide an OAuth login flow.
 
-Connect to this one endpoint and confirm that these three tools appear:
+Connect to this one endpoint and confirm that these tools appear. `/mcp-lite` is the same server.
 
 | Tool | Purpose |
 | --- | --- |
+| `openany_overview` | Report live API and model counts, with APIs by category and models by modality. No arguments and no paid call |
 | `search_apis` | Find model and API candidates by keywords, kind, and optional provider |
 | `get_api` | Read a candidate's input schema, public or catalog pricing, limitations and version |
 | `run_api` | Execute the selected API, or send the selected model to chat completions, with the caller's credentials |
@@ -75,11 +76,11 @@ This request initializes MCP without executing a business API:
 
 ```sh
 curl --fail-with-body --silent --show-error --max-time 30 \
-  'https://mcp.openany.si/mcp-lite' \
+  'https://mcp.openany.si' \
   --header 'User-Agent: OpenAnyListingAudit/1.0' \
   --header 'Content-Type: application/json' \
   --header 'Accept: application/json, text/event-stream' \
   --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"openany-connection-check","version":"1.0"}}}'
 ```
 
-On November 6, 2026, the public endpoint returned `OpenAny Lite`, version `0.1.0`, and supported this protocol version. The same inspection confirmed all three tool definitions, keyword search, and schema/pricing lookup without credentials. Authenticated business execution and product-specific client behavior require separate verification.
+On November 6, 2026, `https://mcp.openany.si/mcp-lite` returned `OpenAny Lite`, version `0.1.0`, and supported this protocol version. That inspection confirmed the three discovery and execution tools, keyword search, and schema/pricing lookup without credentials. The root URL now serves that same lite server. Authenticated business execution and product-specific client behavior require separate verification.

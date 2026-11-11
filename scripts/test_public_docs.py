@@ -6,6 +6,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 ENDPOINT = "https://mcp.openany.si/mcp"
+RECOMMENDED = "https://mcp.openany.si"
 
 
 class PublicDocsTests(unittest.TestCase):
@@ -26,7 +27,7 @@ class PublicDocsTests(unittest.TestCase):
         self.assertEqual(data["repository"], {"url": "https://github.com/openanysi/openany-mcp", "source": "github"})
         remote, = data["remotes"]
         self.assertEqual(remote["type"], "streamable-http")
-        self.assertEqual(remote["url"], ENDPOINT)
+        self.assertEqual(remote["url"], RECOMMENDED)
         header, = remote["headers"]
         self.assertEqual(header["name"], "Authorization")
         self.assertTrue(header["isRequired"])

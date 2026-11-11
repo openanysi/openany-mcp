@@ -422,6 +422,75 @@ func (m LLMModel) publicSummary() string {
 	return short(strings.Join(parts, ". "), 160)
 }
 
+// searchableModalities is the modality text used for keyword search.
+// Input "chat" is only the prompt channel. Image and video models list it too,
+// so it is not a chat-task hit unless the model actually emits text.
+func (m LLMModel) searchableModalities() []string {
+	seen := map[string]bool{}
+	out := []string{}
+	add := func(item string) {
+		item = strings.TrimSpace(item)
+		if item == "" || seen[strings.ToLower(item)] {
+			return
+		}
+		if strings.EqualFold(item, "chat") && !m.textOutput() {
+			return
+		}
+		seen[strings.ToLower(item)] = true
+		out = append(out, item)
+	}
+	for _, item := range m.OutputModalities {
+		add(item)
+	}
+	for _, item := range m.InputModalities {
+		add(item)
+	}
+	sort.Strings(out)
+	return out
+}
+
+func (m LLMModel) searchSummary() string {
+	parts := []string{}
+	if mods := m.searchableModalities(); len(mods) > 0 {
+		parts = append(parts, "Modalities: "+strings.Join(mods, ", "))
+	}
+	if m.ContextLength > 0 {
+		parts = append(parts, fmt.Sprintf("Context length: %d", m.ContextLength))
+	}
+	if len(m.Features) > 0 {
+		parts = append(parts, "Features: "+strings.Join(m.Features, ", "))
+	}
+	if m.Free != nil && *m.Free {
+		parts = append(parts, "Catalog marks this model free")
+	}
+	if len(parts) == 0 {
+		return m.displayName()
+	}
+	return short(strings.Join(parts, ". "), 160)
+}
+
+// primaryModality is the single overview group for this model.
+// Text output stays with chat/reasoning, including vision LLMs.
+// Image, video, and audio are models that do not emit text.
+func (m LLMModel) primaryModality() string {
+	if m.textOutput() {
+		return "chat/reasoning"
+	}
+	if m.hasOutput("video") {
+		return "video"
+	}
+	if m.hasOutput("image") || m.hasFeature("image_generation") {
+		return "image"
+	}
+	if m.hasModality("audio") || m.hasFeature("audio_input") || m.hasFeature("audio_output") {
+		return "audio"
+	}
+	if m.hasModality("video") {
+		return "video"
+	}
+	return "other"
+}
+
 func (m LLMModel) searchFields() [6]string {
 	vendor := modelVendorAliases[m.Provider]
 	extra := vendor
@@ -431,12 +500,19 @@ func (m LLMModel) searchFields() [6]string {
 	if m.HuggingFace != "" {
 		extra += " " + m.HuggingFace
 	}
-	class := strings.Join([]string{"models", "llm", "ai-generation", strings.Join(m.modalityList(), " "), strings.Join(m.Features, " "), m.taskText()}, " ")
+	class := strings.Join([]string{"models", "llm", "ai-generation", strings.Join(m.searchableModalities(), " "), strings.Join(m.Features, " "), m.taskText()}, " ")
+	// run_api posts every model to /v1/chat/completions. That path is not evidence
+	// that an image or video model is a chat LLM, so only text-output models
+	// carry the word "chat" from the endpoint.
+	endpoint := "messages"
+	if m.textOutput() {
+		endpoint = "chat completions messages"
+	}
 	return [6]string{
 		lexical(m.ID + " " + vendor),
 		lexical(m.displayName()),
-		lexical(m.publicSummary()),
-		lexical("chat completions messages"),
+		lexical(m.searchSummary()),
+		lexical(endpoint),
 		lexical(extra),
 		lexical(class),
 	}

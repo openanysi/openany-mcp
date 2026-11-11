@@ -72,7 +72,9 @@ type searchCursor struct {
 	Read                                                                 bool
 }
 
-const searchRankingVersion = "intent-v4"
+// intent-v5 stops treating input-only "chat" and the shared chat-completions
+// path as a chat-task hit, so image and video models no longer outrank text LLMs.
+const searchRankingVersion = "intent-v5"
 
 func digest(v any) string {
 	b, _ := json.Marshal(v)

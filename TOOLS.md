@@ -2,7 +2,7 @@
 
 Public `tools/list` on `https://mcp.openany.si/mcp` returned these 3,268 tools
 on 10 November 2026 (server `OpenAny` 0.1.0, 66 pages). Each line is that
-tool's `title`. The three tools on `https://mcp.openany.si/mcp-lite` are
+tool's `title`. The recommended server is `https://mcp.openany.si`. Its four tools, and the same tools on `https://mcp.openany.si/mcp-lite`, are
 listed in [README.md](README.md).
 
 - `accurlex_post_law_search_deep_accurlex_law_search`: accurLex - Statute Search - Free Deep Mode

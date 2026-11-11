@@ -27,6 +27,9 @@ type Options struct {
 	Logger       *slog.Logger
 	ModelGateway *gateway.Client
 }
+
+const fullCatalogInstructions = "OpenAny Full Catalog lists one tool per data API and does not include AI models. For models, live catalog counts, and search across the whole catalog, connect to https://mcp.openany.si. Confirm the live price with the user before calling a tool. A call can incur charges."
+
 type serverKey struct{}
 type snapshotKey struct{}
 type viewSet struct {
@@ -71,7 +74,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Forbidden origin", 403)
 		return
 	}
-	if h.options.LiteEnabled && r.URL.Path == "/docs/mcp" {
+	if h.options.LiteEnabled && (r.URL.Path == "/docs/mcp" || (r.URL.Path == "/" && humanRead(r))) {
 		if r.Method != "GET" && r.Method != "HEAD" {
 			w.Header().Set("Allow", "GET, HEAD")
 			w.WriteHeader(405)
@@ -100,7 +103,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	lite := r.URL.Path == "/mcp-lite"
+	lite := r.URL.Path == "/mcp-lite" || r.URL.Path == "/"
 	if lite && !h.options.LiteEnabled {
 		http.NotFound(w, r)
 		return
@@ -137,6 +140,20 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := context.WithValue(r.Context(), snapshotKey{}, snapshot)
 	h.sdk.ServeHTTP(w, r.WithContext(context.WithValue(ctx, serverKey{}, server)))
 }
+func humanRead(r *http.Request) bool {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		return false
+	}
+	if r.Header.Get("MCP-Protocol-Version") != "" || r.Header.Get("Mcp-Session-Id") != "" {
+		return false
+	}
+	accept := strings.ToLower(r.Header.Get("Accept"))
+	if strings.Contains(accept, "text/event-stream") || strings.Contains(accept, "application/json") {
+		return false
+	}
+	return true
+}
+
 func (h *Handler) allowedHost(host string) bool {
 	if len(h.options.Hosts) > 0 {
 		return slices.Contains(h.options.Hosts, host)
@@ -157,7 +174,7 @@ func (h *Handler) server(snapshot *catalog.Snapshot, scope string) *mcp.Server {
 	if s := h.views.servers[scope]; s != nil {
 		return s
 	}
-	s := mcp.NewServer(&mcp.Implementation{Name: "OpenAny", Version: "0.1.0"}, &mcp.ServerOptions{Logger: h.options.Logger, Capabilities: &mcp.ServerCapabilities{Tools: &mcp.ToolCapabilities{ListChanged: false}}, SupportedProtocolVersions: []string{"2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"}, PageSize: 50})
+	s := mcp.NewServer(&mcp.Implementation{Name: "OpenAny Full Catalog", Version: "0.1.0"}, &mcp.ServerOptions{Instructions: fullCatalogInstructions, Logger: h.options.Logger, Capabilities: &mcp.ServerCapabilities{Tools: &mcp.ToolCapabilities{ListChanged: false}}, SupportedProtocolVersions: []string{"2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"}, PageSize: 50})
 	tools := []*mcp.Tool{}
 	for _, name := range snapshot.Names {
 		b := snapshot.Tools[name]

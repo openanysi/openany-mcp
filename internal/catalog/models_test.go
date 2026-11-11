@@ -239,6 +239,28 @@ func TestTextTaskWordsDoNotMatchImageGenerators(t *testing.T) {
 	if !byQuery("vision")["gemini-3.5-flash"] || byQuery("vision")["Midjourney-v7"] {
 		t.Fatal(byQuery("vision"))
 	}
+	for _, query := range []string{"chat", "对话", "completion"} {
+		got := byQuery(query)
+		for _, id := range imageOnly {
+			if got[id] {
+				t.Errorf("%s matched %s", query, id)
+			}
+		}
+		for _, id := range []string{"deepseek-v4-flash", "qwen3.7-flash", "gemini-3.5-flash", "kimi-k2.7-code"} {
+			if !got[id] {
+				t.Errorf("%s missed text model %s", query, id)
+			}
+		}
+	}
+	chatRanked, err := discovery.SearchFiltered(SearchQuery{Query: "chat", Kind: "model", Limit: 4})
+	if err != nil || chatRanked.Total == 0 {
+		t.Fatal(chatRanked, err)
+	}
+	for _, item := range chatRanked.Results {
+		if item.ModelID == "Hy-Image-3.5-Preview" || item.ModelID == "Midjourney-v7" {
+			t.Fatal("image model ranked for chat", item.ModelID)
+		}
+	}
 	for _, query := range []string{"画图", "生图", "image generation"} {
 		got := byQuery(query)
 		for _, id := range []string{"Hy-Image-3.5-Preview", "Midjourney-v7", "hy-vision-2.0-instruct"} {

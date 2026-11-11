@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-LITE = "https://mcp.openany.si/mcp-lite"
+LITE = "https://mcp.openany.si"
 SECRET = "OPENANY_API_KEY"
 HEADER = "Bearer ${OPENANY_API_KEY}"
 
