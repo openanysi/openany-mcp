@@ -285,6 +285,9 @@ func withRecovery(result gateway.Result) gateway.Result {
 		switch e["code"] {
 		case "openany_mcp_credentials_missing":
 			e["next_action"] = missingKeyMessage
+		case gateway.PlaceholderCredentialCode:
+			e["message"] = gateway.PlaceholderCredentialMessage
+			e["next_action"] = gateway.PlaceholderCredentialMessage
 		case "openany_mcp_invalid_search":
 			e["next_action"] = "Correct search_apis query, filters or limit according to the error. For an invalid or outdated cursor, omit only cursor, keep the current query, filters and limit, and restart search_apis from the first page. The gateway was not called."
 		case "openany_mcp_api_changed":

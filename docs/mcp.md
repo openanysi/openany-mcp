@@ -14,7 +14,7 @@ MCP 不保存备用业务密钥；认证、权限、限流和计费由网关处�
 
 openany_overview、search_apis、get_api 读取目录，不需要密钥，也不会调用收费网关。run_api，以及 `/mcp` 上的业务工具，需要调用方自己的 OpenAny API key。
 
-没有携带任何凭证时，服务在本地拒绝，不访问网关。错误码是 `openany_mcp_credentials_missing`，`execution_state` 为 `not_started`。到 https://openany.si/dashboard?page=api-keys 创建密钥，然后在 MCP 客户端的安全密钥或连接器设置里配置 `Authorization: Bearer <key>`。不要让用户把密钥粘贴进聊天或提示词。也接受非空的 `X-Api-Key` 或 `Xi-Api-Key`。
+没有携带任何凭证时，服务在本地拒绝，不访问网关。错误码是 `openany_mcp_credentials_missing`，`execution_state` 为 `not_started`。到 https://openany.si/dashboard?page=api-keys 创建密钥，然后在 MCP 客户端的安全密钥或连接器设置里配置 `Authorization: Bearer <key>`。不要让用户把密钥粘贴进聊天或提示词。也接受非空的 `X-Api-Key` 或 `Xi-Api-Key`。Authorization 没有方案时（值里没有空格，不是 `Bearer x` 或 `Basic x`），会在转发前补成 `Bearer <key>`。大小写不敏感的 `bearer` 保持原样。未展开的占位符，例如 `${OPENANY_API_KEY}`、`$OPENANY_API_KEY`、`<key>`、`YOUR_API_KEY`，在本地以 `openany_mcp_credentials_placeholder` 拒绝，不访问网关。请在客户端环境或安全设置里设置 `OPENANY_API_KEY` 并重启客户端。不要把密钥贴进聊天。
 
 密钥存在但被网关拒绝时，保留网关错误码、HTTP 状态和 request_id。线上无效密钥是 `openany_key_invalid`。同一说明也用于 `openany_authentication_invalid`，以及 `openany_key_expired`、`openany_key_revoked`、`openany_authentication_expired`、`openany_authentication_revoked`。这表示密钥无效、过期或已撤销。在客户端的安全设置里更换密钥，不要把新密钥发到聊天里。其他网关错误仍用原来的通用说明。
 
