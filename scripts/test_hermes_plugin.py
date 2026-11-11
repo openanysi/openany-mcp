@@ -40,7 +40,7 @@ class HermesPluginManifestTests(unittest.TestCase):
         secret = hermes["config_schema"]["api_key"]
         self.assertEqual(secret["type"], "secret")
         self.assertEqual(secret["env"], SECRET)
-        self.assertTrue(secret["required"])
+        self.assertFalse(secret["required"])
         self.assertNotIn("costs", hermes["servers"]["openany"])
 
     def test_pyproject_declares_the_hermes_mcp_pin(self):

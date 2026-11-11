@@ -5,9 +5,6 @@ metadata:
   openclaw:
     homepage: https://openany.si
     primaryEnv: OPENANY_API_KEY
-    requires:
-      env:
-        - OPENANY_API_KEY
 ---
 
 # OpenAny
@@ -34,7 +31,7 @@ Add the remote server under `mcp.servers` in `~/.openclaw/openclaw.json`. Set `t
 }
 ```
 
-Keep the key in the environment OpenClaw reads, under the name `OPENANY_API_KEY`. The header above is a placeholder. Do not paste the key into chat, a prompt, a screenshot, or this file. Do not print the Authorization header.
+`Authorization: Bearer <OpenAny API key>` is optional. Browsing, search, and pricing work without a key. Only `run_api` needs it. When you execute a call, keep the key in the environment OpenClaw reads, under the name `OPENANY_API_KEY`. The header above is a placeholder. Do not paste the key into chat, a prompt, a screenshot, or this file. Do not print the Authorization header.
 
 `tools/list` is public. A successful list does not mean a later call is authenticated, priced, or successful.
 

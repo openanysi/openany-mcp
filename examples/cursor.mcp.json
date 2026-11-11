@@ -1,8 +1,8 @@
 {
-  "$comment": "CONFIRMED authentication header: Authorization: Bearer <OPENANY_API_KEY>. Merge mcpServers into ~/.cursor/mcp.json; keep OPENANY_API_KEY in the client environment.",
+  "$comment": "CONFIRMED authentication header: Authorization: Bearer <OPENANY_API_KEY>. The header is optional. Browsing, search, and pricing work without a key; only run_api needs it. Merge mcpServers into ~/.cursor/mcp.json. Omit the header if the client refuses to connect while OPENANY_API_KEY is unset.",
   "mcpServers": {
     "openany": {
-      "url": "https://mcp.openany.si/mcp",
+      "url": "https://mcp.openany.si",
       "headers": {
         "Authorization": "Bearer ${env:OPENANY_API_KEY}"
       }

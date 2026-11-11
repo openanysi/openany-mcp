@@ -1,8 +1,9 @@
 # CONFIRMED authentication header: Authorization: Bearer <OPENANY_API_KEY>.
-# Merge into ~/.codex/config.toml. Set OPENANY_API_KEY in the client environment.
+# The header is optional. Browsing, search, and pricing work without a key; only run_api needs it.
+# Merge into ~/.codex/config.toml. Set OPENANY_API_KEY in the client environment when executing.
 [mcp_servers.openany]
-url = "https://mcp.openany.si/mcp"
+url = "https://mcp.openany.si"
 bearer_token_env_var = "OPENANY_API_KEY"
 
 # CLI alternative:
-# codex mcp add openany --url https://mcp.openany.si/mcp --bearer-token-env-var OPENANY_API_KEY
+# codex mcp add openany --url https://mcp.openany.si --bearer-token-env-var OPENANY_API_KEY

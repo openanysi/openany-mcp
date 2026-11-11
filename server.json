@@ -2,8 +2,9 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "si.openany/openany",
   "title": "OpenAny",
-  "version": "0.1.0",
-  "description": "The marketplace for agents: 168+ AI models, 3,200+ APIs, one key. No subscription, pay per call.",
+  "version": "0.1.1",
+  "description": "The marketplace for agents: 3,200+ APIs and 100+ AI models, one key. Browse free; pay per call.",
+  "websiteUrl": "https://openany.si",
   "repository": {
     "url": "https://github.com/openanysi/openany-mcp",
     "source": "github"
@@ -15,9 +16,17 @@
       "headers": [
         {
           "name": "Authorization",
-          "description": "OpenAny API key as Bearer token. Required for tools/call.",
-          "isRequired": true,
-          "isSecret": true
+          "description": "OpenAny API key as Bearer token. Optional for browsing; required for run_api.",
+          "isRequired": false,
+          "isSecret": true,
+          "value": "Bearer {OPENANY_API_KEY}",
+          "variables": {
+            "OPENANY_API_KEY": {
+              "description": "OpenAny API key",
+              "isRequired": false,
+              "isSecret": true
+            }
+          }
         }
       ]
     }
