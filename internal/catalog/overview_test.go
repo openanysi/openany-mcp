@@ -140,6 +140,13 @@ func TestOverviewGroupsLiveSnapshot(t *testing.T) {
 	if modelSum != 7 {
 		t.Fatal(modelSum)
 	}
+	if overview["next_step_hint"] == "" {
+		t.Fatal("missing next step")
+	}
+	questions := overview["example_questions"].([]map[string]any)
+	if len(questions) != 1 || questions[0]["category"] != "models" || questions[0]["modality"] != "image" {
+		t.Fatal(questions)
+	}
 }
 
 func TestProviderCategoryNormalizesUnknownProviders(t *testing.T) {

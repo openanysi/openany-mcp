@@ -31,7 +31,7 @@ func (h *Handler) serveGuide(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	if r.Method == http.MethodGet {
-		w.Write([]byte(body))
+		w.Write([]byte(strings.ReplaceAll(body, "<!-- developer-docs -->\n", "")))
 	}
 }
 
