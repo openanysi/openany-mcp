@@ -45,7 +45,7 @@ class ClientPackageTests(unittest.TestCase):
         self.assertEqual(plugin["license"], "MIT")
         variable = plugin["variables"]["properties"][SECRET]
         self.assertEqual(variable["type"], "string")
-        self.assertIn(SECRET, plugin["variables"]["required"])
+        self.assertNotIn(SECRET, plugin["variables"]["required"])
         server = mcp["mcpServers"]["openany"]
         self.assertEqual(server["url"], LITE)
         self.assertEqual(server["headers"], {"Authorization": HEADER})
@@ -59,7 +59,7 @@ class ClientPackageTests(unittest.TestCase):
         self.assertIn("name: openany", frontmatter)
         self.assertIn("homepage: https://openany.si", frontmatter)
         self.assertIn("primaryEnv: OPENANY_API_KEY", frontmatter)
-        self.assertRegex(frontmatter, r"requires:\n\s+env:\n\s+- OPENANY_API_KEY")
+        self.assertNotIn("requires:", frontmatter)
         self.assertIn(LITE, text)
         self.assertIn("streamable-http", text)
         self.assertIn(HEADER, text)

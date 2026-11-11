@@ -1,7 +1,7 @@
 {
   "name": "openany",
   "version": "0.1.0",
-  "description": "Search OpenAny APIs, read one schema and public price, and run an approved call with your OpenAny API key.",
+  "description": "Search OpenAny APIs, read one schema and public price, and run an approved call. The API key is optional until run_api.",
   "mcpServers": {
     "openany": {
       "httpUrl": "https://mcp.openany.si",
@@ -14,7 +14,7 @@
   "settings": [
     {
       "name": "OpenAny API key",
-      "description": "Bearer token for paid OpenAny calls. Gemini CLI stores it as OPENANY_API_KEY. This repository does not contain the key.",
+      "description": "Optional Bearer token for paid OpenAny calls. Browsing, search, and pricing work without it. Gemini CLI stores it as OPENANY_API_KEY. This repository does not contain the key.",
       "envVar": "OPENANY_API_KEY",
       "sensitive": true
     }

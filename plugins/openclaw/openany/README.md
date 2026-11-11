@@ -6,13 +6,13 @@ OpenAny (https://openany.si) is a marketplace for agents. One API key covers mod
 
 ## Files
 
-`SKILL.md` is the skill. Its front matter sets `name`, `description`, and `metadata.openclaw`. The homepage is https://openany.si. The skill requires the environment variable `OPENANY_API_KEY` and names that variable as `primaryEnv`.
+`SKILL.md` is the skill. Its front matter sets `name`, `description`, and `metadata.openclaw`. The homepage is https://openany.si. The skill names `OPENANY_API_KEY` as `primaryEnv`. The key is optional. Browsing, search, and pricing work without it. Only `run_api` needs it.
 
 ## Connect
 
 Merge the server block from `SKILL.md` into `~/.openclaw/openclaw.json` under `mcp.servers`. Keep `transport` set to `streamable-http`. The header reads `OPENANY_API_KEY` from the environment. Do not put a real key in this folder.
 
-The URL in the skill is `https://mcp.openany.si`. That server lists `openany_overview`, `search_apis`, `get_api`, and `run_api`. `/mcp-lite` is the same server. The manual example at `examples/openclaw.json` still points at `https://mcp.openany.si/mcp`.
+The URL in the skill is `https://mcp.openany.si`. That server lists `openany_overview`, `search_apis`, `get_api`, and `run_api`. `/mcp-lite` is the same server. The manual example at `examples/openclaw.json` uses the same URL. The header there is optional.
 
 ## Publish
 

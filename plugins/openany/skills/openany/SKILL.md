@@ -9,7 +9,7 @@ OpenAny is a marketplace for agents. Use this skill only when this plugin's MCP 
 
 ## Server
 
-The packaged server is remote Streamable HTTP at `https://mcp.openany.si`. `/mcp-lite` is the same server. Its tools are `openany_overview`, `search_apis`, `get_api`, and `run_api`. Do not call tool names from the full `/mcp` catalog unless a different server is connected.
+The packaged server is remote Streamable HTTP at `https://mcp.openany.si`. `/mcp-lite` is the same server. Its tools are `openany_overview`, `search_apis`, `get_api`, and `run_api`. `Authorization: Bearer <OpenAny API key>` is optional. Browsing, search, and pricing work without a key. Only `run_api` needs it. Do not call tool names from the full `/mcp` catalog unless a different server is connected.
 
 Hermes sends `Authorization: Bearer` with the profile secret `OPENANY_API_KEY`. Do not ask the user to paste the key into the chat, and do not print the header or the profile environment.
 

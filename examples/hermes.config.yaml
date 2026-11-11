@@ -1,13 +1,14 @@
 # CONFIRMED authentication header: Authorization: Bearer <OPENANY_API_KEY>.
+# The header is optional. Browsing, search, and pricing work without a key; only run_api needs it.
 # Merge into ~/.hermes/config.yaml. Never hardcode a key here.
 # Default transport for url entries is Streamable HTTP; do NOT set transport: sse.
 # Prefer putting the real key in private ~/.hermes/.env as OPENANY_API_KEY.
-# Installable plugin: plugins/openany. This example is not that package.
+# Installable plugin: plugins/openany. This example is the same lite server.
 # Do not merge this block while that plugin is enabled. The name openany
-# makes Hermes skip the plugin server. Hermes 0.23.0 also stops tools/list
-# on this full /mcp URL after 50 pages. The plugin default is /mcp-lite.
+# makes Hermes skip the plugin server. Hermes 0.23.0 stops tools/list
+# on the advanced full catalog after 50 pages. This URL is the lite server.
 mcp_servers:
   openany:
-    url: "https://mcp.openany.si/mcp"
+    url: "https://mcp.openany.si"
     headers:
       Authorization: "Bearer ${OPENANY_API_KEY}"

@@ -1,7 +1,7 @@
 {
   "name": "openany",
   "version": "0.1.0",
-  "description": "Search OpenAny APIs, read one schema and public price, and run an approved call with your OpenAny API key.",
+  "description": "Search OpenAny APIs, read one schema and public price, and run an approved call. The API key is optional until run_api.",
   "author": {
     "name": "Alephant AI LLC"
   },
@@ -16,9 +16,9 @@
       "OPENANY_API_KEY": {
         "type": "string",
         "title": "OpenAny API key",
-        "description": "Bearer token for paid OpenAny calls. Set this in Cursor plugin settings. The repository does not contain the key."
+        "description": "Optional Bearer token for paid OpenAny calls. Browsing, search, and pricing work without it. Set this in Cursor plugin settings when executing. The repository does not contain the key."
       }
     },
-    "required": ["OPENANY_API_KEY"]
+    "required": []
   }
 }

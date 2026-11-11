@@ -130,7 +130,7 @@ For Skill listings, reuse the public OpenAny workflow only after its repository,
 
 ## Official MCP Registry
 
-The included server.json is remote-only metadata with proposed name `si.openany/openany`. It uses the domain namespace so source publication and npm packaging are not prerequisites. The official Registry API returned no results for the search term `openany` during this preparation. Recheck availability, project ownership and the initial Registry version before publication; this check does not reserve the name.
+The included server.json matches the published Registry record `si.openany/openany` version `0.1.1`. The remote URL is `https://mcp.openany.si` (Streamable HTTP, the lite server). The Authorization header is optional. Browsing does not need a key. `run_api` does.
 
 Follow the official [remote server guide](https://modelcontextprotocol.io/registry/remote-servers) and [authentication guide](https://modelcontextprotocol.io/registry/authentication) to verify `openany.si` through DNS or HTTP ownership proof. Keep publisher signing keys private. This ownership verification is independent of end-user API-key authentication; it does not add OAuth to the MCP service.
 

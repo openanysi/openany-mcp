@@ -8,7 +8,7 @@ OpenAny MCP lets agents discover models and APIs, inspect input schemas and publ
 | --- | --- |
 | Server URL | `https://mcp.openany.si` |
 | Transport | Streamable HTTP |
-| Authentication for execution | `Authorization: Bearer YOUR_OPENANY_KEY` |
+| Authentication | `Authorization: Bearer <OpenAny API key>`, optional. Only `run_api` needs it |
 | Website | https://openany.si/ |
 | Existing connection reference | https://mcp.openany.si/docs/mcp |
 
@@ -68,7 +68,7 @@ Replace both placeholders and populate `input` with all required parameters. The
 - If `openany_mcp_api_changed` is returned, call `get_api` again and review the current definition and pricing before deciding whether to execute.
 - Correct schema errors using the exact schema returned by `get_api`.
 - If execution is `unknown` after a timeout or disconnect, retain the `request_id` when available and investigate the original call. Do not automatically repeat a call that may already have run or incurred a charge.
-- Check a client's ability to configure the required header before advertising support for that client. This guide does not establish compatibility with every product or client version.
+- Check a client's ability to configure the optional Authorization header before a paid call. Browsing, search, and pricing work without a key. This guide does not establish compatibility with every product or client version.
 
 ## Check the public handshake
 

@@ -18,8 +18,8 @@
           "type": "secret",
           "env": "OPENANY_API_KEY",
           "label": "OpenAny API key",
-          "description": "Bearer token for the OpenAny MCP server. Hermes stores it in the active profile secret scope. The package never contains the key.",
-          "required": true
+          "description": "Optional Bearer token for paid OpenAny calls. Browsing, search, and pricing work without it. Hermes stores it in the active profile secret scope. The package never contains the key.",
+          "required": false
         }
       },
       "servers": {
