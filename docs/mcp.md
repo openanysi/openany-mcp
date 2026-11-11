@@ -16,7 +16,7 @@ openany_overview、search_apis、get_api 读取目录，不需要密钥，也不
 
 没有携带任何凭证时，服务在本地拒绝，不访问网关。错误码是 `openany_mcp_credentials_missing`，`execution_state` 为 `not_started`。到 https://openany.si/dashboard?page=api-keys 创建密钥，然后在 MCP 客户端的安全密钥或连接器设置里配置 `Authorization: Bearer <key>`。不要让用户把密钥粘贴进聊天或提示词。也接受非空的 `X-Api-Key` 或 `Xi-Api-Key`。
 
-密钥存在但被网关拒绝时，错误码仍是 `openany_authentication_invalid`。这表示密钥无效、过期或已撤销。在客户端的安全设置里更换密钥，不要把新密钥发到聊天里。
+密钥存在但被网关拒绝时，保留网关错误码、HTTP 状态和 request_id。线上无效密钥是 `openany_key_invalid`。同一说明也用于 `openany_authentication_invalid`，以及 `openany_key_expired`、`openany_key_revoked`、`openany_authentication_expired`、`openany_authentication_revoked`。这表示密钥无效、过期或已撤销。在客户端的安全设置里更换密钥，不要把新密钥发到聊天里。其他网关错误仍用原来的通用说明。
 
 本服务没有 OAuth。OpenAny 也没有 MCP URL elicitation 完成页。客户端即使声明了 URL elicitation，缺少密钥时也只返回上述文字说明，不会用表单 elicitation 收集密钥。表单模式不能用来收集密钥。网站若要支持 URL 模式，需要一个 HTTPS 页面：用掩码输入收集密钥，把密钥交给 MCP 客户端（而不是模型）并写进后续请求的 Authorization 头，再向该客户端发送 `notifications/elicitation/complete`。本服务是无状态的，不保存密钥，因此完成通知本身不会让下一次调用带上密钥。
 
@@ -147,7 +147,7 @@ pricing.status=available 表示公开价格数据可读，不代表已经为当�
 ## 错误与重试
 
 - openany_mcp_credentials_missing：请求没有密钥，网关未被调用。到 https://openany.si/dashboard?page=api-keys 创建密钥，并在客户端安全设置里配置 `Authorization: Bearer <key>`。不要把密钥贴进聊天。
-- openany_authentication_invalid：密钥已发送但被网关拒绝。在客户端安全设置里更换密钥，不要把新密钥贴进聊天。
+- openany_key_invalid、openany_key_expired、openany_key_revoked、openany_authentication_invalid、openany_authentication_expired、openany_authentication_revoked：密钥已发送但被网关拒绝。保留原错误码、HTTP 状态和 request_id。在客户端安全设置里更换密钥，不要把新密钥贴进聊天。
 - openany_mcp_api_changed：定义或展示价格变化，重新 get_api，再决定是否执行。
 - openany_mcp_api_unavailable：接口不在当前可发布目录，重新搜索。
 - openany_mcp_invalid_search：按错误说明修正 search_apis 的 query、筛选条件或 limit；游标失效时仅去掉 cursor，保留当前 query、筛选条件和 limit，从第一页重新调用 search_apis。未调用业务网关。

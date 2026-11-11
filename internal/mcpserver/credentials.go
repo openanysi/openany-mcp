@@ -81,9 +81,29 @@ func missingCredentials(req *mcp.CallToolRequest) (gateway.Result, bool) {
 	return result, true
 }
 
+// rejectedCredentialCode is a gateway code that means the supplied key itself
+// was refused. The live gateway uses openany_key_invalid. openany_authentication_invalid
+// is the earlier name. Public docs describe the same failure as an invalid,
+// expired, or revoked API key without listing more machine codes, so the
+// expired and revoked siblings are included. Other gateway codes stay generic.
+func rejectedCredentialCode(code string) bool {
+	switch code {
+	case "openany_key_invalid",
+		"openany_key_expired",
+		"openany_key_revoked",
+		"openany_authentication_invalid",
+		"openany_authentication_expired",
+		"openany_authentication_revoked":
+		return true
+	default:
+		return false
+	}
+}
+
 func clarifyRejectedKey(result gateway.Result) gateway.Result {
 	e, ok := result.Value["error"].(map[string]any)
-	if !ok || e["code"] != "openany_authentication_invalid" {
+	code, _ := e["code"].(string)
+	if !ok || !rejectedCredentialCode(code) {
 		return result
 	}
 	e["message"] = rejectedKeyMessage
