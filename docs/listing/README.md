@@ -76,7 +76,7 @@
 | --- | --- |
 | [connect.en.md](connect.en.md) | 英文托管 MCP 快速接入指南 |
 | [submissions.md](submissions.md) | 网站表单、Issue、PR 条目和说明文案 |
-| [server.json](server.json) | 与根目录 `server.json` 相同，Registry 名称 `si.openany/openany`，版本 0.1.2，地址为 `https://mcp.openany.si` |
+| [server.json](server.json) | 与根目录 `server.json` 相同，对应已发布的 Registry 记录 `si.openany/openany` 0.1.2（latest），地址为 `https://mcp.openany.si` |
 | [verification.md](verification.md) | 本轮验证结论及未覆盖范围 |
 | [public-probe.json](public-probe.json) | 无凭证公网发现检查的原始 JSON 记录 |
 

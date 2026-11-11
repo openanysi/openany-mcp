@@ -217,8 +217,7 @@ Its Authorization header is optional. The value is `Bearer {OPENANY_API_KEY}`,
 Browsing does not need the key. `run_api` does.
 
 The registry description is limited to 100 characters, so its wording is
-shorter than the full description above. Version `0.1.2` is the descriptor in this repository. Version `0.1.1` is published on the
-official MCP Registry as `si.openany/openany`. Local setup does not run
+shorter than the full description above. [`server.json`](server.json) matches the published Registry record `si.openany/openany` `0.1.2`, the latest. Local setup does not run
 `mcp-publisher publish`.
 
 [`glama.json`](glama.json) names the Glama maintainer for this repository.
