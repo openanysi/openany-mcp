@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -22,8 +23,19 @@ func TestRunAPIMissingAndRejectedKeys(t *testing.T) {
 		hits.Add(1)
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("X-Request-ID", "gw-auth")
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"type":"openany_error","code":"openany_authentication_invalid","message":"invalid"}`))
+		code, status := "openany_authentication_invalid", http.StatusUnauthorized
+		switch {
+		case r.Header.Get("Authorization") == "Bearer invalid123":
+			code = "openany_key_invalid"
+		case r.Header.Get("Authorization") == "Bearer expired-key":
+			code = "openany_key_expired"
+		case r.Header.Get("Authorization") == "Bearer revoked-key":
+			code = "openany_key_revoked"
+		case r.Header.Get("Authorization") == "Bearer quota-key":
+			code, status = "openany_quota_exceeded", http.StatusTooManyRequests
+		}
+		w.WriteHeader(status)
+		w.Write([]byte(`{"type":"openany_error","code":"` + code + `","message":"invalid"}`))
 	}))
 	defer gw.Close()
 	client, err := gateway.New(gw.URL, time.Second, time.Second, 4096, 8192)
@@ -76,28 +88,46 @@ func TestRunAPIMissingAndRejectedKeys(t *testing.T) {
 	if direct["error"].(map[string]any)["code"] != "openany_mcp_credentials_missing" || hits.Load() != before {
 		t.Fatal("full catalog forwarded a keyless call", direct, hits.Load())
 	}
-	rejected := callTool(t, server.URL, "/", "run_api", args, "Bearer expired-key")
-	if hits.Load() != before+1 {
-		t.Fatal("rejected key did not reach the gateway once", hits.Load(), before)
-	}
-	rejectedErr := rejected["error"].(map[string]any)
-	if rejectedErr["code"] != "openany_authentication_invalid" || rejected["http_status"] != float64(401) || rejected["request_id"] != "gw-auth" || rejected["key_url"] != keyPageURL {
-		t.Fatal(rejected)
-	}
-	rejectedText := rejectedErr["message"].(string) + rejectedErr["next_action"].(string)
-	for _, phrase := range []string{"invalid, expired, or revoked", keyPageURL, "Do not ask the user to paste a key into the chat"} {
-		if !bytes.Contains([]byte(rejectedText), []byte(phrase)) {
-			t.Fatal(phrase, rejectedText)
+	for i, code := range []string{"openany_key_invalid", "openany_key_expired", "openany_key_revoked", "openany_authentication_invalid"} {
+		token := map[string]string{
+			"openany_key_invalid":            "Bearer invalid123",
+			"openany_key_expired":            "Bearer expired-key",
+			"openany_key_revoked":            "Bearer revoked-key",
+			"openany_authentication_invalid": "Bearer old-name",
+		}[code]
+		rejected := callTool(t, server.URL, "/", "run_api", args, token)
+		if hits.Load() != before+int32(i+1) {
+			t.Fatal("rejected key did not reach the gateway", code, hits.Load(), before)
+		}
+		rejectedErr := rejected["error"].(map[string]any)
+		if rejectedErr["code"] != code || rejected["http_status"] != float64(401) || rejected["request_id"] != "gw-auth" || rejected["key_url"] != keyPageURL {
+			t.Fatal(code, rejected)
+		}
+		rejectedText := rejectedErr["message"].(string) + rejectedErr["next_action"].(string)
+		for _, phrase := range []string{"invalid, expired, or revoked", keyPageURL, "Do not ask the user to paste a key into the chat"} {
+			if !bytes.Contains([]byte(rejectedText), []byte(phrase)) {
+				t.Fatal(code, phrase, rejectedText)
+			}
+		}
+		if strings.Contains(rejectedText, "inspect the request ID") {
+			t.Fatal("generic gateway text remained", code, rejectedText)
 		}
 	}
 	withHeader := callRaw(t, server.URL, "/mcp-lite", "run_api", args, map[string]string{"X-Api-Key": "present-key"})
-	if withHeader["error"].(map[string]any)["code"] != "openany_authentication_invalid" || hits.Load() != before+2 {
+	if withHeader["error"].(map[string]any)["code"] != "openany_authentication_invalid" || hits.Load() != before+5 {
 		t.Fatal("x-api-key was not treated as a credential", withHeader, hits.Load())
 	}
 	urlClient := callRaw(t, server.URL, "/", "run_api", args, nil, map[string]any{
 		"io.modelcontextprotocol/clientCapabilities": map[string]any{"elicitation": map[string]any{"url": map[string]any{}}},
 	})
-	if urlClient["error"].(map[string]any)["code"] != "openany_mcp_credentials_missing" || hits.Load() != before+2 {
+	quota := callTool(t, server.URL, "/", "run_api", args, "Bearer quota-key")
+	if quota["error"].(map[string]any)["code"] != "openany_quota_exceeded" || quota["http_status"] != float64(429) || quota["request_id"] != "gw-auth" || quota["key_url"] != nil {
+		t.Fatal("non-auth gateway error was rewritten", quota)
+	}
+	if strings.Contains(quota["error"].(map[string]any)["message"].(string), "secure secret") {
+		t.Fatal(quota)
+	}
+	if urlClient["error"].(map[string]any)["code"] != "openany_mcp_credentials_missing" || hits.Load() != before+6 {
 		t.Fatal(urlClient, hits.Load())
 	}
 	elicitation := urlClient["elicitation"].(map[string]any)
@@ -109,6 +139,19 @@ func TestRunAPIMissingAndRejectedKeys(t *testing.T) {
 	})
 	if _, ok := formClient["elicitation"]; ok || formClient["error"].(map[string]any)["code"] != "openany_mcp_credentials_missing" {
 		t.Fatal("form elicitation was used for a secret", formClient)
+	}
+}
+
+func TestRejectedCredentialCodes(t *testing.T) {
+	for _, code := range []string{"openany_key_invalid", "openany_key_expired", "openany_key_revoked", "openany_authentication_invalid", "openany_authentication_expired", "openany_authentication_revoked"} {
+		if !rejectedCredentialCode(code) {
+			t.Fatal(code)
+		}
+	}
+	for _, code := range []string{"openany_quota_exceeded", "openany_mcp_credentials_missing", "openany_key"} {
+		if rejectedCredentialCode(code) {
+			t.Fatal(code)
+		}
 	}
 }
 

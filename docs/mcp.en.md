@@ -16,7 +16,7 @@ MCP does not store a fallback business key. Authentication, permission, rate lim
 
 When the request has no credential at all, the server rejects it locally and does not call the gateway. The error code is `openany_mcp_credentials_missing` and `execution_state` is `not_started`. Create a key at https://openany.si/dashboard?page=api-keys, then set `Authorization: Bearer <key>` in the MCP client's secure secret or connector settings. Do not ask the user to paste the key into the chat or prompt. A non-empty `X-Api-Key` or `Xi-Api-Key` is also accepted.
 
-When a key is present and the gateway rejects it, the error code stays `openany_authentication_invalid`. The key is invalid, expired, or revoked. Replace it in the client's secure settings. Do not send a new key into the chat.
+When a key is present and the gateway rejects it, the gateway code, HTTP status, and request_id stay as returned. A live invalid key is `openany_key_invalid`. The same guidance also covers `openany_authentication_invalid`, `openany_key_expired`, `openany_key_revoked`, `openany_authentication_expired`, and `openany_authentication_revoked`. The key is invalid, expired, or revoked. Replace it in the client's secure settings. Do not send a new key into the chat. Other gateway errors keep the generic message.
 
 This server has no OAuth. OpenAny also has no MCP URL-elicitation completion page. If the client advertises URL elicitation, a missing key still returns this text. The server does not collect a secret with form elicitation. Form mode must not be used for secrets. A website that wants URL mode needs an HTTPS page that collects the key in a masked field, gives that key to the MCP client rather than the model, puts it on later requests as Authorization, and sends `notifications/elicitation/complete` to that client. This server is stateless and does not store keys, so the completion notification alone does not attach a key to the next call.
 
@@ -147,7 +147,7 @@ pricing.status=available means the public price data can be read. It is not a qu
 ## Errors and retries
 
 - openany_mcp_credentials_missing: the request had no key, and the gateway was not called. Create a key at https://openany.si/dashboard?page=api-keys and set `Authorization: Bearer <key>` in the client's secure settings. Do not paste the key into chat.
-- openany_authentication_invalid: a key was sent and the gateway rejected it. Replace it in the client's secure settings. Do not paste a new key into chat.
+- openany_key_invalid, openany_key_expired, openany_key_revoked, openany_authentication_invalid, openany_authentication_expired, openany_authentication_revoked: a key was sent and the gateway rejected it. The original code, HTTP status, and request_id are kept. Replace it in the client's secure settings. Do not paste a new key into chat.
 - openany_mcp_api_changed: the definition or displayed price changed. Call get_api again, then decide whether to execute.
 - openany_mcp_api_unavailable: the API is not in the current published catalog. Search again.
 - openany_mcp_invalid_search: fix search_apis query, filters, or limit as the error says. When a cursor is invalid, drop only cursor, keep the current query, filters, and limit, and call search_apis again from the first page. The gateway was not called.

@@ -274,7 +274,8 @@ func withRecovery(result gateway.Result) gateway.Result {
 	case "completed":
 		e["next_action"] = "Execution completed. Inspect the available result and request_id; do not rerun to fix presentation."
 	case "reported_failure":
-		if e["code"] == "openany_authentication_invalid" {
+		code, _ := e["code"].(string)
+		if rejectedCredentialCode(code) {
 			e["message"] = rejectedKeyMessage
 			e["next_action"] = rejectedKeyMessage
 		} else {
