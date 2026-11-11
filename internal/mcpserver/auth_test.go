@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -19,7 +20,12 @@ import (
 
 func TestRunAPIMissingAndRejectedKeys(t *testing.T) {
 	var hits atomic.Int32
+	var mu sync.Mutex
+	var auths []string
 	gw := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		auths = append(auths, r.Header.Get("Authorization"))
+		mu.Unlock()
 		hits.Add(1)
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("X-Request-ID", "gw-auth")
@@ -133,6 +139,36 @@ func TestRunAPIMissingAndRejectedKeys(t *testing.T) {
 	elicitation := urlClient["elicitation"].(map[string]any)
 	if elicitation["mode"] != "url" || elicitation["available"] != false || elicitation["reason"] == "" {
 		t.Fatal(elicitation)
+	}
+	directRaw := callDirect(t, server.URL, "/mcp", name, map[string]any{}, "raw-catalog-key")
+	if directRaw["error"].(map[string]any)["code"] == gateway.PlaceholderCredentialCode {
+		t.Fatal(directRaw)
+	}
+	mu.Lock()
+	if len(auths) == 0 || auths[len(auths)-1] != "Bearer raw-catalog-key" {
+		t.Fatal("raw key was not forwarded as Bearer", auths)
+	}
+	mu.Unlock()
+	liteRaw := callTool(t, server.URL, "/", "run_api", args, "lite-raw-key")
+	if liteRaw["error"].(map[string]any)["code"] == "openany_mcp_credentials_missing" {
+		t.Fatal(liteRaw)
+	}
+	mu.Lock()
+	if auths[len(auths)-1] != "Bearer lite-raw-key" {
+		t.Fatal(auths)
+	}
+	mu.Unlock()
+	for _, header := range []string{"Bearer ${OPENANY_API_KEY}", "${env:OPENANY_API_KEY}", "$OPENANY_API_KEY", "<your-key>", "YOUR_API_KEY"} {
+		seen := hits.Load()
+		got := callTool(t, server.URL, "/mcp-lite", "run_api", args, header)
+		errGot := got["error"].(map[string]any)
+		if errGot["code"] != gateway.PlaceholderCredentialCode || errGot["execution_state"] != "not_started" || got["key_url"] != keyPageURL || hits.Load() != seen {
+			t.Fatal(header, got, hits.Load(), seen)
+		}
+		blob := errGot["message"].(string) + errGot["next_action"].(string)
+		if strings.Contains(blob, header) || strings.Contains(blob, "${") || strings.Contains(blob, "$OPENANY_API_KEY") {
+			t.Fatal("echoed placeholder", header, blob)
+		}
 	}
 	formClient := callRaw(t, server.URL, "/", "run_api", args, nil, map[string]any{
 		"io.modelcontextprotocol/clientCapabilities": map[string]any{"elicitation": map[string]any{"form": map[string]any{}}},

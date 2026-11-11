@@ -65,6 +65,9 @@ func missingCredentials(req *mcp.CallToolRequest) (gateway.Result, bool) {
 	if req != nil && req.Extra != nil {
 		headers = req.Extra.Header
 	}
+	if placeholder, blocked := placeholderCredentials(headers); blocked {
+		return placeholder, true
+	}
 	if credentialPresent(headers) {
 		return gateway.Result{}, false
 	}
@@ -98,6 +101,23 @@ func rejectedCredentialCode(code string) bool {
 	default:
 		return false
 	}
+}
+
+func placeholderCredentials(headers http.Header) (gateway.Result, bool) {
+	if headers == nil {
+		return gateway.Result{}, false
+	}
+	for _, name := range []string{"Authorization", "X-Api-Key", "Xi-Api-Key"} {
+		for _, value := range headers.Values(name) {
+			if gateway.CredentialPlaceholder(name, value) {
+				result := gateway.Failure(gateway.PlaceholderCredentialCode, gateway.PlaceholderCredentialMessage, "validate", "not_started", nil, nil)
+				result.Value["error"].(map[string]any)["next_action"] = gateway.PlaceholderCredentialMessage
+				result.Value["key_url"] = keyPageURL
+				return result, true
+			}
+		}
+	}
+	return gateway.Result{}, false
 }
 
 func clarifyRejectedKey(result gateway.Result) gateway.Result {

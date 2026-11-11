@@ -73,10 +73,8 @@ func (c *Client) Call(ctx context.Context, r model.Request, args map[string]any,
 	}
 	req.GetBody = nil
 	req.Header = encoded.Headers.Clone()
-	for _, name := range []string{"Authorization", "X-Api-Key", "Xi-Api-Key"} {
-		if values := headers.Values(name); len(values) > 0 {
-			req.Header[name] = append([]string(nil), values...)
-		}
+	if problem := applyCallerCredentials(req.Header, headers); problem.IsError {
+		return problem
 	}
 	req.Header.Set("Accept", "application/json")
 	resp, err := c.http.Do(req)
