@@ -274,9 +274,16 @@ func withRecovery(result gateway.Result) gateway.Result {
 	case "completed":
 		e["next_action"] = "Execution completed. Inspect the available result and request_id; do not rerun to fix presentation."
 	case "reported_failure":
-		e["next_action"] = "Inspect the gateway error code and request_id. Check credentials, permission, quota and API parameters before deciding on another call."
+		if e["code"] == "openany_authentication_invalid" {
+			e["message"] = rejectedKeyMessage
+			e["next_action"] = rejectedKeyMessage
+		} else {
+			e["next_action"] = "Inspect the gateway error code and request_id. Check credentials, permission, quota and API parameters before deciding on another call."
+		}
 	default:
 		switch e["code"] {
+		case "openany_mcp_credentials_missing":
+			e["next_action"] = missingKeyMessage
 		case "openany_mcp_invalid_search":
 			e["next_action"] = "Correct search_apis query, filters or limit according to the error. For an invalid or outdated cursor, omit only cursor, keep the current query, filters and limit, and restart search_apis from the first page. The gateway was not called."
 		case "openany_mcp_api_changed":

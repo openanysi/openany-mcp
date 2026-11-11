@@ -87,7 +87,7 @@ The manual examples continue to use `/mcp`. The registry descriptor uses the rec
 - `tools/list` is public; discovery does not require an OpenAny API key.
 - Resource execution through `tools/call` requires an **OpenAny API key**.
   The gateway remains responsible for authentication, billing and execution.
-- **No OAuth:** this server does not implement an OAuth sign-in flow.
+- **No OAuth:** this server does not implement an OAuth sign-in flow. It also does not collect a key with MCP form elicitation. URL elicitation is not offered, because OpenAny has no elicitation completion page. Create a key at https://openany.si/dashboard?page=api-keys and store it in the client's secure secret or connector settings. A `run_api` call with no key is rejected locally (`openany_mcp_credentials_missing`) and does not reach the gateway. A key the gateway rejects stays `openany_authentication_invalid`. Never ask the user to paste the key into chat.
 - **Confirmed authentication header:**
   `Authorization: Bearer <OPENANY_API_KEY>`. Supply an OpenAny API key through
   `OPENANY_API_KEY`; the examples use this confirmed header format.

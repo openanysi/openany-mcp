@@ -29,6 +29,9 @@ func (h *Handler) executeResult(ctx context.Context, req *mcp.CallToolRequest, b
 		}
 		return result
 	}
+	if missing, blocked := missingCredentials(req); blocked {
+		return missing
+	}
 	select {
 	case h.slots <- struct{}{}:
 		defer func() { <-h.slots }()
@@ -39,7 +42,7 @@ func (h *Handler) executeResult(ctx context.Context, req *mcp.CallToolRequest, b
 	if req.Extra != nil {
 		headers = req.Extra.Header
 	}
-	result := h.gateway.Call(ctx, b.Request, args, headers)
+	result := clarifyRejectedKey(h.gateway.Call(ctx, b.Request, args, headers))
 	h.options.Logger.Info("tool completed", "api_id", b.APIID, "tool_name", name, "catalog_hash", catalogHash, "gateway_request_id", result.Value["request_id"], "http_status", result.Value["http_status"], "is_error", result.IsError, "duration_ms", time.Since(start).Milliseconds())
 	return result
 }

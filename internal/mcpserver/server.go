@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/modelcontextprotocol/go-sdk/jsonrpc"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	publicdocs "github.com/openany/openany-mcp/docs"
 	"github.com/openany/openany-mcp/internal/catalog"
 	"github.com/openany/openany-mcp/internal/gateway"
 	"log/slog"
@@ -28,7 +27,7 @@ type Options struct {
 	ModelGateway *gateway.Client
 }
 
-const fullCatalogInstructions = "OpenAny Full Catalog lists one tool per data API and does not include AI models. For models, live catalog counts, and search across the whole catalog, connect to https://mcp.openany.si. Confirm the live price with the user before calling a tool. A call can incur charges."
+const fullCatalogInstructions = "OpenAny Full Catalog lists one tool per data API and does not include AI models. For models, live catalog counts, and search across the whole catalog, connect to https://mcp.openany.si. Tool calls need the caller's OpenAny API key on the MCP connection as Authorization: Bearer <key>. Create a key at https://openany.si/dashboard?page=api-keys and store it in the client's secure secret or connector settings. Never ask the user to paste the key into the chat or prompt. A call with no key is rejected locally. This server has no OAuth flow and does not collect secrets with form elicitation. Confirm the live price with the user before calling a tool. A call can incur charges."
 
 type serverKey struct{}
 type snapshotKey struct{}
@@ -75,16 +74,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if h.options.LiteEnabled && (r.URL.Path == "/docs/mcp" || (r.URL.Path == "/" && humanRead(r))) {
-		if r.Method != "GET" && r.Method != "HEAD" {
-			w.Header().Set("Allow", "GET, HEAD")
-			w.WriteHeader(405)
-			return
-		}
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		if r.Method == "GET" {
-			w.Write([]byte(publicdocs.MCP))
-		}
+		h.serveGuide(w, r)
 		return
 	}
 	if r.URL.Path == "/healthz" || r.URL.Path == "/readyz" {
