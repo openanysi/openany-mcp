@@ -38,7 +38,7 @@ func TestGuideLanguageAndHTMLNegotiation(t *testing.T) {
 		return res.StatusCode, res.Header.Get("Content-Type"), string(body)
 	}
 	status, media, body := get("/", "", "")
-	if status != 200 || !strings.HasPrefix(media, "text/plain") || !strings.HasPrefix(body, "# OpenAny MCP\n") || !strings.Contains(body, "Choose an endpoint") || strings.Contains(body, "选择入口") {
+	if status != 200 || !strings.HasPrefix(media, "text/plain") || !strings.HasPrefix(body, "# OpenAny MCP\n") || !strings.Contains(body, "Get started in 3 steps") || !strings.Contains(body, "Choose an endpoint") || strings.Contains(body, "选择入口") || strings.Contains(body, "developer-docs") {
 		t.Fatal("default guide", status, media, body[:80])
 	}
 	status, media, body = get("/", "*/*", "zh-CN,zh;q=0.9,en;q=0.8")
@@ -54,7 +54,7 @@ func TestGuideLanguageAndHTMLNegotiation(t *testing.T) {
 		t.Fatal("lang=zh did not override", media)
 	}
 	status, media, body = get("/", "text/html,application/xhtml+xml", "en-US")
-	if status != 200 || !strings.HasPrefix(media, "text/html") || !strings.Contains(body, "<h1>") || !strings.Contains(body, "<table>") || !strings.Contains(body, "<pre><code>") || !strings.Contains(body, "https://mcp.openany.si") || strings.Contains(body, "<script") || strings.Contains(body, "选择入口") {
+	if status != 200 || !strings.HasPrefix(media, "text/html") || !strings.Contains(body, "<h1>") || !strings.Contains(body, "<table>") || !strings.Contains(body, "<pre><code>") || !strings.Contains(body, "https://mcp.openany.si") || !strings.Contains(body, "<summary>Developer docs</summary>") || strings.Contains(body, "<script") || strings.Contains(body, "选择入口") {
 		t.Fatal("english html", status, media)
 	}
 	status, media, body = get("/docs/mcp", "text/html", "zh")
