@@ -171,7 +171,7 @@ func (h *Handler) server(snapshot *catalog.Snapshot, scope string) *mcp.Server {
 		if scope != "" && b.ProviderID != scope {
 			continue
 		}
-		tool := &mcp.Tool{Name: name, Title: b.Title, Description: b.Description, InputSchema: b.Input.Document}
+		tool := &mcp.Tool{Name: name, Title: b.Title, Description: b.Description, InputSchema: b.Input.Document, Annotations: executionAnnotations(b.Title)}
 		tools = append(tools, tool)
 		s.AddTool(tool, func(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			return h.execute(ctx, req, b, name, req.Params.Arguments, snapshot.Hash)
