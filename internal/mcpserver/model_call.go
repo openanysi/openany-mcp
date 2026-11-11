@@ -45,6 +45,9 @@ func (h *Handler) executeModel(ctx context.Context, req *mcp.CallToolRequest, d 
 	if h.models == nil {
 		return gateway.Failure("openany_mcp_model_unavailable", "Model execution is not configured on this server.", "validate", "not_started", nil, nil)
 	}
+	if missing, blocked := missingCredentials(req); blocked {
+		return missing
+	}
 	select {
 	case h.slots <- struct{}{}:
 		defer func() { <-h.slots }()
@@ -55,7 +58,7 @@ func (h *Handler) executeModel(ctx context.Context, req *mcp.CallToolRequest, d 
 	if req.Extra != nil {
 		headers = req.Extra.Header
 	}
-	result := h.models.PostChatCompletion(ctx, args, headers)
+	result := clarifyRejectedKey(h.models.PostChatCompletion(ctx, args, headers))
 	h.options.Logger.Info("model call completed", "model_id", api, "catalog_hash", catalogHash, "gateway_request_id", result.Value["request_id"], "http_status", result.Value["http_status"], "is_error", result.IsError, "duration_ms", time.Since(start).Milliseconds())
 	return result
 }

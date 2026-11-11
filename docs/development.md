@@ -42,7 +42,7 @@ Endpoints:
 - `http://127.0.0.1:3335/mcp/blockrun` — provider-specific catalog; same names.
 - `/healthz` — process health; `/readyz` — catalog age and active/published/pending/quarantined/warning counts. A listening port alone does not mean the catalog is ready.
 
-Configure a compatible MCP client for **Streamable HTTP** and attach `Authorization: Bearer YOUR_OPENANY_KEY` (or the gateway-supported API-key header). The service does not implement an OAuth login. Calls without credentials are forwarded without a fallback key and rejected by the gateway. Native clients need no Origin; browser origins must be explicitly allowed.
+Configure a compatible MCP client for **Streamable HTTP** and attach `Authorization: Bearer YOUR_OPENANY_KEY` (or the gateway-supported API-key header). The service does not implement an OAuth login. A call with no credential is rejected locally and is not forwarded. A browser GET of `/` is English unless `Accept-Language` prefers zh or `?lang=` is set, and it is HTML when `Accept` includes `text/html`. Native clients need no Origin; browser origins must be explicitly allowed.
 
 ## New installation
 
