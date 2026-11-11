@@ -8,7 +8,7 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://mcp.openany.si/mcp-lite",
+      "url": "https://mcp.openany.si",
       "headers": [
         {
           "name": "Authorization",

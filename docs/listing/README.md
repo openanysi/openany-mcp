@@ -1,15 +1,15 @@
 # OpenAny MCP 收录执行清单
 
-核对日期：2026 年 11 月 6 日。提交对象是独立的 OpenAny MCP 托管服务，推荐入口为 `https://mcp.openany.si/mcp-lite`。项目方已确认源码仓库暂时私有，本轮使用官网和公开文档申请。先完成英文接入材料和用户接入验证，再申请 MCP 专门目录；Agent 和 Skill 清单按各自范围另行处理。
+核对日期：2026 年 11 月 6 日。提交对象是独立的 OpenAny MCP 托管服务，推荐入口为 `https://mcp.openany.si`。`/mcp-lite` 是同一轻量服务。项目方已确认源码仓库暂时私有，本轮使用官网和公开文档申请。先完成英文接入材料和用户接入验证，再申请 MCP 专门目录；Agent 和 Skill 清单按各自范围另行处理。
 
 ## 已确认的发布条件
 
 | 项目 | 当前事实 |
 | --- | --- |
 | 官网 | https://openany.si/ |
-| MCP 地址 | https://mcp.openany.si/mcp-lite |
+| MCP 地址 | https://mcp.openany.si |
 | 传输 | Streamable HTTP |
-| 工具 | search_apis、get_api、run_api |
+| 工具 | openany_overview、search_apis、get_api、run_api |
 | 认证 | 业务执行使用调用者自己的 OpenAny Bearer Key；公开发现检查没有使用 Key |
 | 公网发现验证 | initialize、tools/list、search_apis、get_api 均返回 HTTP 200；详见 verification.md |
 | 英文材料 | connect.en.md，可用于发布英文 MCP 接入页面 |

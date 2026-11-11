@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "openany"
 PLUGIN_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
 MCP_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json"
-ENDPOINT = "https://mcp.openany.si/mcp-lite"
+ENDPOINT = "https://mcp.openany.si"
 SECRET = "OPENANY_API_KEY"
 HEADER = "Bearer ${OPENANY_API_KEY}"
 
@@ -111,7 +111,7 @@ class HermesPluginManifestTests(unittest.TestCase):
         for name in ("search_apis", "get_api", "run_api"):
             self.assertIn(name, self.skill)
         self.assertIn(
-            "The packaged server is remote Streamable HTTP at `https://mcp.openany.si/mcp-lite`.",
+            "The packaged server is remote Streamable HTTP at `https://mcp.openany.si`.",
             self.skill,
         )
 

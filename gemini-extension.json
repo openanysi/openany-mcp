@@ -4,7 +4,7 @@
   "description": "Search OpenAny APIs, read one schema and public price, and run an approved call with your OpenAny API key.",
   "mcpServers": {
     "openany": {
-      "httpUrl": "https://mcp.openany.si/mcp-lite",
+      "httpUrl": "https://mcp.openany.si",
       "headers": {
         "Authorization": "Bearer ${OPENANY_API_KEY}"
       }

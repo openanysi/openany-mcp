@@ -2,7 +2,7 @@
 
 OpenAny (https://openany.si) is a marketplace for agents. This portable Hermes plugin connects to OpenAny's hosted MCP server over Streamable HTTP.
 
-The default URL is `https://mcp.openany.si/mcp-lite`. That server exposes `search_apis`, `get_api`, and `run_api`, so an agent can search models and APIs, read one result, and execute it. Hermes 0.23.0 stops `tools/list` after 50 pages. The full endpoint `https://mcp.openany.si/mcp` exceeds that cap and is truncated at 2500 tools, which hides the rest of the catalog. A provider path such as `https://mcp.openany.si/mcp/coingecko` fits under the cap but lists only that provider.
+The default URL is `https://mcp.openany.si`. `/mcp-lite` is the same server. It exposes `openany_overview`, `search_apis`, `get_api`, and `run_api`, so an agent can see what the catalog contains, search models and APIs, read one result, and execute it. Hermes 0.23.0 stops `tools/list` after 50 pages. The full endpoint `https://mcp.openany.si/mcp` exceeds that cap and is truncated at 2500 tools, which hides the rest of the catalog. A provider path such as `https://mcp.openany.si/mcp/coingecko` fits under the cap but lists only that provider.
 
 The package does not bundle a catalog and does not state how many models, APIs, or tools OpenAny offers.
 
@@ -23,7 +23,7 @@ There is no Python entrypoint, hook, middleware, or Desktop script. The package 
 | --- | --- |
 | MCP server name | `openany` |
 | Transport | `streamable-http` (not legacy SSE) |
-| URL | `https://mcp.openany.si/mcp-lite` |
+| URL | `https://mcp.openany.si` |
 | Authorization | `Authorization: Bearer ${OPENANY_API_KEY}` |
 | Secret | `config_schema.api_key`, stored by Hermes as `OPENANY_API_KEY` |
 | Approval | `trust: untrusted` on that server |
@@ -104,11 +104,11 @@ If a manual `mcp_servers.openany` entry remains, remove it with `hermes mcp remo
 | What you see | What it means |
 | --- | --- |
 | Plugin is installed but inactive | Portable packages install disabled. Run `hermes plugins enable openany` and accept the Python dependency prompt. |
-| Debug log says `mcp package not installed -- MCP tool support disabled` | Hermes skipped MCP discovery because `mcp` was not importable. Enable the plugin so it can prepare `mcp==2.3.0`, then start a new process. A good connect logs `MCP server 'openany' (HTTP): registered 3 tool(s)`. |
+| Debug log says `mcp package not installed -- MCP tool support disabled` | Hermes skipped MCP discovery because `mcp` was not importable. Enable the plugin so it can prepare `mcp==2.3.0`, then start a new process. A good connect logs `MCP server 'openany' (HTTP): registered 4 tool(s)`. |
 | `${OPENANY_API_KEY} in url/headers is not set` | Hermes will not open the server until the profile secret is set. This is not a successful discovery. |
 | Gateway HTTP 401 | The key was sent and OpenAny rejected it. Do not retry a paid call to fix authentication. |
 | `Portable MCP server 'openany' conflicts with native config` | A manual `mcp_servers.openany` entry is replacing the package. Remove that entry. The owner-run session had to do this before the plugin server loaded. |
-| Only some of the full catalog appears | The server is still `https://mcp.openany.si/mcp`, or Hermes stopped after 50 pages. This package's default is `/mcp-lite`. |
+| Only some of the full catalog appears | The server is still `https://mcp.openany.si/mcp`, or Hermes stopped after 50 pages. This package's default is `https://mcp.openany.si`. |
 | Tools appear, then a call is blocked | `trust: untrusted` is waiting for approval, or the run is unattended and fails closed. |
 | `tools/list` works | Discovery only. It does not prove authentication, balance, or a successful `tools/call`. |
 | Long tool names look shortened | Hermes 0.23.0 clamps model-facing `mcp__openany__...` names to 64 characters. The lite tool names fit. The server tool name is unchanged. |

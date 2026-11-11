@@ -11,7 +11,7 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://mcp.openany.si/mcp",
+      "url": "https://mcp.openany.si",
       "headers": [
         {
           "name": "Authorization",

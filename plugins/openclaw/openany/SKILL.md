@@ -23,7 +23,7 @@ Add the remote server under `mcp.servers` in `~/.openclaw/openclaw.json`. Set `t
   "mcp": {
     "servers": {
       "openany": {
-        "url": "https://mcp.openany.si/mcp-lite",
+        "url": "https://mcp.openany.si",
         "transport": "streamable-http",
         "headers": {
           "Authorization": "Bearer ${OPENANY_API_KEY}"
@@ -38,14 +38,15 @@ Keep the key in the environment OpenClaw reads, under the name `OPENANY_API_KEY`
 
 `tools/list` is public. A successful list does not mean a later call is authenticated, priced, or successful.
 
-This skill connects to `https://mcp.openany.si/mcp-lite`. That server exposes `search_apis`, `get_api`, and `run_api`. `https://mcp.openany.si/mcp` is a different server that lists each API as its own tool.
+This skill connects to `https://mcp.openany.si`. That server exposes `openany_overview`, `search_apis`, `get_api`, and `run_api`. `/mcp-lite` is the same server. `https://mcp.openany.si/mcp` is a different server that lists each API as its own tool and does not include models.
 
 ## Call order
 
-1. Call `search_apis` with the user's task, or with one filter that search returned. Read the summaries. A result with `kind` = `model` is a model; `kind` = `api` is an API. Do not invent an API name or a model id.
-2. Call `get_api` with the `api` value from that search. Read `input_schema`, `api_version`, and the public price. For a model, send chat completions input and use only the price fields `get_api` returned.
-3. Tell the user the price `get_api` returned and wait for approval.
-4. Call `run_api` only after that approval. Pass the same `api`, the `api_version` from `get_api`, and an `input` object that matches `input_schema`.
+1. When the user asks what is available, call `openany_overview` first. Present data APIs by category and AI models by modality, with the counts it returns. Do not invent a model count or an API count.
+2. Call `search_apis` with the user's task, or with one filter that search returned. Read the summaries. A result with `kind` = `model` is a model; `kind` = `api` is an API. Do not invent an API name or a model id.
+3. Call `get_api` with the `api` value from that search. Read `input_schema`, `api_version`, and the public price. For a model, send chat completions input and use only the price fields `get_api` returned.
+4. Tell the user the price `get_api` returned and wait for approval.
+5. Call `run_api` only after that approval. Pass the same `api`, the `api_version` from `get_api`, and an `input` object that matches `input_schema`.
 
 `run_api` can charge the user's OpenAny balance and can have side effects. Do not invent a price, a model count, or an API count. This skill does not publish a fixed price list.
 

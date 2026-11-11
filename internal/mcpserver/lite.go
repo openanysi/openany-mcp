@@ -10,8 +10,10 @@ import (
 	"github.com/openany/openany-mcp/internal/schema"
 )
 
+const liteInstructions = "OpenAny gives one API key for AI models and data APIs. When the user asks what is available, call openany_overview first and present two groups: data APIs by category, and AI models by modality, with the counts. Then use search_apis to choose a candidate, get_api to read its schema and live price, and run_api only after the user confirms that price. openany_overview, search_apis, and get_api read the catalog and do not call the paid gateway. run_api can incur charges. A displayed price is not a price lock. If execution_state is unknown after a timeout, do not retry automatically."
+
 func (h *Handler) newLiteServer() *mcp.Server {
-	s := mcp.NewServer(&mcp.Implementation{Name: "OpenAny Lite", Version: "0.1.0"}, &mcp.ServerOptions{Logger: h.options.Logger, Capabilities: &mcp.ServerCapabilities{Tools: &mcp.ToolCapabilities{ListChanged: false}}, SupportedProtocolVersions: []string{"2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"}})
+	s := mcp.NewServer(&mcp.Implementation{Name: "OpenAny Lite", Version: "0.1.0"}, &mcp.ServerOptions{Instructions: liteInstructions, Logger: h.options.Logger, Capabilities: &mcp.ServerCapabilities{Tools: &mcp.ToolCapabilities{ListChanged: false}}, SupportedProtocolVersions: []string{"2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"}})
 	stringInput := func(name string, required bool, max int) model.Input {
 		raw, _ := json.Marshal(map[string]any{"type": "string", "minLength": 1, "maxLength": max})
 		return model.Input{Name: name, Type: "string", Required: required, Schema: raw}
@@ -20,6 +22,7 @@ func (h *Handler) newLiteServer() *mcp.Server {
 		name, description string
 		inputs            []model.Input
 	}{
+		{"openany_overview", "Return live catalog counts from the current snapshot. No arguments. Does not call the paid gateway. api_count and model_count are totals. apis_by_provider and apis_by_category group data APIs. models_by_modality groups model ids by primary modality: chat/reasoning, image, video, and audio. Call this first when the user asks what OpenAny offers, then search_apis, get_api, and run_api only after the user confirms the live price.", nil},
 		{"search_apis", "Find OpenAny models and APIs by keywords and optional kind (api, model, or all; default all), provider, category, data_platform, data_product or capability. Model hits include model_id and, when the model catalog provides them, modalities, context length and a pricing summary. Returns bounded summaries and required inputs, not full schemas. Then call get_api. Keyword search supports limited bilingual aliases; it is not general semantic search.", []model.Input{stringInput("query", false, 256), stringInput("kind", false, 16), stringInput("provider", false, 64), stringInput("category", false, 128), stringInput("data_platform", false, 256), stringInput("data_product", false, 128), stringInput("capability", false, 256), {Name: "limit", Schema: json.RawMessage(`{"type":"integer","minimum":1,"maximum":10,"default":5}`)}, stringInput("cursor", false, 4096)}},
 		{"get_api", "Read one model or API selected from search_apis. For an API, returns the exact input_schema, public examples, pricing and api_version. For a model, returns the chat completions input shape, model_id, and catalog pricing when the model catalog provides it. Read this before executing. Discovery does not run a paid call, and displayed pricing is not a price lock.", []model.Input{stringInput("api", true, 64)}},
 		{"run_api", "Execute one selected OpenAny API, or send one selected model to chat completions, with the caller's current credentials. First call get_api. Pass its api and api_version, and input that matches input_schema. Model calls can incur charges. Supports finite JSON, UTF-8 plain text and Markdown. Optional output only changes presentation: raw (default), structural summary, or compact for JSON objects/arrays with explicit items_path for nested arrays. A timeout after dispatch has unknown execution or charging state: do not retry automatically.", []model.Input{stringInput("api", true, 64), {Name: "api_version", Required: true, Schema: json.RawMessage(`{"type":"string","pattern":"^[a-f0-9]{64}$"}`)}, {Name: "input", Required: true, Schema: json.RawMessage(`{"type":"object","additionalProperties":true}`)}, {Name: "output", Schema: json.RawMessage(`{"type":"object","additionalProperties":false,"properties":{"mode":{"type":"string","enum":["raw","compact","summary"],"default":"raw"},"items_path":{"type":"string","maxLength":512,"description":"RFC6901 pointer relative to response data. Required to clip a nested array; empty selects a root array."},"fields":{"type":"array","minItems":1,"maxItems":20,"uniqueItems":true,"items":{"type":"string","minLength":1,"maxLength":128},"description":"Literal object keys at root object or selected array items. Does not change upstream fields or pricing."},"max_items":{"type":"integer","minimum":1,"maximum":100,"description":"Returned array limit, default 10 in compact mode. Requires root array or items_path."}}}`)}}},
@@ -49,6 +52,8 @@ func (h *Handler) newLiteServer() *mcp.Server {
 			d := snapshot.Discovery
 			text := func(key string) string { x, _ := args[key].(string); return x }
 			switch name {
+			case "openany_overview":
+				return toLiteMCP(gateway.Result{Value: d.Overview()}), nil
 			case "search_apis":
 				limit := 0
 				if number, ok := args["limit"].(json.Number); ok {

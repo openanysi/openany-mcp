@@ -8,7 +8,7 @@ Name: OpenAny MCP
 
 Website: https://openany.si/
 
-Endpoint: `https://mcp.openany.si/mcp-lite`
+Endpoint: `https://mcp.openany.si`
 
 Transport: Streamable HTTP
 
@@ -58,7 +58,7 @@ After it is listed, record the real connector URL and copy the actual badge URL 
 [Rules](https://github.com/punkpeye/awesome-remote-mcp-servers/blob/main/CONTRIBUTING.md). Add one three-line entry alphabetically in the appropriate README category. Complete the Glama fields first; the placeholder below is intentionally not ready to submit.
 
 ```markdown
-- [OpenAny](https://openany.si/) `https://mcp.openany.si/mcp-lite`
+- [OpenAny](https://openany.si/) `https://mcp.openany.si`
   [![OpenAny MCP connector](GLAMA_BADGE_URL)](GLAMA_CONNECTOR_URL)
   🔑 - Discover APIs, inspect schemas and pricing, and execute requests through a unified gateway.
 ```

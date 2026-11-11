@@ -90,7 +90,14 @@ func TestLiteModelSearchGetAndRun(t *testing.T) {
 	json.NewDecoder(res.Body).Decode(&listed)
 	res.Body.Close()
 	tools := listed["result"].(map[string]any)["tools"].([]any)
-	if len(tools) != 3 || !strings.Contains(tools[0].(map[string]any)["description"].(string)+tools[1].(map[string]any)["description"].(string)+tools[2].(map[string]any)["description"].(string), "models and APIs") {
+	joined := ""
+	names := map[string]bool{}
+	for _, tool := range tools {
+		item := tool.(map[string]any)
+		names[item["name"].(string)] = true
+		joined += item["description"].(string)
+	}
+	if len(tools) != 4 || !names["openany_overview"] || !strings.Contains(joined, "models and APIs") {
 		t.Fatal(tools)
 	}
 	search := call("search_apis", map[string]any{"query": "deepseek"}, "")

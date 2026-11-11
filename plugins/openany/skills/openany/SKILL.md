@@ -1,6 +1,6 @@
 ---
 name: openany
-description: Search OpenAny models and APIs with search_apis, read one result with get_api, and call run_api only after the user approves the live price. The packaged server is https://mcp.openany.si/mcp-lite. A tools/list result is not an authenticated execution.
+description: Search OpenAny models and APIs with search_apis, read one result with get_api, and call run_api only after the user approves the live price. When the user asks what is available, call openany_overview first. The packaged server is https://mcp.openany.si. A tools/list result is not an authenticated execution.
 ---
 
 # OpenAny
@@ -9,7 +9,7 @@ OpenAny is a marketplace for agents. Use this skill only when this plugin's MCP 
 
 ## Server
 
-The packaged server is remote Streamable HTTP at `https://mcp.openany.si/mcp-lite`. Its tools are `search_apis`, `get_api`, and `run_api`. Do not call tool names from the full `/mcp` catalog unless a different server is connected.
+The packaged server is remote Streamable HTTP at `https://mcp.openany.si`. `/mcp-lite` is the same server. Its tools are `openany_overview`, `search_apis`, `get_api`, and `run_api`. Do not call tool names from the full `/mcp` catalog unless a different server is connected.
 
 Hermes sends `Authorization: Bearer` with the profile secret `OPENANY_API_KEY`. Do not ask the user to paste the key into the chat, and do not print the header or the profile environment.
 
@@ -17,9 +17,10 @@ Hermes sends `Authorization: Bearer` with the profile secret `OPENANY_API_KEY`. 
 
 ## Call order
 
-1. `search_apis` with a business query or one returned filter. Results include models (`kind` = `model`) and APIs (`kind` = `api`). Read the summaries. Do not invent an API name or a model id.
-2. `get_api` with the `api` value from that search. Read `input_schema`, `api_version`, and the public price before execution. A model uses the chat completions input shape.
-3. `run_api` only after the user approves the call. Pass that same `api`, the `api_version` from `get_api`, and `input` that matches `input_schema`.
+1. When the user asks what is available, call `openany_overview` first. Present data APIs by category and AI models by modality, with the counts it returns. Do not invent a model count or an API count.
+2. `search_apis` with a business query or one returned filter. Results include models (`kind` = `model`) and APIs (`kind` = `api`). Read the summaries. Do not invent an API name or a model id.
+3. `get_api` with the `api` value from that search. Read `input_schema`, `api_version`, and the public price before execution. A model uses the chat completions input shape.
+4. `run_api` only after the user approves the call. Pass that same `api`, the `api_version` from `get_api`, and `input` that matches `input_schema`.
 
 `run_api` can spend the user's OpenAny balance and can have side effects. This package does not declare a fixed price. Do not invent a price, a model count, or an API count.
 
