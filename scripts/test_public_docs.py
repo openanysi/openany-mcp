@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ENDPOINT = "https://mcp.openany.si"
 RECOMMENDED = "https://mcp.openany.si"
 FULL_CATALOG = "https://mcp.openany.si/mcp"
-REGISTRY_DESCRIPTION = "The marketplace for agents: 3,200+ APIs and 100+ AI models, one key. Browse free; pay per call."
+REGISTRY_DESCRIPTION = "The marketplace for agents: 3,200+ APIs and 168+ AI models, one key. Browse free; pay per call."
 
 
 class PublicDocsTests(unittest.TestCase):
@@ -27,7 +27,7 @@ class PublicDocsTests(unittest.TestCase):
         self.assertEqual(data["$schema"], "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json")
         self.assertEqual(data["name"], "si.openany/openany")
         self.assertEqual(data["title"], "OpenAny")
-        self.assertEqual(data["version"], "0.1.1")
+        self.assertEqual(data["version"], "0.1.2")
         self.assertEqual(data["description"], REGISTRY_DESCRIPTION)
         self.assertLessEqual(len(data["description"]), 100)
         self.assertEqual(data["websiteUrl"], "https://openany.si")
@@ -90,9 +90,10 @@ class PublicDocsTests(unittest.TestCase):
         for target in re.findall(r"\]\(([^)]+)\)", readme):
             if not target.startswith(("https://", "#")):
                 self.assertTrue((ROOT / target).exists(), target)
-        for text in ["Alephant AI LLC", "No OAuth", "Confirmed authentication header", "One MCP for 3,200+ APIs and 100+ AI models", "Browsing is free; pay per call.", "no subscription", "https://api.openany.si/v1", "Authorization: Bearer <OpenAny API key>` is optional"]:
+        for text in ["Alephant AI LLC", "No OAuth", "Confirmed authentication header", "One MCP for 3,200+ APIs and 168+ AI models", "Browsing is free; pay per call.", "no subscription", "https://api.openany.si/v1", "Authorization: Bearer <OpenAny API key>` is optional"]:
             self.assertIn(text, readme)
-        for stale in ["168+", "3,201", "3,220", "3,220 MCP tools"]:
+        self.assertIn("168+", readme)
+        for stale in ["100+ AI models", "100+ models", "3,201", "3,220", "3,220 MCP tools"]:
             self.assertNotIn(stale, readme)
         self.assertIn("No new authenticated live `tools/call`", readme)
         self.assertNotRegex(readme, r"(?i)unconfirmed|assumed")
