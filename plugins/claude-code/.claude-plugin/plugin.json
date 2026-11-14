@@ -1,0 +1,16 @@
+{
+  "name": "openany",
+  "displayName": "OpenAny",
+  "version": "0.2.1",
+  "description": "The B2A (business to agent) marketplace. One MCP endpoint for 3,200+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call.",
+  "author": {
+    "name": "Alephant AI LLC",
+    "email": "team@openany.si",
+    "url": "https://openany.si"
+  },
+  "homepage": "https://openany.si",
+  "repository": "https://github.com/openanysi/openany-mcp",
+  "license": "MIT",
+  "privacyPolicyUrl": "https://openany.si/privacy/",
+  "keywords": ["openany", "mcp", "marketplace", "agents"]
+}

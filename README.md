@@ -155,6 +155,23 @@ Client reference documentation: [Claude Code](https://code.claude.com/docs/en/mc
 Client versions and configuration support can change; consult the matching
 client documentation if a field or command is rejected.
 
+## Claude Code
+
+Add this repository as a marketplace, then install the plugin:
+
+```
+/plugin marketplace add openanysi/openany-mcp
+/plugin install openany@openanysi
+```
+
+[`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) names the marketplace `openanysi` and points at [`plugins/claude-code`](plugins/claude-code/.claude-plugin/plugin.json). That plugin is `openany` version `0.2.1`, the same version as the Hermes package. It includes the `openany` skill and a Streamable HTTP server at `https://mcp.openany.si`.
+
+[`plugins/claude-code/.mcp.json`](plugins/claude-code/.mcp.json) sets `Authorization: Bearer ${OPENANY_API_KEY:-}`. The key is optional. When `OPENANY_API_KEY` is unset, Claude Code expands the header to an empty token, and browsing, search, and pricing still work. Only `run_api` needs the key. Export `OPENANY_API_KEY` in the environment that starts Claude Code, then start a new session, before a paid call. Do not paste the key into the chat or into this repository.
+
+A manual server, without the plugin, remains [`examples/claude-code.sh`](examples/claude-code.sh). That script adds the header only when `OPENANY_API_KEY` is set.
+
+From a checkout of this repository, `claude plugin validate .` checks the marketplace and the plugin. [Privacy](https://openany.si/privacy/) covers how Alephant AI LLC handles account and API information.
+
 ## Gemini CLI
 
 Install this repository as a Gemini CLI extension:
@@ -200,8 +217,8 @@ for the same lite URL.
 
 ## Which URL the install files use
 
-The Gemini CLI extension, the Cursor `.mcp.json` plugin, the OpenClaw
-skill, and the files under `examples/` use `https://mcp.openany.si`. Public `tools/list` on that URL
+The Gemini CLI extension, the Cursor `.mcp.json` plugin, the Claude Code
+plugin, the OpenClaw skill, and the files under `examples/` use `https://mcp.openany.si`. Public `tools/list` on that URL
 returns `openany_overview`, `search_apis`, `get_api`, and `run_api` in a single page and does not
 send `nextCursor`. The advanced `https://mcp.openany.si/mcp` URL returns one tool
 per API, 3,268 tools, 50 tools per page, with `nextCursor` until the last page.
