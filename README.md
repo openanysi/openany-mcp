@@ -1,8 +1,14 @@
 # OpenAny MCP
 
-One MCP for 3,200+ APIs and 168+ AI models: search APIs, inspect schemas and pricing, and run calls with one OpenAny key. Browsing is free; pay per call.
+OpenAny is the B2A (business to agent) marketplace. One MCP endpoint gives your agent 3,200+ APIs and 168+ AI models, with one key and pay-per-call pricing.
 
-OpenAny (https://openany.si) is a remote MCP server. The recommended endpoint is the lite server.
+Get started in 3 steps:
+
+1. Add https://mcp.openany.si to your MCP client.
+2. Ask: "What can OpenAny do for me?"
+3. Try a real task: recent tweets from a user, backlinks for a domain, the price of bitcoin, a company's registration, the latest CPI, or an image.
+
+Browsing, search, and price checks do not need a key. Only `run_api` needs an OpenAny API key. Pay per call, no subscription.
 
 **Endpoint:** https://mcp.openany.si
 
@@ -12,7 +18,7 @@ OpenAny (https://openany.si) is a remote MCP server. The recommended endpoint is
 
 **Operator:** Alephant AI LLC.
 
-**Pricing:** Pay per call, no subscription. Browsing, search, and price checks do not need a key. Check the current resource price and billing unit before approving a paid call.
+**Pricing:** Check the current resource price and billing unit before approving a paid call.
 
 Live catalog counts come from `openany_overview`. The separate model API base URL is https://api.openany.si/v1.
 
@@ -217,7 +223,7 @@ Its Authorization header is optional. The value is `Bearer {OPENANY_API_KEY}`,
 Browsing does not need the key. `run_api` does.
 
 The registry description is limited to 100 characters, so its wording is
-shorter than the full description above. [`server.json`](server.json) is version `0.1.3`. Local setup does not run
+shorter than the full description above. It now uses the tagline "The B2A (business to agent) marketplace". [`server.json`](server.json) is version `0.1.4`. Local setup does not run
 `mcp-publisher publish`.
 
 [`glama.json`](glama.json) names the Glama maintainer for this repository.

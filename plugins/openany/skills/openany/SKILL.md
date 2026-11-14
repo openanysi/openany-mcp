@@ -5,7 +5,7 @@ description: Search OpenAny models and APIs with search_apis, read one result wi
 
 # OpenAny
 
-OpenAny is the open marketplace for agents. Use this skill only when this plugin's MCP server is connected.
+OpenAny is the B2A (business to agent) marketplace. Use this skill only when this plugin's MCP server is connected.
 
 ## Server
 

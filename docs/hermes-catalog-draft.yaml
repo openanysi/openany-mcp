@@ -7,7 +7,7 @@ name: openany
 repo: https://github.com/openanysi/openany-mcp
 sha: "701970438d5d2b06cef5ad74757983ca7e50f7c1"
 subdir: plugins/openany
-description: The open marketplace for agents. OpenAny remote MCP for Hermes over Streamable HTTP.
+description: The B2A (business to agent) marketplace. OpenAny remote MCP for Hermes over Streamable HTTP.
 maintainer: Alephant AI LLC
 tier: community
 category: tools
