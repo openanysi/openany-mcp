@@ -74,7 +74,10 @@ class ClientPackageTests(unittest.TestCase):
         plugin = load_json(ROOT / "plugins" / "openany" / "plugin.json")
         self.assertNotIn("Hermes", plugin["description"])
         self.assertIn("com.nousresearch.hermes", plugin["extensions"])
-        self.assertIn("lite MCP server", plugin["description"])
+        self.assertEqual(
+            plugin["description"],
+            "The B2A (business to agent) marketplace. One MCP endpoint for 3,200+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call.",
+        )
 
     def test_new_install_files_have_no_secret_or_em_dash(self):
         paths = [
@@ -93,7 +96,7 @@ class ClientPackageTests(unittest.TestCase):
                 self.assertNotRegex(text, r"\bsk-[A-Za-z0-9_-]{8,}")
                 self.assertNotRegex(text, r"(?m)^\s*(?:export\s+)?OPENANY_API_KEY\s*=")
                 self.assertNotRegex(text, r"Bearer\s+[A-Za-z0-9._~+/-]{16,}")
-                for banned in ("168+", "3,200", "3,201", "3,220", "3220"):
+                for banned in ("3,201", "3,220", "3220"):
                     self.assertNotIn(banned, text)
 
 

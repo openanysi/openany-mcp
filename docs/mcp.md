@@ -1,5 +1,7 @@
 # OpenAny MCP 接入
 
+The B2A (business to agent) marketplace：一个 MCP 端点接入 3,200+ API 和 168+ AI 模型。API 覆盖社交内容（X、TikTok 等）、SEO 与搜索、加密货币与链上数据、企业工商与销售线索、金融宏观和法律；模型包括 GPT、Claude、Gemini、DeepSeek、Qwen、Kimi，以及 Midjourney、FLUX、Veo、Kling 等图像和视频模型。浏览、搜索、查价免费，只有 `run_api` 需要 API Key，按次付费。
+
 ## 三步开始使用
 
 1. 把 `https://mcp.openany.si` 加到 MCP 客户端。

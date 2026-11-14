@@ -1,6 +1,22 @@
 # OpenAny MCP
 
-OpenAny is the B2A (business to agent) marketplace. One MCP endpoint gives your agent 3,200+ APIs and 168+ AI models, with one key and pay-per-call pricing.
+OpenAny is the B2A (business to agent) marketplace. Add one MCP endpoint, https://mcp.openany.si, and your agent can find and use 3,200+ APIs and 168+ AI models.
+
+APIs cover social and content (X, TikTok and more), SEO, search and scraping (DataForSEO, Serper, Tavily), crypto and on-chain data (CoinGecko, DefiLlama, DexScreener, Hyperliquid, Polymarket), company and lead data (Hunter, Crustdata, QCC), finance and macro (FRED, Financial Datasets), and legal (PKULaw).
+
+Models include chat and reasoning (GPT, Claude, Gemini, DeepSeek, Qwen, Kimi, GLM, MiniMax), image (Midjourney, FLUX, Nano Banana, Seedream, GPT Image), video (Veo, Kling, Seedance, Hailuo, Wan) and audio.
+
+Searching and checking prices is free with no key. You only need an OpenAny API key to run a call, and you pay per call.
+
+## What's inside
+
+- Social & content (1,247 APIs): X/Twitter, TikTok and other platforms, Wikipedia
+- SEO, search & scraping (950): DataForSEO, Serper, Tavily, You.com, web scraping
+- Crypto & on-chain (650): CoinGecko, DefiLlama, DexScreener, GeckoTerminal, Hyperliquid, Polymarket, Jupiter, Uniswap, GoPlus, RugCheck
+- Company & leads (308): Hunter, Crustdata, QCC company registry
+- Finance & macro (77): FRED, Financial Datasets
+- Legal (37): PKULaw
+- AI models (168+): chat/reasoning, image, video, audio
 
 Get started in 3 steps:
 

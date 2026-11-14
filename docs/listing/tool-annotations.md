@@ -1,6 +1,6 @@
 # MCP tool annotations
 
-The B2A (business to agent) marketplace. The lite server (`/` and `/mcp-lite`) advertises these hints on `tools/list`. Each per-API tool on `/mcp` uses the same execution hints as `run_api`, with `title` and `annotations.title` set to that catalog entry's title.
+The B2A (business to agent) marketplace. One MCP endpoint for 3,200+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call. The lite server (`/` and `/mcp-lite`) advertises these hints on `tools/list`. Each per-API tool on `/mcp` uses the same execution hints as `run_api`, with `title` and `annotations.title` set to that catalog entry's title.
 
 | Tool | title | readOnlyHint | destructiveHint | idempotentHint | openWorldHint | Justification |
 | --- | --- | --- | --- | --- | --- | --- |

@@ -16,11 +16,17 @@ Auth: API key through `Authorization: Bearer YOUR_OPENANY_KEY` for business exec
 
 Short description:
 
-> Discover APIs, inspect schemas and pricing, and execute requests through a unified gateway.
+> The B2A (business to agent) marketplace. One MCP endpoint for 3,200+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call.
 
 Long description:
 
-> OpenAny MCP provides three tools: search_apis discovers API candidates, get_api returns the selected API's input schema, public pricing and version, and run_api executes a request through the OpenAny gateway using the caller's own key. API execution can incur usage charges. The server does not automatically retry business calls, and a timeout after dispatch can leave execution and charging status unknown.
+> OpenAny is the B2A (business to agent) marketplace. Add one MCP endpoint, https://mcp.openany.si, and your agent can find and use 3,200+ APIs and 168+ AI models.
+>
+> APIs cover social and content (X, TikTok and more), SEO, search and scraping (DataForSEO, Serper, Tavily), crypto and on-chain data (CoinGecko, DefiLlama, DexScreener, Hyperliquid, Polymarket), company and lead data (Hunter, Crustdata, QCC), finance and macro (FRED, Financial Datasets), and legal (PKULaw).
+>
+> Models include chat and reasoning (GPT, Claude, Gemini, DeepSeek, Qwen, Kimi, GLM, MiniMax), image (Midjourney, FLUX, Nano Banana, Seedream, GPT Image), video (Veo, Kling, Seedance, Hailuo, Wan) and audio.
+>
+> Searching and checking prices is free with no key. You only need an OpenAny API key to run a call, and you pay per call.
 
 Existing public MCP reference: https://mcp.openany.si/docs/mcp
 
@@ -60,7 +66,7 @@ After it is listed, record the real connector URL and copy the actual badge URL 
 ```markdown
 - [OpenAny](https://openany.si/) `https://mcp.openany.si`
   [![OpenAny MCP connector](GLAMA_BADGE_URL)](GLAMA_CONNECTOR_URL)
-  🔑 - Discover APIs, inspect schemas and pricing, and execute requests through a unified gateway.
+  🔑 - The B2A (business to agent) marketplace. One MCP endpoint for 3,200+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call.
 ```
 
 PR title: `Add OpenAny remote MCP server`
@@ -93,7 +99,7 @@ The following is a field draft. Confirm any additional required fields against t
 - name: OpenAny MCP
   url: https://openany.si/
   docs_url: https://mcp.openany.si/docs/mcp
-  description: Discover APIs, inspect schemas and pricing, and execute requests through a unified gateway.
+  description: "The B2A (business to agent) marketplace. One MCP endpoint for 3,200+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call."
   category: tool-protocols-and-servers
   last_verified: 2026-11-06
 ```
@@ -111,7 +117,7 @@ PR body:
 [Rules](https://github.com/farol-team/awesome-agent-services/blob/main/contributing.md). Add the following row to Tools & Integrations, following the actual ordering of that section. The guide mentions both appending and alphabetical order; place OpenAny alphabetically and mention the choice if the maintainer requests otherwise.
 
 ```markdown
-| [OpenAny MCP](https://openany.si/) | Lets agents discover APIs, inspect schemas and public pricing, and execute requests through one MCP endpoint | Hosted service / Usage-based API calls |
+| [OpenAny MCP](https://openany.si/) | The B2A (business to agent) marketplace. One MCP endpoint for 3,200+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call. | Hosted service / Usage-based API calls |
 ```
 
 PR title: `Add OpenAny MCP to Tools & Integrations`

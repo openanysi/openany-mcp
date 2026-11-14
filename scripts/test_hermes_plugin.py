@@ -70,7 +70,7 @@ class HermesPluginManifestTests(unittest.TestCase):
         self.assertNotRegex(blob, r"(?m)^\s*(?:export\s+)?OPENANY_API_KEY\s*=")
         self.assertNotRegex(blob, r"Bearer\s+[A-Za-z0-9._~+/-]{16,}")
         self.assertNotIn(".env", blob.replace("does not read `.env`", "").replace("profile `.env`", ""))
-        for banned in ("168+", "3,200", "3,201", "3,220", "3220"):
+        for banned in ("3,201", "3,220", "3220"):
             self.assertNotIn(banned, blob)
         self.assertNotIn("os.environ", blob)
         self.assertNotRegex(blob, r"(?i)self-updater|check for updates")
