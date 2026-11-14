@@ -93,7 +93,7 @@ func TestToolListAdvertisesTitlesAndAnnotations(t *testing.T) {
 		t.Fatal(err)
 	}
 	text := string(doc)
-	if !bytes.Contains(doc, []byte("The open marketplace for agents")) {
+	if !bytes.Contains(doc, []byte("The B2A (business to agent) marketplace")) {
 		t.Fatal("annotation doc dropped the tagline")
 	}
 	for _, phrase := range []string{

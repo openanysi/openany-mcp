@@ -1,6 +1,6 @@
 # MCP tool annotations
 
-The open marketplace for agents. The lite server (`/` and `/mcp-lite`) advertises these hints on `tools/list`. Each per-API tool on `/mcp` uses the same execution hints as `run_api`, with `title` and `annotations.title` set to that catalog entry's title.
+The B2A (business to agent) marketplace. The lite server (`/` and `/mcp-lite`) advertises these hints on `tools/list`. Each per-API tool on `/mcp` uses the same execution hints as `run_api`, with `title` and `annotations.title` set to that catalog entry's title.
 
 | Tool | title | readOnlyHint | destructiveHint | idempotentHint | openWorldHint | Justification |
 | --- | --- | --- | --- | --- | --- | --- |
