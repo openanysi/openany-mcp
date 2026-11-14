@@ -1,13 +1,12 @@
 # DRAFT ONLY. Do not open a catalog PR and do not submit this file.
 # sha is the merge commit on main. plugins/openany at that commit is
 # version 0.2.1, declares mcp==2.3.0, and uses
-# https://mcp.openany.si/mcp-lite. This doc commit does not change
-# plugins/openany.
+# https://mcp.openany.si/mcp-lite. The pinned sha is unchanged.
 name: openany
 repo: https://github.com/openanysi/openany-mcp
 sha: "701970438d5d2b06cef5ad74757983ca7e50f7c1"
 subdir: plugins/openany
-description: The B2A (business to agent) marketplace. OpenAny remote MCP for Hermes over Streamable HTTP.
+description: The B2A (business to agent) marketplace. One MCP endpoint for 3,200+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call.
 maintainer: Alephant AI LLC
 tier: community
 category: tools

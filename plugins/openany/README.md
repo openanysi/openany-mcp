@@ -1,10 +1,18 @@
 # OpenAny for Hermes
 
-OpenAny (https://openany.si) is the B2A (business to agent) marketplace. This portable Hermes plugin connects to OpenAny's hosted MCP server over Streamable HTTP.
+OpenAny is the B2A (business to agent) marketplace. Add one MCP endpoint, https://mcp.openany.si, and your agent can find and use 3,200+ APIs and 168+ AI models.
+
+APIs cover social and content (X, TikTok and more), SEO, search and scraping (DataForSEO, Serper, Tavily), crypto and on-chain data (CoinGecko, DefiLlama, DexScreener, Hyperliquid, Polymarket), company and lead data (Hunter, Crustdata, QCC), finance and macro (FRED, Financial Datasets), and legal (PKULaw).
+
+Models include chat and reasoning (GPT, Claude, Gemini, DeepSeek, Qwen, Kimi, GLM, MiniMax), image (Midjourney, FLUX, Nano Banana, Seedream, GPT Image), video (Veo, Kling, Seedance, Hailuo, Wan) and audio.
+
+Searching and checking prices is free with no key. You only need an OpenAny API key to run a call, and you pay per call.
+
+This portable Hermes plugin connects to OpenAny's hosted MCP server over Streamable HTTP.
 
 The default URL is `https://mcp.openany.si`. `/mcp-lite` is the same server. It exposes `openany_overview`, `search_apis`, `get_api`, and `run_api`, so an agent can see what the catalog contains, search models and APIs, read one result, and execute it. Hermes 0.23.0 stops `tools/list` after 50 pages. The full endpoint `https://mcp.openany.si/mcp` exceeds that cap and is truncated at 2500 tools, which hides the rest of the catalog. A provider path such as `https://mcp.openany.si/mcp/coingecko` fits under the cap but lists only that provider.
 
-The package does not bundle a catalog and does not state how many models, APIs, or tools OpenAny offers.
+The package does not bundle a catalog. `openany_overview` reports live model and API counts.
 
 ## Package
 

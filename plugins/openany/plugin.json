@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "openany",
   "version": "0.2.1",
-  "description": "The B2A (business to agent) marketplace. Connects to OpenAny's lite MCP server so an agent can search the catalog, read one API, and run an approved call.",
+  "description": "The B2A (business to agent) marketplace. One MCP endpoint for 3,200+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call.",
   "author": {
     "name": "Alephant AI LLC",
     "url": "https://openany.si"

@@ -1,6 +1,6 @@
 ---
 name: openany
-description: Search OpenAny models and APIs with search_apis, read one result with get_api, and call run_api only after the user approves the live price. When the user asks what is available, call openany_overview first. The packaged server is https://mcp.openany.si. A tools/list result is not an authenticated execution.
+description: The B2A (business to agent) marketplace. One MCP endpoint for 3,200+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call.
 ---
 
 # OpenAny
