@@ -99,7 +99,9 @@ func TestRootRoutesLiteOverviewAndInstructions(t *testing.T) {
 			t.Fatalf("lite instructions missing %q: %s", phrase, instructions)
 		}
 	}
-	if instructions != liteResult["instructions"] || rootResult["serverInfo"].(map[string]any)["name"] != "OpenAny Lite" {
+	rootInfo := rootResult["serverInfo"].(map[string]any)
+	liteInfo := liteResult["serverInfo"].(map[string]any)
+	if instructions != liteResult["instructions"] || rootInfo["name"] != "OpenAny" || rootInfo["title"] != "OpenAny" || liteInfo["name"] != "OpenAny" || liteInfo["title"] != "OpenAny" {
 		t.Fatal("root and /mcp-lite initialize diverged", rootResult, liteResult)
 	}
 	fullInit, _ := rpc("/mcp", "initialize", initParams)
