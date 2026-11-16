@@ -8,7 +8,7 @@ import (
 
 const ownershipResourceURI = "agent-tools://ownership"
 
-const ownershipResourceBody = `{"agentToolsVerify":"atc_OfYhv55TTxeGWsZNHcK7wCuui3GlJSPJ"}`
+const ownershipResourceBody = `{"agentToolsVerify":"atc_v7Q5dM0PYIGl-WHBMg_kjwIishi0rUn8"}`
 
 func addOwnershipResource(s *mcp.Server) {
 	s.AddResource(&mcp.Resource{
