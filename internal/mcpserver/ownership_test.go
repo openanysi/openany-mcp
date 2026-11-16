@@ -16,7 +16,7 @@ import (
 
 func TestLiteOwnershipResource(t *testing.T) {
 	const wantURI = "agent-tools://ownership"
-	const wantBody = `{"agentToolsVerify":"atc_OfYhv55TTxeGWsZNHcK7wCuui3GlJSPJ"}`
+	const wantBody = `{"agentToolsVerify":"atc_v7Q5dM0PYIGl-WHBMg_kjwIishi0rUn8"}`
 	name := "demo_weather"
 	record := model.Record{APIID: name, Name: "Weather", Description: "Forecast", ProviderID: "demo", ToolName: &name, Status: "active", Method: "GET", RequestContentType: "none", PathTemplate: "/weather", PublicPath: "/v1/agent-apis/demo/weather", UnknownParameters: "reject", ConfigPresent: true}
 	manager := catalog.NewManagerWithDiscovery(func(context.Context) ([]model.Record, error) { return []model.Record{record}, nil }, model.Overrides{Version: 1}, time.Minute, false, func(context.Context) (map[string]map[string]any, error) {
