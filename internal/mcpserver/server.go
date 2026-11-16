@@ -73,6 +73,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Forbidden origin", 403)
 		return
 	}
+	if r.URL.Path == koskamoClaimPath {
+		serveKoskamoClaim(w, r)
+		return
+	}
 	if h.options.LiteEnabled && (r.URL.Path == "/docs/mcp" || (r.URL.Path == "/" && humanRead(r))) {
 		h.serveGuide(w, r)
 		return
