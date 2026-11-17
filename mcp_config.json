@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "openany": {
+      "serverUrl": "https://mcp.openany.si",
+      "headers": {
+        "Authorization": "Bearer ${OPENANY_API_KEY}"
+      },
+      "variables": [
+        {
+          "name": "OPENANY_API_KEY",
+          "title": "OpenAny API key",
+          "description": "Sent as Authorization: Bearer <key> to https://mcp.openany.si. Catalog search and pricing do not charge. run_api is pay per call and needs this key. Antigravity asks for it before enabling the plugin. Create the key in the dashboard. Do not paste it into chat.",
+          "link": "https://openany.si/dashboard?page=api-keys"
+        }
+      ]
+    }
+  }
+}
