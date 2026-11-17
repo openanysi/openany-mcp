@@ -1,0 +1,67 @@
+{
+  "name": "openany-ai-sdk-provider",
+  "version": "0.1.0",
+  "description": "Vercel AI SDK provider for OpenAny Chat Completions. Unpublished package name, pending registry approval.",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "examples",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openanysi/openany-mcp.git",
+    "directory": "providers/js/openany-ai-sdk-provider"
+  },
+  "homepage": "https://openany.si",
+  "bugs": {
+    "url": "https://github.com/openanysi/openany-mcp/issues",
+    "email": "team@openany.si"
+  },
+  "author": "Alephant AI LLC <team@openany.si>",
+  "keywords": [
+    "ai",
+    "ai-sdk",
+    "openany",
+    "vercel"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsc -p tsconfig.json && tsx --test test/*.test.ts",
+    "prepublishOnly": "npm test"
+  },
+  "dependencies": {
+    "@ai-sdk/openai-compatible": "3.0.92",
+    "@ai-sdk/provider": "4.0.38",
+    "@ai-sdk/provider-utils": "5.0.81",
+    "zod": "^3.25.76 || ^4.1.8"
+  },
+  "peerDependencies": {
+    "ai": "^7.0.0",
+    "zod": "^3.25.76 || ^4.1.8"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.19",
+    "ai": "7.0.173",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
+  }
+}
