@@ -19,6 +19,7 @@ Versions in the manifests are `0.1.0`. The dependencies that were verified are s
 - `@ai-sdk/provider` 4.0.38
 - `@ai-sdk/provider-utils` 5.0.81
 - `@ai-sdk/openai-compatible` 3.0.92
+- `undici` 8.12.4. Its published `engines.node` is `>=22.19.0`, and this package declares the same Node floor. npm warns on an older Node and refuses the install only when the installer enables `engine-strict`.
 - Language Model Specification V4, which current AI SDK 7 docs call the provider interface
 - `langchain-core` 1.8.1
 - `langchain-tests` 1.1.9

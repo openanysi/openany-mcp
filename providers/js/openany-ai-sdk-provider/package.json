@@ -20,7 +20,7 @@
     "LICENSE"
   ],
   "engines": {
-    "node": ">=22"
+    "node": ">=22.19.0"
   },
   "publishConfig": {
     "access": "public"
@@ -52,7 +52,7 @@
     "@ai-sdk/openai-compatible": "3.0.92",
     "@ai-sdk/provider": "4.0.38",
     "@ai-sdk/provider-utils": "5.0.81",
-    "undici": "^8.12.4",
+    "undici": "8.12.4",
     "zod": "^3.25.76 || ^4.1.8"
   },
   "peerDependencies": {

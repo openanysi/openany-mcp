@@ -4,7 +4,7 @@ These notes cover `providers/js/openany-ai-sdk-provider` and `providers/python/l
 
 ## Local checks
 
-JavaScript, from `providers/js/openany-ai-sdk-provider` (Node.js 22 or newer):
+JavaScript, from `providers/js/openany-ai-sdk-provider` (Node.js 22.19.0 or newer):
 
 ```bash
 npm ci

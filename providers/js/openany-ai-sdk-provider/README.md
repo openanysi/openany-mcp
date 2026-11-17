@@ -24,7 +24,7 @@ Peer dependency: `ai` 7.x. The versions executed in this repository are stable `
 npm install ai openany-ai-sdk-provider
 ```
 
-Node.js 22 or newer.
+Node.js 22.19.0 or newer. That floor is `undici@8.12.4`, whose package metadata declares `engines.node` `>=22.19.0`. The AI SDK packages used here declare `>=22`, which is lower. Node older than 22.19.0 is unsupported. npm warns about `engines` on install; it does not refuse the install unless the installer sets `engine-strict`.
 
 ## Use
 
