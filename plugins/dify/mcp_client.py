@@ -23,10 +23,20 @@ CLIENT_NAME = "OpenAny-Dify"
 CLIENT_VERSION = "0.1.0"
 CATALOG_TIMEOUT = 30.0
 RUN_TIMEOUT = 120.0
+# initialize, the initialized notification, then one run_api POST. This is the
+# longest stretch with no streamed tool message. dify-plugin 0.11.1 applies
+# MAX_REQUEST_TIMEOUT only as ServerlessRequestReader's idle gap between
+# response chunks (default 300). Local stdio and remote TCP do not use it as a
+# tool deadline. The paid HTTP timeout stays RUN_TIMEOUT and is not retried.
+HTTP_DEADLINE_SECONDS = CATALOG_TIMEOUT + CATALOG_TIMEOUT + RUN_TIMEOUT
+RESULT_DELIVERY_MARGIN_SECONDS = 60
+PLUGIN_REQUEST_DEADLINE = int(HTTP_DEADLINE_SECONDS + RESULT_DELIVERY_MARGIN_SECONDS)
 MAX_BODY = 4_000_000
+MIN_ACCEPTED_SECRET_LENGTH = 8
 KEY_PAGE = "https://openany.si/dashboard?page=api-keys"
 _VERSION_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _SESSION_RE = re.compile(r"^[A-Za-z0-9._~-]{1,256}$")
+_SESSION_HEADER_RE = re.compile(r"(?i)(mcp-session-id\s*[:=]\s*)(\S+)")
 _API_VERSION_RE = re.compile(r"^[a-f0-9]{64}$")
 _PLACEHOLDER_LITERALS = {
     "YOUR_API_KEY",
@@ -191,9 +201,11 @@ def call_tool(
         response = exchange(payload, headers, timeout)
     except TransportFailure as exc:
         raise _transport_error(exc, paid=paid, phase="tools/call") from None
-    message = _decode(response, expected_id=2, secret=secret)
+    message = _decode(response, expected_id=2, secret=secret, session=session)
     if "error" in message:
-        raise _rpc_error(message["error"], secret, paid=paid, phase="tools/call")
+        raise _rpc_error(
+            message["error"], secret, session=session, paid=paid, phase="tools/call"
+        )
     result = message.get("result")
     if not isinstance(result, dict):
         raise OpenAnyCallError(
@@ -202,8 +214,8 @@ def call_tool(
             execution_state="unknown" if paid else "not_started",
         )
     if result.get("isError"):
-        raise _tool_error(result, secret)
-    return redact(interpret_success(result), secret)
+        raise _tool_error(result, secret, session)
+    return _scrub(interpret_success(result), secret, session)
 
 
 def require_key(api_key: str | None) -> str:
@@ -323,7 +335,9 @@ def interpret_success(result: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def redact(value: Any, secret: str | None) -> Any:
-    if not secret or len(secret) < 8:
+    # Empty and one-character needles would corrupt the text. Accepted secrets
+    # are at least MIN_ACCEPTED_SECRET_LENGTH, so those are always replaced.
+    if not secret or len(secret) < MIN_ACCEPTED_SECRET_LENGTH:
         return value
     if isinstance(value, str):
         return value.replace(secret, "[REDACTED]")
@@ -331,6 +345,20 @@ def redact(value: Any, secret: str | None) -> Any:
         return [redact(item, secret) for item in value]
     if isinstance(value, dict):
         return {key: redact(item, secret) for key, item in value.items()}
+    return value
+
+
+def _scrub(value: Any, secret: str | None, session: str | None) -> Any:
+    value = redact(value, secret)
+    if isinstance(value, str):
+        value = _SESSION_HEADER_RE.sub(r"\1[REDACTED]", value)
+        if session and len(session) >= MIN_ACCEPTED_SECRET_LENGTH:
+            value = value.replace(session, "[REDACTED]")
+        return value
+    if isinstance(value, list):
+        return [_scrub(item, secret, session) for item in value]
+    if isinstance(value, dict):
+        return {key: _scrub(item, secret, session) for key, item in value.items()}
     return value
 
 
@@ -350,7 +378,7 @@ def _handshake() -> tuple[str, str | None]:
         response = exchange(payload, headers, CATALOG_TIMEOUT)
     except TransportFailure as exc:
         raise _transport_error(exc, paid=False, phase="initialize") from None
-    message = _decode(response, expected_id=1, secret=None)
+    message = _decode(response, expected_id=1, secret=None, session=None)
     if "error" in message:
         raise _rpc_error(message["error"], None, paid=False, phase="initialize")
     result = message.get("result")
@@ -371,7 +399,9 @@ def _handshake() -> tuple[str, str | None]:
     except TransportFailure as exc:
         raise _transport_error(exc, paid=False, phase="initialized") from None
     if notice_response.body:
-        notice_message = _decode(notice_response, expected_id=None, secret=None)
+        notice_message = _decode(
+            notice_response, expected_id=None, secret=None, session=session
+        )
         if "error" in notice_message:
             raise _rpc_error(
                 notice_message["error"], None, paid=False, phase="initialized"
@@ -409,9 +439,10 @@ def _decode(
     *,
     expected_id: int | None,
     secret: str | None,
+    session: str | None,
 ) -> dict[str, Any]:
     if response.status not in (200, 202):
-        detail = _body_excerpt(response.body, secret)
+        detail = _body_excerpt(response.body, secret, session)
         state = "unknown" if expected_id == 2 else "not_started"
         raise OpenAnyCallError(
             f"OpenAny returned HTTP {response.status}. {detail}".strip(),
@@ -429,7 +460,7 @@ def _decode(
     content_type = response.headers.get("content-type", "")
     message = _parse_body(response.body, content_type, expected_id)
     if message is None:
-        excerpt = _body_excerpt(response.body, secret)
+        excerpt = _body_excerpt(response.body, secret, session)
         raise OpenAnyCallError(
             f"OpenAny returned a non-JSON MCP response. {excerpt}".strip(),
             code="openany_dify_invalid_response",
@@ -485,7 +516,11 @@ def _sse_data(text: str) -> list[str]:
     return events
 
 
-def _tool_error(result: Mapping[str, Any], secret: str | None) -> OpenAnyCallError:
+def _tool_error(
+    result: Mapping[str, Any],
+    secret: str | None,
+    session: str | None = None,
+) -> OpenAnyCallError:
     parsed = None
     texts = _text_blocks(result)
     if len(texts) == 1:
@@ -501,11 +536,11 @@ def _tool_error(result: Mapping[str, Any], secret: str | None) -> OpenAnyCallErr
         if state == "unknown" and "retry" not in message.lower():
             message = f"{message} Do not retry automatically."
         return OpenAnyCallError(
-            redact(message, secret),
-            code=redact(code, secret),
-            execution_state=redact(state, secret),
+            _scrub(message, secret, session),
+            code=_scrub(code, secret, session),
+            execution_state=_scrub(state, secret, session),
         )
-    text = redact("\n".join(texts), secret).strip()
+    text = _scrub("\n".join(texts), secret, session).strip()
     return OpenAnyCallError(
         text or "OpenAny returned a tool error.",
         code="openany_tool_error",
@@ -517,6 +552,7 @@ def _rpc_error(
     error: Any,
     secret: str | None,
     *,
+    session: str | None = None,
     paid: bool,
     phase: str,
 ) -> OpenAnyCallError:
@@ -527,7 +563,7 @@ def _rpc_error(
     if state == "unknown":
         message = f"{message} Do not retry automatically."
     return OpenAnyCallError(
-        redact(message, secret),
+        _scrub(message, secret, session),
         code="openany_dify_rpc_error",
         execution_state=state,
     )
@@ -707,7 +743,11 @@ def _whole_number(value: Any, name: str) -> int:
 
 
 def _unsafe_key(material: str) -> bool:
-    if not material or len(material) > 512:
+    if (
+        not material
+        or len(material) < MIN_ACCEPTED_SECRET_LENGTH
+        or len(material) > 512
+    ):
         return True
     return any(ch.isspace() or ord(ch) < 32 for ch in material)
 
@@ -745,9 +785,9 @@ def _try_json(text: str) -> Any:
         return None
 
 
-def _body_excerpt(body: bytes, secret: str | None) -> str:
+def _body_excerpt(body: bytes, secret: str | None, session: str | None = None) -> str:
     text = body.decode("utf-8", errors="replace").strip()
-    text = redact(text, secret)
+    text = _scrub(text, secret, session)
     if len(text) > 180:
         text = text[:180] + "..."
     return text

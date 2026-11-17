@@ -8,6 +8,7 @@ from dify_plugin.entities.tool import ToolInvokeMessage
 
 import mcp_client
 
+# Chat text is capped. The JSON message above keeps the full payload.
 _TEXT_LIMIT = 20000
 
 

@@ -166,6 +166,68 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(arguments["output"], output)
         self.assertEqual(len(script.calls), 3)
 
+    def test_serverless_deadline_leaves_room_to_report_a_timeout(self):
+        budget = 2 * mcp_client.CATALOG_TIMEOUT + mcp_client.RUN_TIMEOUT
+        self.assertEqual(mcp_client.CATALOG_TIMEOUT, 30)
+        self.assertEqual(mcp_client.RUN_TIMEOUT, 120)
+        self.assertEqual(budget, 180)
+        self.assertGreaterEqual(mcp_client.PLUGIN_REQUEST_DEADLINE, 210)
+        self.assertGreater(mcp_client.PLUGIN_REQUEST_DEADLINE, budget)
+        self.assertEqual(
+            mcp_client.PLUGIN_REQUEST_DEADLINE,
+            int(budget + mcp_client.RESULT_DELIVERY_MARGIN_SECONDS),
+        )
+        main = (ROOT / "main.py").read_text()
+        self.assertIn("PLUGIN_REQUEST_DEADLINE", main)
+        self.assertNotIn("MAX_REQUEST_TIMEOUT=180", main)
+
+    def test_short_secret_is_rejected_before_any_request(self):
+        short = "abc1234"
+
+        def explode(*_args, **_kwargs):
+            raise AssertionError("network was called")
+
+        with mock.patch.object(mcp_client, "exchange", explode):
+            with self.assertRaises(OpenAnyCallError) as caught:
+                mcp_client.call_tool(
+                    "run_api",
+                    {"api": "demo_api", "api_version": API_VERSION, "input": {}},
+                    paid=True,
+                    api_key=short,
+                )
+            status, reason = mcp_client.credential_status(short)
+            empty_status, _empty_reason = mcp_client.credential_status("")
+            saved = OpenAnyProvider().validate_credentials({"openany_api_key": short})
+        self.assertEqual(caught.exception.code, "openany_dify_invalid_credentials")
+        self.assertEqual(caught.exception.execution_state, "not_started")
+        self.assertNotIn(short, str(caught.exception))
+        self.assertEqual(status, "invalid")
+        self.assertEqual(reason, "credential_invalid")
+        self.assertEqual(empty_status, "valid")
+        self.assertEqual(saved.status, "invalid")
+        self.assertNotIn(short, str(saved.reason_code))
+
+    def test_http_error_excerpt_drops_the_session_and_the_key(self):
+        session = "sess-9f3c-do-not-leak"
+        body = f"boom Mcp-Session-Id: {session} leaked {CANARY} and again {session}".encode()
+        script = self._success_script(
+            HttpResponse(500, {"content-type": "text/plain", "mcp-session-id": session}, body)
+        )
+        script.responses["initialize"] = initialize_response(session)
+        with mock.patch.object(mcp_client, "exchange", script):
+            with self.assertRaises(OpenAnyCallError) as caught:
+                mcp_client.call_tool(
+                    "run_api",
+                    {"api": "demo_api", "api_version": API_VERSION, "input": {}},
+                    paid=True,
+                    api_key=CANARY,
+                )
+        text = str(caught.exception)
+        self.assertIn("HTTP 500", text)
+        self.assertIn("[REDACTED]", text)
+        self.assertNotIn(CANARY, text)
+        self.assertNotIn(session, text)
+
     def test_missing_and_placeholder_keys_do_not_call_the_network(self):
         def explode(*_args, **_kwargs):
             raise AssertionError("network was called")

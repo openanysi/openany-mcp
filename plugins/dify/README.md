@@ -72,8 +72,12 @@ Python 3.12 and `dify-plugin==0.11.1` are the versions this package declares. `d
 - The key is attached only as `Authorization: Bearer <key>` on the `run_api` `tools/call`. Initialize, the initialized notification, and catalog tools do not send it.
 - Credential checks and argument checks that fail locally do not open a connection.
 - `run_api` is sent once per invocation. A timeout after that request is sent is `execution_state=unknown`. The plugin does not retry it.
-- Errors and returned JSON have the key replaced with `[REDACTED]` when the key is at least 8 characters.
-- Catalog timeout is 30 seconds. `run_api` timeout is 120 seconds.
+- A saved secret shorter than 8 characters is rejected locally and is not sent. Empty is still allowed. Accepted secrets are replaced with `[REDACTED]` in errors and JSON results. An empty string is not used as a redaction needle.
+- HTTP error text drops `Mcp-Session-Id` values. A session token of 8 or more characters is also removed if it appears in the body.
+- Catalog timeout is 30 seconds. The initialized notification uses the same 30 seconds. `run_api` HTTP timeout stays 120 seconds.
+- In dify-plugin 0.11.1, `MAX_REQUEST_TIMEOUT` is the serverless response-stream idle limit, default 300. This plugin writes nothing until the HTTP work finishes, so that limit is 240: the 180-second worst case plus 60 seconds to deliver the result or the do-not-retry error. It does not lengthen the paid call.
+
+The JSON tool message keeps the full result. The text message stops at 20,000 characters and says that the JSON message is complete. That split is intentional.
 
 Details of what leaves the workspace are in [PRIVACY.md](PRIVACY.md). Marketplace submission steps are in [PUBLISHING.md](PUBLISHING.md).
 
@@ -85,7 +89,11 @@ From `plugins/dify`:
 python3 -m unittest discover -s tests -v
 ```
 
-Those tests load the manifest with `dify-plugin` 0.11.1 and mock the MCP HTTP exchange. They cover an optional and a required key, JSON arguments, tool errors, timeouts, non-JSON bodies, SSE, redirect and proxy refusal, and secret redaction. They do not install the plugin into Dify.
+Those tests load the manifest with `dify-plugin` 0.11.1 and mock the MCP HTTP exchange. They cover an optional and a required key, a rejected short secret, JSON arguments, tool errors, timeouts, the serverless deadline margin, non-JSON bodies, SSE, redirect and proxy refusal, and secret redaction. They do not install the plugin into Dify.
+
+Official self-host is Docker Compose: Docker Compose 2.35.0 or later, at least 2 CPU cores, and at least 4 GiB of RAM ([deploy guide](https://docs.dify.ai/en/self-host/deploy/quick-start/docker-compose)). The VM used for this change had no `docker` binary. About 4.9 GiB was free, about 10 GiB was already in use, and there was no swap, so that stack was not started. These unit tests are not a substitute for that install. Bind any later Compose admin page to localhost.
+
+`dify plugin run` from CLI 0.6.15 is the local plugin runner, not a Dify workflow. With `uv` 0.9.10 on `PATH`, that command loaded `openanysi/openany:0.1.0` and invoked the tools over stdio with an empty secret. `openany_overview` returned `api_count` 3278. `search_apis` for `backlinks summary` returned a hit (`total` 385). `get_api` on that hit returned `input_schema`, `pricing`, and a 64-character `api_version`. `run_api` returned `openany_mcp_credentials_missing` with `execution_state=not_started` in under a second, before any outbound call. A Dify agent or workflow check still needs the Compose install above. The live model count from the earlier direct catalog smoke was 153, which is not the approved marketing figure 168+. The manifest keeps 168+.
 
 An optional live check, with no API key and no `run_api`, is:
 
