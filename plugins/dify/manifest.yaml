@@ -1,0 +1,37 @@
+version: 0.1.0
+type: plugin
+author: openanysi
+name: openany
+repo: https://github.com/openanysi/openany-mcp
+contact: team@openany.si
+label:
+  en_US: OpenAny
+  zh_Hans: OpenAny
+description:
+  en_US: "The B2A (business to agent) marketplace. One MCP endpoint for 3,200+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call."
+  zh_Hans: "The B2A (business to agent) marketplace：一个 MCP 端点接入 3,200+ API 和 168+ AI 模型。浏览、搜索、查价免费，只有 run_api 需要 API Key，按次付费。"
+icon: logo.png
+created_at: "2026-11-17T03:00:00Z"
+privacy: ./PRIVACY.md
+tags:
+  - search
+  - business
+  - finance
+  - social
+resource:
+  memory: 268435456
+plugins:
+  tools:
+    - provider/openany.yaml
+meta:
+  version: 0.0.1
+  arch:
+    - amd64
+    - arm64
+  runner:
+    language: python
+    version: "3.12"
+    entrypoint: main
+network:
+  domains:
+    - mcp.openany.si

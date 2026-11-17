@@ -1,0 +1,14 @@
+identity:
+  name: openany_overview
+  author: openanysi
+  label:
+    en_US: OpenAny overview
+    zh_Hans: OpenAny 概览
+description:
+  human:
+    en_US: "Return live catalog counts. No arguments. Does not call the paid gateway. api_count and model_count are totals. APIs are grouped by category and models by modality."
+    zh_Hans: "返回实时目录数量。无参数。不调用付费网关。api_count 与 model_count 是总数。API 按类别分组，模型按模态分组。"
+  llm: "Return live catalog counts from the current snapshot. No arguments. Does not call the paid gateway. api_count and model_count are totals. apis_by_provider and apis_by_category group data APIs. models_by_modality groups model ids by primary modality: chat/reasoning, image, video, and audio. example_questions lists ready-to-ask questions in en and zh. On a first or vague message, present that intro and do not search yet. Then search_apis, get_api, and run_api only after the user confirms the live price. Counts come from this response. Do not treat the marketing figures 3,200+ and 168+ as the live totals."
+extra:
+  python:
+    source: tools/openany_overview.py

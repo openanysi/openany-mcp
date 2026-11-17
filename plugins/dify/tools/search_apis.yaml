@@ -1,0 +1,130 @@
+identity:
+  name: search_apis
+  author: openanysi
+  label:
+    en_US: Search APIs and models
+    zh_Hans: 搜索 API 和模型
+description:
+  human:
+    en_US: "Find OpenAny models and APIs by keywords and optional filters. Returns summaries, not full schemas. Then call Get API or model details. This does not call the paid gateway."
+    zh_Hans: "按关键词和可选筛选查找模型和 API。返回摘要，不是完整 schema。然后调用获取详情。不调用付费网关。"
+  llm: "Find OpenAny models and APIs by keywords and optional kind (api, model, or all; default all), provider, category, data_platform, data_product or capability. Model hits include model_id and, when the catalog provides them, modalities, context length and a pricing summary. Returns bounded summaries and required inputs, not full schemas. Then call get_api. Keyword search supports limited bilingual aliases; it is not general semantic search. Provide a query or one filter. kind=model alone browses model ids. limit defaults to 5 and is at most 10. This tool does not call the paid gateway and does not use the API key."
+parameters:
+  - name: query
+    type: string
+    required: false
+    form: llm
+    label:
+      en_US: Query
+      zh_Hans: 查询
+    human_description:
+      en_US: Keywords, at most 256 characters. Omit this when a filter or kind=model is enough.
+      zh_Hans: 关键词，最多 256 个字符。有筛选条件或 kind=model 时可以不填。
+    llm_description: "Keywords, 1 to 256 characters. Omit when using a filter. kind=model alone browses models."
+  - name: kind
+    type: select
+    required: false
+    form: llm
+    label:
+      en_US: Kind
+      zh_Hans: 类型
+    human_description:
+      en_US: "api, model, or all. The server default is all."
+      zh_Hans: "api、model 或 all。服务端默认是 all。"
+    llm_description: "Optional. api returns APIs, model returns models, all returns both. Default all."
+    options:
+      - value: all
+        label:
+          en_US: All
+          zh_Hans: 全部
+      - value: api
+        label:
+          en_US: APIs
+          zh_Hans: API
+      - value: model
+        label:
+          en_US: Models
+          zh_Hans: 模型
+  - name: provider
+    type: string
+    required: false
+    form: llm
+    label:
+      en_US: Provider
+      zh_Hans: 提供方
+    human_description:
+      en_US: Provider id returned by the catalog, at most 64 characters.
+      zh_Hans: 目录返回的提供方 id，最多 64 个字符。
+    llm_description: Optional provider id, 1 to 64 characters.
+  - name: category
+    type: string
+    required: false
+    form: llm
+    label:
+      en_US: Category
+      zh_Hans: 类别
+    human_description:
+      en_US: Category id from the catalog, at most 128 characters.
+      zh_Hans: 目录中的类别 id，最多 128 个字符。
+    llm_description: Optional category id, 1 to 128 characters.
+  - name: data_platform
+    type: string
+    required: false
+    form: llm
+    label:
+      en_US: Data platform
+      zh_Hans: 数据平台
+    human_description:
+      en_US: Data platform id from the catalog, at most 256 characters.
+      zh_Hans: 目录中的数据平台 id，最多 256 个字符。
+    llm_description: Optional data_platform id, 1 to 256 characters.
+  - name: data_product
+    type: string
+    required: false
+    form: llm
+    label:
+      en_US: Data product
+      zh_Hans: 数据产品
+    human_description:
+      en_US: Data product id from the catalog, at most 128 characters.
+      zh_Hans: 目录中的数据产品 id，最多 128 个字符。
+    llm_description: Optional data_product id, 1 to 128 characters.
+  - name: capability
+    type: string
+    required: false
+    form: llm
+    label:
+      en_US: Capability
+      zh_Hans: 能力
+    human_description:
+      en_US: Capability id or key from the catalog, at most 256 characters.
+      zh_Hans: 目录中的能力 id 或 key，最多 256 个字符。
+    llm_description: Optional capability id or key, 1 to 256 characters.
+  - name: limit
+    type: number
+    required: false
+    form: llm
+    default: 5
+    min: 1
+    max: 10
+    label:
+      en_US: Limit
+      zh_Hans: 条数
+    human_description:
+      en_US: How many summaries to return. Default 5, maximum 10.
+      zh_Hans: 返回的摘要条数。默认 5，最多 10。
+    llm_description: Integer from 1 to 10. Default 5.
+  - name: cursor
+    type: string
+    required: false
+    form: llm
+    label:
+      en_US: Cursor
+      zh_Hans: 游标
+    human_description:
+      en_US: Pass next_cursor from the previous page unchanged, with the same query, filters, and limit.
+      zh_Hans: 原样传入上一页的 next_cursor，并保持相同的查询、筛选和条数。
+    llm_description: Optional next_cursor from the previous page. Keep query, filters, and limit the same.
+extra:
+  python:
+    source: tools/search_apis.py

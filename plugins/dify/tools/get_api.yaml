@@ -1,0 +1,26 @@
+identity:
+  name: get_api
+  author: openanysi
+  label:
+    en_US: Get API or model details
+    zh_Hans: 获取 API 或模型详情
+description:
+  human:
+    en_US: "Read one model or API selected from search. Returns the input schema, public examples, pricing, and api_version. This does not call the paid gateway. A displayed price is not a price lock."
+    zh_Hans: "读取搜索选中的一个模型或 API。返回 input schema、公开示例、价格和 api_version。不调用付费网关。显示的价格不是锁价。"
+  llm: "Read one model or API selected from search_apis. For an API, returns the exact input_schema, public examples, pricing and api_version. For a model, returns the chat completions input shape, model_id, and catalog pricing when the model catalog provides it. Read this before executing. Discovery does not run a paid call, and displayed pricing is not a price lock. Pass the api identifier from search_apis. Do not guess a name and do not pass a URL. Confirm the current price with the user before run_api."
+parameters:
+  - name: api
+    type: string
+    required: true
+    form: llm
+    label:
+      en_US: API or model id
+      zh_Hans: API 或模型 id
+    human_description:
+      en_US: The api value returned by search, 1 to 64 characters.
+      zh_Hans: 搜索结果中的 api 值，1 到 64 个字符。
+    llm_description: Required api identifier from search_apis, 1 to 64 characters. Not a URL.
+extra:
+  python:
+    source: tools/get_api.py
