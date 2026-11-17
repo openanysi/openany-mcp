@@ -3,6 +3,11 @@
 .venv/
 __pycache__/
 *.pyc
+node_modules/
+providers/**/dist/
+*.tsbuildinfo
+*.egg-info/
+.pytest_cache/
 bin/
 .superpowers/
 *.log

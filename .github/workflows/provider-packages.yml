@@ -1,0 +1,38 @@
+name: provider-packages
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  javascript:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: providers/js/openany-ai-sdk-provider
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: npm
+          cache-dependency-path: providers/js/openany-ai-sdk-provider/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm pack --dry-run
+
+  python:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: providers/python/langchain-openany
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --all-groups --frozen
+      - run: uv run pytest
+      - run: uv build

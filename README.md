@@ -267,6 +267,10 @@ shorter than the full description above. It now uses the tagline "The B2A (busin
 
 [`glama.json`](glama.json) names the Glama maintainer for this repository.
 
+## Language model packages
+
+`providers/js/openany-ai-sdk-provider` and `providers/python/langchain-openany` are separate client packages for text Chat Completions at `https://api.openany.si/v1/chat/completions`. Install the package and call it with your own `OPENANY_API_KEY`. They do not change this MCP server, they do not call `https://mcp.openany.si`, and they are not published or listed. See [providers/README.md](providers/README.md).
+
 ## Development
 
 The existing Go server implementation, configuration, migrations and tests are
