@@ -18,13 +18,11 @@ OpenAny is the B2A (business to agent) marketplace. The marketplace also lists 3
 
 ## Install
 
-Requires Python 3.11+ and `langchain-core` 1.8 or newer, below 2.
+Requires Python 3.11+. Declared dependencies are `langchain-core>=1.8.1,<1.9` and `httpx>=0.28.1,<0.29`. That range is not a tested matrix. The only versions executed in this repository are `langchain-core` 1.8.1, `httpx` 0.28.1, and dev-only `langchain-tests` 1.1.9. Those are stable releases, not prereleases.
 
 ```bash
 pip install langchain-openany
 ```
-
-Verified in development against `langchain-core` 1.8.1 and `langchain-tests` 1.1.9. Those are stable releases, not prereleases.
 
 ## Use
 
@@ -52,6 +50,8 @@ Create a key at https://openany.si/dashboard?page=api-keys. Do not paste it into
 - `response_metadata["finish_reason"]` when the response includes `finish_reason`
 - Closing a stream stops reading. The request is not repeated
 - `max_retries` is accepted and ignored. This class makes one HTTP attempt
+- A 60 second default timeout for connect, write, and idle read. Pass `timeout` in seconds to change it. There is no unlimited timeout. A timeout is not retried
+- The API key and endpoint are checked again before every call. Assignment and `model_copy` cannot point a later call at a forbidden host
 
 If `total_tokens` is omitted, `usage_metadata["total_tokens"]` is the sum of the supplied prompt and completion counts, because LangChain's field is that sum. `response_metadata["usage_total_source"]` is `sum_of_prompt_and_completion` in that case. When the response includes `total_tokens`, that value is kept even if it differs from the sum.
 
@@ -59,21 +59,22 @@ If `total_tokens` is omitted, `usage_metadata["total_tokens"]` is the sum of the
 
 These raise before the request:
 
-- Tool calling, tool messages, and `bind_tools` results (the inherited `bind_tools` is not a working OpenAny tool API; a later invoke rejects `tools`)
+- Tool calling. `bind_tools(...)` raises `NotImplementedError` immediately. Passing `tools` into `invoke` is also rejected before a request. Neither path waits for a model round trip
 - Structured output
 - Image, audio, video, and file parts
 - Embeddings and other modalities
 - Responses API and Anthropic Messages
 - Automatic retries, including HTTP 429 and 5xx
-- Redirects. `follow_redirects` is false. Environment proxies are not used (`trust_env=False`)
+- Redirects. `follow_redirects` is false, so this client does not send the request to the `Location` URL
+- Environment proxies. `trust_env` is false, so `HTTP_PROXY` and `HTTPS_PROXY` are not used by this client
 - A non-default `base_url`, unless `allow_custom_endpoint=True`
-- The MCP host, even with that opt-in
+- The MCP host, including a trailing-dot or mixed-case form such as `https://MCP.openany.si./v1`, even with that opt-in
 
 `stream_options` is not sent. A stream reports usage only when an event includes `usage`.
 
-A response that contains tool calls does not become LangChain tool calls. `response_metadata["unsupported_tool_calls"]` is true. Non-text response parts are not decoded; their type names are listed in `unsupported_content_parts`.
+A response that contains tool calls does not become LangChain tool calls. `response_metadata["unsupported_tool_calls"]` is true. A streamed `error` object fails the call before later events are treated as success. Non-text response parts are not decoded; their type names are listed in `unsupported_content_parts`.
 
-No live paid call was made to verify this package. Tests use a local mock HTTP server. The LangChain `ChatModelUnitTests` suite is included. Its serialization case is skipped: `ChatOpenAny` is not marked LangChain-serializable, because `langchain-core` 1.8.1 refuses to load a class that is outside its built-in allowlist. `ChatModelIntegrationTests` are not run.
+This is a text Chat Completions adapter. It is not a claim that every LangChain chat-model feature was implemented. No live paid call was made. Tests use a local mock HTTP server. The LangChain `ChatModelUnitTests` suite is included. Its serialization case is skipped: `ChatOpenAny` is not marked LangChain-serializable, because `langchain-core` 1.8.1 refuses to load a class that is outside its built-in allowlist. `ChatModelIntegrationTests` are not run.
 
 ## Endpoint override
 

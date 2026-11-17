@@ -18,8 +18,8 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-  "httpx>=0.28.1,<1",
-  "langchain-core>=1.8.0,<2",
+  "httpx>=0.28.1,<0.29",
+  "langchain-core>=1.8.1,<1.9",
 ]
 
 [project.urls]
@@ -30,7 +30,7 @@ Issues = "https://github.com/openanysi/openany-mcp/issues"
 
 [dependency-groups]
 dev = [
-  "langchain-tests>=1.1.9,<2",
+  "langchain-tests>=1.1.9,<1.2",
   "pytest>=9,<10",
 ]
 

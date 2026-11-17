@@ -1,5 +1,7 @@
 export const DEFAULT_BASE_URL = 'https://api.openany.si/v1';
 export const CHAT_COMPLETIONS_PATH = '/chat/completions';
+/** Idle/header timeout used when the caller does not pass timeoutMs. */
+export const DEFAULT_TIMEOUT_MS = 60_000;
 const BLOCKED_HOSTS = new Set(['mcp.openany.si']);
 
 export class OpenAnyEndpointError extends Error {
@@ -22,10 +24,22 @@ function isLoopback(hostname: string): boolean {
 }
 
 /**
+ * Lower-case a host and remove a trailing DNS root dot.
+ * `mcp.openany.si.` is the same name as `mcp.openany.si`.
+ */
+export function canonicalHost(hostname: string): string {
+  const host = hostname.trim().toLowerCase().replace(/\.+$/, '');
+  if (!host || host.split('.').some(label => label.length === 0)) {
+    throw new OpenAnyEndpointError('OpenAny baseURL host is not valid.');
+  }
+  return host;
+}
+
+/**
  * Resolve the Chat Completions API root.
  * The default host is always https://api.openany.si/v1.
  * Any other URL requires allowCustomEndpoint, which is an explicit opt-in.
- * The MCP host is rejected even with that opt-in.
+ * The MCP host is rejected even with that opt-in, including case and trailing-dot forms.
  */
 export function resolveEndpoint(
   baseURL: string | undefined,
@@ -50,8 +64,8 @@ export function resolveEndpoint(
   if (url.search || url.hash) {
     throw new OpenAnyEndpointError('OpenAny baseURL must not include a query or fragment.');
   }
-  const hostname = url.hostname.toLowerCase();
-  if (BLOCKED_HOSTS.has(hostname)) {
+  const host = canonicalHost(url.hostname);
+  if (BLOCKED_HOSTS.has(host)) {
     throw new OpenAnyEndpointError(
       'OpenAny chat requests are not sent to the MCP host. Use https://api.openany.si/v1.',
     );
@@ -62,13 +76,15 @@ export function resolveEndpoint(
       'OpenAny baseURL path must be /v1. The adapter appends /chat/completions.',
     );
   }
-  if (url.protocol === 'http:' && !isLoopback(hostname)) {
+  if (url.protocol === 'http:' && !isLoopback(host)) {
     throw new OpenAnyEndpointError('OpenAny baseURL must use https, except for loopback tests.');
   }
   if (url.protocol !== 'https:' && url.protocol !== 'http:') {
     throw new OpenAnyEndpointError('OpenAny baseURL must use https.');
   }
-  const normalized = `${url.protocol}//${url.host}/v1`;
+  const defaultPort = url.protocol === 'https:' ? '443' : '80';
+  const port = url.port && url.port !== defaultPort ? `:${url.port}` : '';
+  const normalized = `${url.protocol}//${host}${port}/v1`;
   const isDefault = normalized === DEFAULT_BASE_URL;
   if (!isDefault && !allowCustomEndpoint) {
     throw new OpenAnyEndpointError(

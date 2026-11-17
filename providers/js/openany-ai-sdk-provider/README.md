@@ -18,7 +18,7 @@ OpenAny is the B2A (business to agent) marketplace. The marketplace also lists 3
 
 ## Install
 
-Peer dependency: `ai` 7.x. This package is built against stable `ai@7.0.173`, `@ai-sdk/provider@4.0.38`, and `@ai-sdk/openai-compatible@3.0.92`. Those releases are not prereleases. The provider implements Language Model Specification V4 (`specificationVersion: 'v4'`), which is the specification documented for the current AI SDK.
+Peer dependency: `ai` 7.x. The versions executed in this repository are stable `ai@7.0.173`, `@ai-sdk/provider@4.0.38`, `@ai-sdk/provider-utils@5.0.81`, and `@ai-sdk/openai-compatible@3.0.92`. The provider implements Language Model Specification V4 (`specificationVersion: 'v4'`) for text chat only. It is not a claim of full AI SDK provider conformance.
 
 ```bash
 npm install ai openany-ai-sdk-provider
@@ -53,7 +53,8 @@ Create a key at https://openany.si/dashboard?page=api-keys and keep it in the en
 - Sampling fields only when you set them: `maxOutputTokens` (`max_tokens`), `temperature`, `topP`, `presencePenalty`, `frequencyPenalty`, `stopSequences`, and `seed`
 - `usage` and `finishReason` when the response includes them (`stop`, `length`, `content_filter`, and other documented Chat Completions reasons)
 - Aborting a stream
-- One request per call. HTTP 408, 409, 429, and 5xx errors are marked `isRetryable: false` so the AI SDK does not repeat a call that may already have been billed
+- A 60 second default budget for response headers and for each idle gap in the body. Pass `timeoutMs` to change it. There is no unlimited wait. A timeout is not retried
+- One request per call. HTTP 408, 409, 429, 5xx, and timeouts are marked `isRetryable: false` so the AI SDK does not repeat a call that may already have been billed
 
 ## Not supported
 
@@ -67,15 +68,17 @@ These are rejected before the request, or the corresponding provider method thro
 - `reasoning` effort and provider options (they are not part of the documented chat request)
 - `topK`
 - Automatic retries
-- Following redirects. A 3xx response is an error. The API key is not sent to the `Location` URL
+- Following redirects with the default fetch. A 3xx response is an error and the default fetch does not follow it
 - A non-default `baseURL`, unless you set `allowCustomEndpoint: true`
-- The MCP host, even with that opt-in
+- The MCP host, including `https://MCP.openany.si./v1`, even with that opt-in
 
 A route may still reject a sampling field. That failure is returned once.
 
-If a response includes tool calls or file output, those parts are not returned as executable tool calls or files. The raw finish reason is kept when the protocol sends one. A missing usage object stays empty; this package does not fill counts with zeros.
+If a response includes tool calls or file output, those parts are not returned as executable tool calls or files. A tool-call stream is consumed and completed; it is not left open and the tool calls are not executed. A missing usage object stays empty; this package does not fill counts with zeros.
 
 `stream_options` is not sent. Usage on a stream is reported only when a chunk includes `usage`.
+
+The default fetch does not follow redirects and does not use `HTTP_PROXY` / `HTTPS_PROXY`, including when `NODE_USE_ENV_PROXY=1` is set for Node's global `fetch`. A `fetch` function you pass is trusted code. It is given the `Authorization` header. If that function follows a redirect, logs the header, or sends it elsewhere, this package cannot undo the send. It only refuses to treat an unexpected final URL as a successful completion.
 
 No live paid call was made to verify this package. Tests use a local mock HTTP server.
 

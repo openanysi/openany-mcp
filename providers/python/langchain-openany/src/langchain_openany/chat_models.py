@@ -15,6 +15,7 @@ from langchain_core.exceptions import (
     ModelNotFoundError,
     ModelPermissionDeniedError,
     ModelRateLimitError,
+    ModelTimeoutError,
 )
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import (
@@ -51,6 +52,7 @@ _FORBIDDEN_HEADERS = frozenset(
     {"authorization", "proxy-authorization", "cookie", "set-cookie", "x-api-key", "xi-api-key"}
 )
 _BODY_LIMIT = 65_536
+DEFAULT_TIMEOUT_SECONDS = 60.0
 
 
 class OpenAnyUnsupportedError(ModelInvalidRequestError):
@@ -76,7 +78,13 @@ class OpenAnyResponseError(ModelError):
 
 
 class OpenAnyRedirectError(ModelError):
-    """A redirect was refused so the API key stays on the original host."""
+    """A redirect response was refused. This class does not follow it."""
+
+    is_retryable = False
+
+
+class OpenAnyTimeoutError(ModelTimeoutError):
+    """The chat request exceeded its timeout. It is not retried."""
 
     is_retryable = False
 
@@ -193,9 +201,14 @@ class ChatOpenAny(BaseChatModel):
     constructor shape works.
 
     A non-default ``base_url`` requires ``allow_custom_endpoint=True``.
+    The endpoint and API key are checked again immediately before every
+    HTTP call, including after attribute assignment or ``model_copy``.
+
+    ``timeout`` is a positive number of seconds for connect, write, and
+    idle read. The default is 60. A stalled response is not retried.
     """
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, validate_assignment=True)
 
     model_name: str = Field(alias="model")
     """Model id copied from the current OpenAny listing."""
@@ -212,7 +225,7 @@ class ChatOpenAny(BaseChatModel):
     frequency_penalty: float | None = None
     presence_penalty: float | None = None
     seed: int | None = None
-    timeout: float | None = None
+    timeout: float = DEFAULT_TIMEOUT_SECONDS
     stop: list[str] | None = None
     max_retries: int = 0
     """Accepted for LangChain compatibility. Chat requests are not retried."""
@@ -222,16 +235,40 @@ class ChatOpenAny(BaseChatModel):
 
     @model_validator(mode="after")
     def _check_configuration(self) -> Self:
-        if isinstance(self.openany_api_key, str):
-            self.openany_api_key = SecretStr(self.openany_api_key)
+        self._normalize_configuration()
+        return self
+
+    def model_copy(self, *, update: Mapping[str, Any] | None = None, deep: bool = False) -> Self:
+        copied = super().model_copy(update=update, deep=deep)
+        copied._normalize_configuration()
+        return copied
+
+    def _normalize_configuration(self) -> str:
+        """Validate the key and endpoint. Return the canonical chat URL.
+
+        Uses ``object.__setattr__`` so assignment validation cannot recurse.
+        Called from construction, ``model_copy``, and every request.
+        """
+        key_field = self.openany_api_key
+        if isinstance(key_field, str):
+            object.__setattr__(self, "openany_api_key", SecretStr(key_field))
         key = self._key()
-        self.base_url = resolve_endpoint(self.base_url, self.allow_custom_endpoint, key)
+        normalized = resolve_endpoint(self.base_url, self.allow_custom_endpoint, key)
+        if self.base_url != normalized:
+            object.__setattr__(self, "base_url", normalized)
+        self._check_timeout()
         for name, value in self.default_headers.items():
             if name.lower() in _FORBIDDEN_HEADERS:
                 raise OpenAnyUnsupportedError(f"{name} is reserved. The adapter sets Authorization.")
             if key in value:
                 raise OpenAnyCredentialsProxyError()
-        return self
+        return chat_completions_url(normalized)
+
+    def _check_timeout(self) -> float:
+        value = self.timeout
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0 or value != value:
+            raise OpenAnyUnsupportedError("timeout must be a positive number of seconds. Unlimited waits are not available.")
+        return float(value)
 
     @property
     def _llm_type(self) -> str:
@@ -295,10 +332,33 @@ class ChatOpenAny(BaseChatModel):
 
     def _client_kwargs(self) -> dict[str, Any]:
         return {
-            "timeout": self.timeout,
+            "timeout": httpx.Timeout(self._check_timeout()),
             "follow_redirects": False,
             "trust_env": False,
         }
+
+    def _timeout_error(self) -> OpenAnyTimeoutError:
+        return OpenAnyTimeoutError(
+            f"OpenAny chat request exceeded the {self._check_timeout():g}s timeout. It was not retried."
+        )
+
+    def _chat_url(self) -> str:
+        """Re-check the key and endpoint immediately before a socket is opened."""
+        return self._normalize_configuration()
+
+    def _raise_for_stream_error(self, payload: Mapping[str, Any]) -> None:
+        if "error" not in payload or payload.get("error") in (None, False):
+            return
+        error = payload.get("error")
+        secret = self._key()
+        detail = "Chat Completions stream returned an error object."
+        if isinstance(error, str) and error:
+            detail = error
+        elif isinstance(error, Mapping):
+            message = error.get("message")
+            if isinstance(message, str) and message:
+                detail = message
+        raise OpenAnyResponseError(_redact(detail, secret))
 
     def _raise_for_status(self, status: int, raw: bytes, headers: Mapping[str, str]) -> None:
         secret = self._key()
@@ -368,6 +428,7 @@ class ChatOpenAny(BaseChatModel):
         return ChatResult(generations=[ChatGeneration(message=message)])
 
     def _chunks_from_event(self, payload: Mapping[str, Any]) -> list[ChatGenerationChunk]:
+        self._raise_for_stream_error(payload)
         choices = payload.get("choices")
         if isinstance(choices, list) and choices and isinstance(choices[0], Mapping):
             choice = choices[0]
@@ -398,13 +459,17 @@ class ChatOpenAny(BaseChatModel):
     ) -> ChatResult:
         del run_manager
         body = self._body(messages, stop, kwargs, stream=False)
-        with httpx.Client(**self._client_kwargs()) as client:
-            response = client.post(chat_completions_url(self.base_url), headers=self._headers(stream=False), json=body)
-            self._read_error(response)
-            try:
-                payload = response.json()
-            except json.JSONDecodeError as error:
-                raise OpenAnyResponseError("Chat Completions response was not JSON.") from error
+        url = self._chat_url()
+        try:
+            with httpx.Client(**self._client_kwargs()) as client:
+                response = client.post(url, headers=self._headers(stream=False), json=body)
+                self._read_error(response)
+                try:
+                    payload = response.json()
+                except json.JSONDecodeError as error:
+                    raise OpenAnyResponseError("Chat Completions response was not JSON.") from error
+        except httpx.TimeoutException as error:
+            raise self._timeout_error() from error
         if not isinstance(payload, dict):
             raise OpenAnyResponseError("Chat Completions response was not a JSON object.")
         return self._generation_from_payload(payload)
@@ -418,27 +483,30 @@ class ChatOpenAny(BaseChatModel):
     ) -> Iterator[ChatGenerationChunk]:
         del run_manager
         body = self._body(messages, stop, kwargs, stream=True)
+        url = self._chat_url()
         parser = SSEParser()
-        with httpx.Client(**self._client_kwargs()) as client, client.stream(
-            "POST",
-            chat_completions_url(self.base_url),
-            headers=self._headers(stream=True),
-            json=body,
-        ) as response:
-            if 300 <= response.status_code < 400:
-                raise OpenAnyRedirectError(
-                    "OpenAny refused to follow a redirect. The API key was not sent to another URL."
-                )
-            if response.status_code >= 400:
-                self._raise_for_status(response.status_code, response.read(), response.headers)
-            try:
+        try:
+            with httpx.Client(**self._client_kwargs()) as client, client.stream(
+                "POST",
+                url,
+                headers=self._headers(stream=True),
+                json=body,
+            ) as response:
+                if 300 <= response.status_code < 400:
+                    raise OpenAnyRedirectError(
+                        "OpenAny refused a redirect response and did not read the redirected body."
+                    )
+                if response.status_code >= 400:
+                    self._raise_for_status(response.status_code, response.read(), response.headers)
                 for chunk in response.iter_bytes():
                     for event in parser.feed(chunk):
                         yield from self._chunks_from_event(event)
                 for event in parser.finish():
                     yield from self._chunks_from_event(event)
-            except SSEDecodeError as error:
-                raise OpenAnyResponseError(str(error)) from error
+        except httpx.TimeoutException as error:
+            raise self._timeout_error() from error
+        except SSEDecodeError as error:
+            raise OpenAnyResponseError(str(error)) from error
 
     async def _agenerate(
         self,
@@ -449,22 +517,22 @@ class ChatOpenAny(BaseChatModel):
     ) -> ChatResult:
         del run_manager
         body = self._body(messages, stop, kwargs, stream=False)
-        async with httpx.AsyncClient(**self._client_kwargs()) as client:
-            response = await client.post(
-                chat_completions_url(self.base_url),
-                headers=self._headers(stream=False),
-                json=body,
-            )
-            if 300 <= response.status_code < 400:
-                raise OpenAnyRedirectError(
-                    "OpenAny refused to follow a redirect. The API key was not sent to another URL."
-                )
-            if response.status_code >= 400:
-                self._raise_for_status(response.status_code, response.content, response.headers)
-            try:
-                payload = response.json()
-            except json.JSONDecodeError as error:
-                raise OpenAnyResponseError("Chat Completions response was not JSON.") from error
+        url = self._chat_url()
+        try:
+            async with httpx.AsyncClient(**self._client_kwargs()) as client:
+                response = await client.post(url, headers=self._headers(stream=False), json=body)
+                if 300 <= response.status_code < 400:
+                    raise OpenAnyRedirectError(
+                        "OpenAny refused a redirect response and did not read the redirected body."
+                    )
+                if response.status_code >= 400:
+                    self._raise_for_status(response.status_code, response.content, response.headers)
+                try:
+                    payload = response.json()
+                except json.JSONDecodeError as error:
+                    raise OpenAnyResponseError("Chat Completions response was not JSON.") from error
+        except httpx.TimeoutException as error:
+            raise self._timeout_error() from error
         if not isinstance(payload, dict):
             raise OpenAnyResponseError("Chat Completions response was not a JSON object.")
         return self._generation_from_payload(payload)
@@ -478,20 +546,21 @@ class ChatOpenAny(BaseChatModel):
     ) -> AsyncIterator[ChatGenerationChunk]:
         del run_manager
         body = self._body(messages, stop, kwargs, stream=True)
+        url = self._chat_url()
         parser = SSEParser()
-        async with httpx.AsyncClient(**self._client_kwargs()) as client, client.stream(
-            "POST",
-            chat_completions_url(self.base_url),
-            headers=self._headers(stream=True),
-            json=body,
-        ) as response:
-            if 300 <= response.status_code < 400:
-                raise OpenAnyRedirectError(
-                    "OpenAny refused to follow a redirect. The API key was not sent to another URL."
-                )
-            if response.status_code >= 400:
-                self._raise_for_status(response.status_code, await response.aread(), response.headers)
-            try:
+        try:
+            async with httpx.AsyncClient(**self._client_kwargs()) as client, client.stream(
+                "POST",
+                url,
+                headers=self._headers(stream=True),
+                json=body,
+            ) as response:
+                if 300 <= response.status_code < 400:
+                    raise OpenAnyRedirectError(
+                        "OpenAny refused a redirect response and did not read the redirected body."
+                    )
+                if response.status_code >= 400:
+                    self._raise_for_status(response.status_code, await response.aread(), response.headers)
                 async for chunk in response.aiter_bytes():
                     for event in parser.feed(chunk):
                         for item in self._chunks_from_event(event):
@@ -499,8 +568,10 @@ class ChatOpenAny(BaseChatModel):
                 for event in parser.finish():
                     for item in self._chunks_from_event(event):
                         yield item
-            except SSEDecodeError as error:
-                raise OpenAnyResponseError(str(error)) from error
+        except httpx.TimeoutException as error:
+            raise self._timeout_error() from error
+        except SSEDecodeError as error:
+            raise OpenAnyResponseError(str(error)) from error
 
 
 class OpenAnyCredentialsProxyError(OpenAnyUnsupportedError):

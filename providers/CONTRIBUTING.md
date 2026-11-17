@@ -27,8 +27,8 @@ Use an obvious fake secret such as `sk-test-openany-not-a-real-key` in tests. Do
 ## Behavior that should stay true
 
 - Default chat URL: `https://api.openany.si/v1/chat/completions`.
-- The MCP host is rejected.
-- Another base URL is used only when the caller sets the explicit opt-in (`allowCustomEndpoint` or `allow_custom_endpoint`).
+- The MCP host is rejected, including mixed-case and trailing-dot names such as `MCP.openany.si.`.
+- Another base URL is used only when the caller sets the explicit opt-in (`allowCustomEndpoint` or `allow_custom_endpoint`). Python checks that again before every HTTP call.
 - Missing, blank, whitespace, `Bearer ` prefixed, and unexpanded placeholder keys fail before a socket is opened.
 - Redirects are not followed.
 - The client makes one attempt. Do not mark 408, 409, 429, or 5xx as retryable.

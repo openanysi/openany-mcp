@@ -6,7 +6,9 @@ export {
 } from './credentials.js';
 export {
   DEFAULT_BASE_URL,
+  DEFAULT_TIMEOUT_MS,
   OpenAnyEndpointError,
+  canonicalHost,
   resolveEndpoint,
 } from './endpoint.js';
 export {

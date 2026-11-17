@@ -16,6 +16,18 @@ class OpenAnyEndpointError(ValueError):
     is_retryable = False
 
 
+def canonical_host(hostname: str) -> str:
+    """Lower-case a host and drop a trailing DNS root dot.
+
+    ``mcp.openany.si.`` is the same name as ``mcp.openany.si``. Comparison is
+    done only after this normalization.
+    """
+    host = hostname.strip().lower().rstrip(".")
+    if not host or ".." in host or any(label == "" for label in host.split(".")):
+        raise OpenAnyEndpointError("OpenAny base_url host is not valid.")
+    return host
+
+
 def resolve_endpoint(base_url: str | None, allow_custom_endpoint: bool, api_key: str | None = None) -> str:
     """Return the normalized API root. The path is exactly /v1."""
     raw = DEFAULT_BASE_URL if base_url is None else base_url
@@ -28,9 +40,9 @@ def resolve_endpoint(base_url: str | None, allow_custom_endpoint: bool, api_key:
         raise OpenAnyEndpointError("OpenAny base_url must not include userinfo.")
     if parts.query or parts.fragment:
         raise OpenAnyEndpointError("OpenAny base_url must not include a query or fragment.")
-    host = (parts.hostname or "").lower()
-    if not host:
+    if not parts.hostname:
         raise OpenAnyEndpointError("OpenAny base_url is not a valid URL.")
+    host = canonical_host(parts.hostname)
     if host in _BLOCKED_HOSTS:
         raise OpenAnyEndpointError(
             "OpenAny chat requests are not sent to the MCP host. Use https://api.openany.si/v1."
@@ -42,7 +54,8 @@ def resolve_endpoint(base_url: str | None, allow_custom_endpoint: bool, api_key:
         raise OpenAnyEndpointError("OpenAny base_url must use https, except for loopback tests.")
     if parts.scheme not in {"https", "http"}:
         raise OpenAnyEndpointError("OpenAny base_url must use https.")
-    port = f":{parts.port}" if parts.port else ""
+    default_port = 443 if parts.scheme == "https" else 80
+    port = "" if parts.port in (None, default_port) else f":{parts.port}"
     normalized = f"{parts.scheme}://{host}{port}/v1"
     if normalized != DEFAULT_BASE_URL and not allow_custom_endpoint:
         raise OpenAnyEndpointError(

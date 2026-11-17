@@ -44,6 +44,6 @@ const { text } = await generateText({
 
 Copy `OPENANY_MODEL` from the current OpenAny listing. Model ids are route-specific.
 
-Chat Completions support does not imply Responses, Anthropic Messages, image, video, audio, or embeddings. This provider rejects tool calling, structured output, and non-text parts before the request. It does not retry a failed call.
+Chat Completions support does not imply Responses, Anthropic Messages, image, video, audio, or embeddings. This provider is text and SSE only. It rejects tool calling, structured output, and non-text parts. A streamed tool-call payload is not executed. It does not retry a failed or timed-out call. A caller-supplied fetch is trusted and can already have sent the API key before a redirected response is refused.
 
 A non-default base URL requires `allowCustomEndpoint: true`.

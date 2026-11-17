@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import { once } from 'node:events';
 import test from 'node:test';
+import { inspect } from 'node:util';
 import { generateText, streamText } from 'ai';
 import { APICallError, NoSuchModelError } from '@ai-sdk/provider';
 import { createOpenAny } from '../dist/index.js';
@@ -358,6 +359,209 @@ test('reads the key from OPENANY_API_KEY when the constructor omits it', async (
     } else {
       process.env.OPENANY_API_KEY = previous;
     }
+    await server.close();
+  }
+});
+
+function deadline<T>(work: Promise<T>, ms: number): Promise<T> {
+  let timer: NodeJS.Timeout;
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => reject(new Error(`deadline ${ms}ms`)), ms);
+  });
+  return Promise.race([work, timeout]).finally(() => clearTimeout(timer));
+}
+
+test('rejects trailing-dot and mixed-case MCP hosts', () => {
+  for (const baseURL of ['https://mcp.openany.si./v1', 'https://MCP.OpenAny.SI./v1', 'https://mcp.openany.si.../v1']) {
+    assert.throws(
+      () => createOpenAny({ apiKey: FAKE_KEY, baseURL, allowCustomEndpoint: true }),
+      /MCP host/,
+    );
+  }
+  assert.doesNotThrow(() => createOpenAny({ apiKey: FAKE_KEY, baseURL: 'https://API.OpenAny.SI./v1' }));
+});
+
+test('does not expose the API key through inspect or JSON', () => {
+  const provider = createOpenAny({ apiKey: FAKE_KEY });
+  const model = provider(MODEL_ID);
+  const rendered = [
+    JSON.stringify(model) ?? '',
+    JSON.stringify(provider) ?? '',
+    inspect(model),
+    inspect(provider),
+    inspect(model, { showHidden: true, depth: 8 }),
+    inspect(provider, { showHidden: true, depth: 8 }),
+  ].join('\n');
+  assert.equal(rendered.includes(FAKE_KEY), false);
+});
+
+test('streamText completes a tool-call SSE without executing tools', async () => {
+  const events = [
+    `data: ${JSON.stringify({
+      choices: [{ index: 0, delta: { content: 'Hi', tool_calls: [{ index: 0, id: 'call-1', type: 'function', function: { name: 'lookup', arguments: '{"q":"x"}' } }] } }],
+    })}\n\n`,
+    `data: ${JSON.stringify({
+      choices: [{ index: 0, delta: {}, finish_reason: 'tool_calls' }],
+      usage: { prompt_tokens: 2, completion_tokens: 1, total_tokens: 3 },
+    })}\n\n`,
+    'data: [DONE]\n\n',
+  ].join('');
+  const server = await listen((_request, response) => {
+    response.writeHead(200, { 'content-type': 'text/event-stream' });
+    response.end(events);
+  });
+  try {
+    const result = streamText({ model: providerFor(server)(MODEL_ID), prompt: 'Hi' });
+    const parts: string[] = [];
+    await deadline((async () => {
+      for await (const part of result.fullStream) {
+        parts.push(part.type);
+      }
+    })(), 1000);
+    const text = await deadline(result.text, 1000);
+    const finish = await deadline(result.finishReason, 1000);
+    const toolCalls = await deadline(result.toolCalls, 1000);
+    assert.equal(text, 'Hi');
+    assert.notEqual(finish, 'tool-calls');
+    assert.equal(toolCalls.length, 0);
+    assert.equal(parts.some(type => type === 'tool-call' || type === 'tool-input-start'), false);
+    assert.equal(server.requests.length, 1);
+  } finally {
+    await server.close();
+  }
+});
+
+test('generateText keeps text and does not execute tool calls in a JSON response', async () => {
+  const server = await listen(
+    jsonResponse(200, {
+      choices: [
+        {
+          message: {
+            role: 'assistant',
+            content: 'Hi',
+            tool_calls: [{ id: 'call-1', type: 'function', function: { name: 'lookup', arguments: '{"q":"x"}' } }],
+          },
+          finish_reason: 'tool_calls',
+        },
+      ],
+    }),
+  );
+  try {
+    const result = await generateText({ model: providerFor(server)(MODEL_ID), prompt: 'Hi' });
+    assert.equal(result.text, 'Hi');
+    assert.equal(result.toolCalls.length, 0);
+    assert.equal(server.requests.length, 1);
+  } finally {
+    await server.close();
+  }
+});
+
+test('default fetch times out a stalled body and a missing response once', async () => {
+  for (const phase of ['headers', 'body'] as const) {
+    const requests: string[] = [];
+    const server = http.createServer((request, response) => {
+      const chunks: Buffer[] = [];
+      request.on('data', chunk => chunks.push(chunk as Buffer));
+      request.on('end', () => {
+        requests.push(request.url ?? '');
+        if (phase === 'body') {
+          response.writeHead(200, { 'content-type': 'text/event-stream' });
+          response.write(`data: ${JSON.stringify({ choices: [{ index: 0, delta: { content: 'x' } }] })}\n\n`);
+        }
+        setTimeout(() => {
+          if (!response.writableEnded) {
+            response.end();
+          }
+        }, 2000);
+      });
+    });
+    server.listen(0, '127.0.0.1');
+    await once(server, 'listening');
+    const address = server.address();
+    if (!address || typeof address === 'string') {
+      throw new Error('stall server did not bind');
+    }
+    try {
+      const model = createOpenAny({
+        apiKey: FAKE_KEY,
+        baseURL: `http://127.0.0.1:${address.port}/v1`,
+        allowCustomEndpoint: true,
+        timeoutMs: 200,
+      })(MODEL_ID);
+      const run = phase === 'headers' ? generateText({ model, prompt: 'Hello' }) : streamText({ model, prompt: 'Hello' }).text;
+      const error = await deadline(
+        run.then(
+          () => {
+            throw new Error('expected a timeout');
+          },
+          (caught: unknown) => caught,
+        ),
+        1500,
+      );
+      assert.match(String((error as Error).message), /timed out|timeout/i);
+      assert.equal(String(error).includes(FAKE_KEY), false);
+      if (APICallError.isInstance(error)) {
+        assert.equal(error.isRetryable, false);
+      }
+      await new Promise(resolve => setTimeout(resolve, 50));
+      assert.equal(requests.length, 1);
+    } finally {
+      server.closeAllConnections();
+      await new Promise<void>((resolve, reject) => server.close(closeError => (closeError ? reject(closeError) : resolve())));
+    }
+  }
+});
+
+test('default fetch does not follow a same-origin 307', async () => {
+  const stolen: string[] = [];
+  const server = await listen((request, response) => {
+    if (request.url === '/steal') {
+      stolen.push(request.headers.authorization ?? '');
+      response.writeHead(200, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ choices: [{ message: { content: 'stolen' } }] }));
+      return;
+    }
+    response.writeHead(307, { location: '/steal' });
+    response.end();
+  });
+  try {
+    await assert.rejects(
+      () => generateText({ model: providerFor(server)(MODEL_ID), prompt: 'Hello' }),
+      /redirect/,
+    );
+    assert.equal(stolen.length, 0);
+    assert.equal(server.requests.length, 1);
+  } finally {
+    await server.close();
+  }
+});
+
+test('a custom fetch that follows redirects is not treated as success', async () => {
+  const stolen: Array<string | undefined> = [];
+  const server = await listen((request, response) => {
+    if (request.url === '/steal') {
+      stolen.push(request.headers.authorization);
+      response.writeHead(200, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ choices: [{ message: { content: 'stolen' } }] }));
+      return;
+    }
+    response.writeHead(307, { location: '/steal' });
+    response.end();
+  });
+  try {
+    const model = createOpenAny({
+      apiKey: FAKE_KEY,
+      baseURL: server.baseURL,
+      allowCustomEndpoint: true,
+      fetch: (input, init) => fetch(input, { ...init, redirect: 'follow' }),
+    })(MODEL_ID);
+    await assert.rejects(
+      () => generateText({ model, prompt: 'Hello' }),
+      /may already have been sent/,
+    );
+    assert.equal(stolen.length, 1);
+    assert.equal(stolen[0]?.includes(FAKE_KEY), true);
+  } finally {
     await server.close();
   }
 });

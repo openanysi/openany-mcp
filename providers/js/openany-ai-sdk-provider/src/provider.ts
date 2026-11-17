@@ -11,8 +11,9 @@ import {
   type SharedV4Warning,
 } from '@ai-sdk/provider';
 import type { FetchFunction } from '@ai-sdk/provider-utils';
+import { Agent, fetch as undiciFetch } from 'undici';
 import { assertApiKey, resolveApiKey } from './credentials.js';
-import { resolveEndpoint, type ResolvedEndpoint } from './endpoint.js';
+import { DEFAULT_TIMEOUT_MS, OpenAnyEndpointError, resolveEndpoint } from './endpoint.js';
 import { asNonRetryable, redactHeaders, redactValue } from './redact.js';
 import { convertOpenAnyUsage } from './usage.js';
 
@@ -56,8 +57,22 @@ export interface OpenAnyProviderSettings {
   allowCustomEndpoint?: boolean;
   /** Extra request headers. Authorization and cookie headers are rejected. */
   headers?: Record<string, string>;
-  /** Optional fetch implementation. Redirects are still refused. */
+  /**
+   * Optional fetch implementation.
+   *
+   * This function is trusted code. It receives the request, including the
+   * Authorization header. If it follows a redirect, logs the request, or
+   * sends the header somewhere else, this package cannot undo that. The
+   * guard below only refuses to treat a redirected or unexpected final URL
+   * as a successful completion.
+   */
   fetch?: FetchFunction;
+  /**
+   * Positive millisecond budget for response headers and for each idle gap
+   * while reading the body. The default is 60000. There is no unlimited value.
+   * A timeout is not retried.
+   */
+  timeoutMs?: number;
 }
 
 export interface OpenAnyProvider {
@@ -70,13 +85,6 @@ export interface OpenAnyProvider {
   transcriptionModel(modelId: string): never;
   speechModel(modelId: string): never;
   completionModel(modelId: string): never;
-}
-
-interface Settings {
-  apiKey?: string;
-  endpoint: ResolvedEndpoint;
-  headers?: Record<string, string>;
-  fetch?: FetchFunction;
 }
 
 function unsupported(functionality: string, message: string): UnsupportedFunctionalityError {
@@ -250,29 +258,202 @@ function requestURL(input: Parameters<FetchFunction>[0]): URL {
   return new URL(input.url);
 }
 
-function createGuardedFetch(expected: string, inner: FetchFunction | undefined): FetchFunction {
+function assertTimeout(timeoutMs: number | undefined): number {
+  const value = timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new OpenAnyEndpointError(
+      'timeoutMs must be a positive finite number of milliseconds. Unlimited waits are not available.',
+    );
+  }
+  return value;
+}
+
+function unwrapProviderError(error: unknown): unknown {
+  if (
+    APICallError.isInstance(error) &&
+    error.message === 'Failed to process successful response' &&
+    APICallError.isInstance(error.cause)
+  ) {
+    return error.cause;
+  }
+  return error;
+}
+
+function timeoutError(url: string): APICallError {
+  return new APICallError({
+    message: 'OpenAny chat request timed out. It was not retried.',
+    url,
+    requestBodyValues: {},
+    isRetryable: false,
+  });
+}
+
+function sameChatUrl(actual: URL, expected: URL): boolean {
+  return actual.origin === expected.origin && actual.pathname === expected.pathname && !actual.search && !actual.hash;
+}
+
+function combineSignals(signals: Array<AbortSignal | null | undefined>): AbortSignal | undefined {
+  const present = signals.filter((signal): signal is AbortSignal => signal != null);
+  if (present.length === 0) {
+    return undefined;
+  }
+  if (present.length === 1) {
+    return present[0];
+  }
+  return AbortSignal.any(present);
+}
+
+function raceTimeout<T>(
+  work: Promise<T>,
+  timeoutMs: number,
+  signal: AbortSignal | undefined,
+  killer: AbortController,
+  url: string,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      const error = timeoutError(url);
+      killer.abort(error);
+      reject(error);
+    }, timeoutMs);
+    const onAbort = () => {
+      clearTimeout(timer);
+      const reason = signal?.reason;
+      reject(reason instanceof Error ? reason : new DOMException('The operation was aborted.', 'AbortError'));
+    };
+    if (signal?.aborted) {
+      onAbort();
+      return;
+    }
+    signal?.addEventListener('abort', onAbort, { once: true });
+    work.then(
+      value => {
+        clearTimeout(timer);
+        signal?.removeEventListener('abort', onAbort);
+        resolve(value);
+      },
+      error => {
+        clearTimeout(timer);
+        signal?.removeEventListener('abort', onAbort);
+        reject(error);
+      },
+    );
+  });
+}
+
+function watchBody(
+  response: Response,
+  timeoutMs: number,
+  signal: AbortSignal | undefined,
+  killer: AbortController,
+  onDone?: () => void,
+): Response {
+  let settled = false;
+  const finish = () => {
+    if (!settled) {
+      settled = true;
+      onDone?.();
+    }
+  };
+  if (!response.body) {
+    finish();
+    return response;
+  }
+  const reader = response.body.getReader();
+  const stream = new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      try {
+        const next = await raceTimeout(reader.read(), timeoutMs, signal, killer, response.url || 'https://api.openany.si/v1/chat/completions');
+        if (next.done) {
+          finish();
+          controller.close();
+          return;
+        }
+        controller.enqueue(next.value);
+      } catch (error) {
+        finish();
+        try {
+          await reader.cancel(error);
+        } catch {
+          // The timed-out body may already be unusable.
+        }
+        controller.error(error);
+      }
+    },
+    cancel(reason) {
+      finish();
+      return reader.cancel(reason);
+    },
+  });
+  return new Response(stream, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+}
+
+function createGuardedFetch(expected: string, inner: FetchFunction | undefined, timeoutMs: number): FetchFunction {
   const expectedURL = new URL(expected);
   return async (input, init) => {
     const url = requestURL(input);
-    if (url.username || url.password || url.search || url.hash) {
-      throw unsupported('request URL', 'OpenAny refused a chat URL with userinfo, a query, or a fragment.');
-    }
-    if (url.origin !== expectedURL.origin || url.pathname !== expectedURL.pathname) {
+    if (url.username || url.password || url.search || url.hash || !sameChatUrl(url, expectedURL)) {
       throw unsupported(
         'request URL',
         'OpenAny chat adapter only posts to the configured /v1/chat/completions URL.',
       );
     }
-    const fetchImpl = inner ?? fetch;
-    const response = await fetchImpl(input, { ...init, redirect: 'manual' });
-    if (response.status >= 300 && response.status < 400) {
+    const killer = new AbortController();
+    const signal = combineSignals([init?.signal, killer.signal]);
+    const agent = inner ? undefined : new Agent({ headersTimeout: timeoutMs, bodyTimeout: timeoutMs, connectTimeout: timeoutMs });
+    const fetchImpl: FetchFunction =
+      inner ??
+      ((requestInput, requestInit) =>
+        undiciFetch(requestInput as Parameters<typeof undiciFetch>[0], {
+          ...(requestInit as object),
+          dispatcher: agent,
+        }) as unknown as ReturnType<FetchFunction>);
+    let response: Response;
+    try {
+      response = await raceTimeout(
+        Promise.resolve(fetchImpl(input, { ...init, redirect: 'manual', signal })),
+        timeoutMs,
+        signal,
+        killer,
+        expected,
+      );
+    } catch (error) {
+      await agent?.close();
+      throw error;
+    }
+    if (response.status >= 300 && response.status < 400 || response.type === 'opaqueredirect') {
       await response.body?.cancel().catch(() => undefined);
+      await agent?.close();
       throw unsupported(
         'redirect',
-        'OpenAny refused to follow a redirect. The API key was not sent to another URL.',
+        inner
+          ? 'OpenAny refused a redirect response. A custom fetch may already have sent the API key; refusing the response does not undo that send.'
+          : 'OpenAny refused a redirect response and did not follow it.',
       );
     }
-    return response;
+    let finalURL = url;
+    if (response.url) {
+      try {
+        finalURL = new URL(response.url);
+      } catch {
+        finalURL = url;
+      }
+    }
+    if (!sameChatUrl(finalURL, expectedURL) || response.redirected) {
+      await response.body?.cancel().catch(() => undefined);
+      await agent?.close();
+      throw unsupported(
+        'response URL',
+        'OpenAny refused a response whose final URL is not the configured chat completions URL. If a custom fetch followed a redirect, the API key may already have been sent; this check does not undo that send.',
+      );
+    }
+    return watchBody(response, timeoutMs, signal, killer, () => {
+      void agent?.close();
+    });
   };
 }
 
@@ -361,25 +542,56 @@ function sanitizeStreamPart(part: LanguageModelV4StreamPart, secret: string): La
   }
 }
 
+function isDroppedStreamPart(part: LanguageModelV4StreamPart): boolean {
+  return (
+    part.type === 'tool-input-start' ||
+    part.type === 'tool-input-delta' ||
+    part.type === 'tool-input-end' ||
+    part.type === 'tool-call' ||
+    part.type === 'tool-result' ||
+    part.type === 'tool-approval-request' ||
+    part.type === 'file' ||
+    part.type === 'reasoning-file'
+  );
+}
+
 function guardStream(
   stream: ReadableStream<LanguageModelV4StreamPart>,
   secret: string,
 ): ReadableStream<LanguageModelV4StreamPart> {
   const reader = stream.getReader();
+  let sawFinish = false;
   return new ReadableStream<LanguageModelV4StreamPart>({
     async pull(controller) {
       try {
-        const next = await reader.read();
-        if (next.done) {
-          controller.close();
+        while (true) {
+          const next = await reader.read();
+          if (next.done) {
+            if (!sawFinish) {
+              controller.enqueue({
+                type: 'finish',
+                finishReason: { unified: 'other', raw: undefined },
+                usage: convertOpenAnyUsage(undefined),
+              });
+            }
+            controller.close();
+            return;
+          }
+          if (isDroppedStreamPart(next.value)) {
+            continue;
+          }
+          const part = sanitizeStreamPart(next.value, secret);
+          if (!part) {
+            continue;
+          }
+          if (part.type === 'finish') {
+            sawFinish = true;
+          }
+          controller.enqueue(part);
           return;
         }
-        const part = sanitizeStreamPart(next.value, secret);
-        if (part) {
-          controller.enqueue(part);
-        }
       } catch (error) {
-        controller.error(asNonRetryable(error, secret));
+        controller.error(asNonRetryable(unwrapProviderError(error), secret));
       }
     },
     cancel(reason) {
@@ -393,35 +605,30 @@ class OpenAnyChatLanguageModel implements LanguageModelV4 {
   readonly provider = 'openany.chat';
   readonly modelId: string;
   readonly supportedUrls = {};
+  readonly #inner: LanguageModelV4;
+  readonly #resolveKey: () => string;
 
-  constructor(
-    private readonly inner: LanguageModelV4,
-    private readonly settings: Settings,
-  ) {
+  constructor(inner: LanguageModelV4, resolveKey: () => string) {
+    this.#inner = inner;
+    this.#resolveKey = resolveKey;
     this.modelId = inner.modelId;
   }
 
   private currentKey(): string {
-    const key = resolveApiKey(this.settings.apiKey);
-    for (const value of Object.values(this.settings.headers ?? {})) {
-      if (value.includes(key)) {
-        throw new OpenAnyHeaderError('Custom headers must not contain the OpenAny API key.');
-      }
-    }
-    return key;
+    return this.#resolveKey();
   }
 
   async doGenerate(options: LanguageModelV4CallOptions): Promise<LanguageModelV4GenerateResult> {
     const key = this.currentKey();
     assertSupportedCall(options);
     try {
-      const result = await this.inner.doGenerate({
+      const result = await this.#inner.doGenerate({
         ...options,
         headers: stripCallHeaders(options.headers),
       });
       return sanitizeGenerateResult(result, key);
     } catch (error) {
-      throw asNonRetryable(error, key);
+      throw asNonRetryable(unwrapProviderError(error), key);
     }
   }
 
@@ -429,7 +636,7 @@ class OpenAnyChatLanguageModel implements LanguageModelV4 {
     const key = this.currentKey();
     assertSupportedCall(options);
     try {
-      const result = await this.inner.doStream({
+      const result = await this.#inner.doStream({
         ...options,
         headers: stripCallHeaders(options.headers),
       });
@@ -444,7 +651,7 @@ class OpenAnyChatLanguageModel implements LanguageModelV4 {
         stream: guardStream(result.stream, key),
       };
     } catch (error) {
-      throw asNonRetryable(error, key);
+      throw asNonRetryable(unwrapProviderError(error), key);
     }
   }
 }
@@ -459,18 +666,23 @@ export function createOpenAny(options: OpenAnyProviderSettings = {}): OpenAnyPro
   }
   const endpoint = resolveEndpoint(options.baseURL, options.allowCustomEndpoint === true, options.apiKey);
   const headers = assertProviderHeaders(options.headers, options.apiKey);
-  const settings: Settings = {
-    apiKey: options.apiKey,
-    endpoint,
-    headers,
-    fetch: options.fetch,
+  const timeoutMs = assertTimeout(options.timeoutMs);
+  const explicitKey = options.apiKey;
+  const resolveKey = () => {
+    const key = resolveApiKey(explicitKey);
+    for (const value of Object.values(headers ?? {})) {
+      if (value.includes(key)) {
+        throw new OpenAnyHeaderError('Custom headers must not contain the OpenAny API key.');
+      }
+    }
+    return key;
   };
   const inner = createOpenAICompatible({
     name: 'openany',
     baseURL: endpoint.baseURL,
-    apiKey: () => resolveApiKey(settings.apiKey),
+    apiKey: resolveKey,
     headers,
-    fetch: createGuardedFetch(endpoint.chatCompletionsURL, options.fetch),
+    fetch: createGuardedFetch(endpoint.chatCompletionsURL, options.fetch, timeoutMs),
     includeUsage: false,
     supportsStructuredOutputs: false,
     supportsMultiPartToolContent: false,
@@ -481,7 +693,7 @@ export function createOpenAny(options: OpenAnyProviderSettings = {}): OpenAnyPro
 
   const createModel = (modelId: string): LanguageModelV4 => {
     const id = assertModelId(modelId);
-    return new OpenAnyChatLanguageModel(inner.chatModel(id), settings);
+    return new OpenAnyChatLanguageModel(inner.chatModel(id), resolveKey);
   };
 
   function provider(this: unknown, modelId: string): LanguageModelV4 {
