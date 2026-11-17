@@ -1,0 +1,92 @@
+identity:
+  name: run_api
+  author: openanysi
+  label:
+    en_US: Run API or model
+    zh_Hans: 执行 API 或模型
+description:
+  human:
+    en_US: "Execute one selected API or model call with the provider API key. This can incur a charge and side effects. Invoke it only after get_api and an explicit decision to pay the displayed price. A timeout after the request is sent has an unknown charge state: do not run it again automatically."
+    zh_Hans: "使用提供方 API Key 执行一次选定的 API 或模型调用。可能产生费用和副作用。仅在 get_api 之后并明确接受所显示价格时调用。请求发出后超时则扣费状态未知：不要自动再执行一次。"
+  llm: "Execute one selected OpenAny API, or send one selected model to chat completions. Requires the OpenAny API key saved in the Dify provider secret. A call with no key is rejected locally and does not reach the gateway. Never ask the user to paste the key into chat or into a tool argument. First call get_api. Pass its api and api_version, and input that matches input_schema. Model calls can incur charges. Optional output only changes presentation: raw (default), summary, or compact. A timeout after dispatch has unknown execution or charging state: do not retry automatically. A displayed price is not a price lock. Invoke this tool only when the user has explicitly agreed to the current get_api price."
+parameters:
+  - name: api
+    type: string
+    required: true
+    form: llm
+    label:
+      en_US: API or model id
+      zh_Hans: API 或模型 id
+    human_description:
+      en_US: The same api value returned by get_api, 1 to 64 characters.
+      zh_Hans: get_api 返回的同一个 api 值，1 到 64 个字符。
+    llm_description: Required api identifier from get_api, 1 to 64 characters.
+  - name: api_version
+    type: string
+    required: true
+    form: llm
+    label:
+      en_US: API version
+      zh_Hans: API 版本
+    human_description:
+      en_US: The 64-character lowercase hex api_version from get_api.
+      zh_Hans: get_api 返回的 64 位小写十六进制 api_version。
+    llm_description: Required 64-character lowercase hex api_version from get_api. If it is rejected as changed, call get_api again before deciding whether to execute.
+  - name: input
+    type: object
+    required: true
+    form: llm
+    label:
+      en_US: Input
+      zh_Hans: 输入
+    human_description:
+      en_US: JSON object matching the input_schema from get_api. A JSON object string is also accepted.
+      zh_Hans: 符合 get_api input_schema 的 JSON 对象。也可以传入 JSON 对象字符串。
+    llm_description: "Required JSON object matching get_api input_schema. Keep the original field names. Do not put the API key in this object."
+    input_schema:
+      type: object
+      additionalProperties: true
+  - name: output
+    type: object
+    required: false
+    form: llm
+    label:
+      en_US: Output presentation
+      zh_Hans: 输出呈现
+    human_description:
+      en_US: "Optional presentation only. mode is raw, compact, or summary. items_path, fields, and max_items require compact mode. This does not change the upstream request or the charge."
+      zh_Hans: "可选，只影响呈现。mode 为 raw、compact 或 summary。items_path、fields 和 max_items 需要 compact。不改变上游请求或费用。"
+    llm_description: "Optional presentation object. mode raw, compact, or summary. items_path is an RFC 6901 pointer relative to response data. fields is 1 to 20 literal keys. max_items is 1 to 100. items_path, fields, and max_items require compact mode. Omit output for the raw result."
+    input_schema:
+      type: object
+      additionalProperties: false
+      properties:
+        mode:
+          type: string
+          enum:
+            - raw
+            - compact
+            - summary
+          default: raw
+        items_path:
+          type: string
+          maxLength: 512
+          description: RFC6901 pointer relative to response data. Required to clip a nested array; empty selects a root array.
+        fields:
+          type: array
+          minItems: 1
+          maxItems: 20
+          uniqueItems: true
+          items:
+            type: string
+            minLength: 1
+            maxLength: 128
+          description: Literal object keys at the root object or selected array items.
+        max_items:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Returned array limit, default 10 in compact mode. Requires a root array or items_path.
+extra:
+  python:
+    source: tools/run_api.py

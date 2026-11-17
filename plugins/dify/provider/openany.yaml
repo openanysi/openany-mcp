@@ -1,0 +1,37 @@
+identity:
+  author: openanysi
+  name: openany
+  label:
+    en_US: OpenAny
+    zh_Hans: OpenAny
+  description:
+    en_US: "The B2A (business to agent) marketplace. Discover OpenAny APIs and models, read schemas and prices, and run one selected call with your own key."
+    zh_Hans: "The B2A (business to agent) marketplace。发现 API 和模型，查看 schema 与价格，并用你自己的 Key 执行一次选定调用。"
+  icon: logo.png
+  tags:
+    - search
+    - business
+    - finance
+    - social
+credentials_for_provider:
+  openany_api_key:
+    type: secret-input
+    required: false
+    label:
+      en_US: OpenAny API key
+      zh_Hans: OpenAny API Key
+    placeholder:
+      en_US: Optional. Leave empty to browse, search, and check prices.
+      zh_Hans: 可选。留空即可浏览、搜索和查价。
+    help:
+      en_US: "Optional. openany_overview, search_apis, and get_api work with this empty. run_api needs your own key from https://openany.si/dashboard?page=api-keys and can incur a charge. Saving this secret checks its shape locally and does not call OpenAny. Do not paste the key into chat."
+      zh_Hans: "可选。openany_overview、search_apis、get_api 在留空时可用。run_api 需要你自己的 Key（https://openany.si/dashboard?page=api-keys），可能产生费用。保存时只在本地检查格式，不会调用 OpenAny。不要把 Key 粘贴到对话里。"
+    url: https://openany.si/dashboard?page=api-keys
+tools:
+  - tools/openany_overview.yaml
+  - tools/search_apis.yaml
+  - tools/get_api.yaml
+  - tools/run_api.yaml
+extra:
+  python:
+    source: provider/openany.py

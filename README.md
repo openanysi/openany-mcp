@@ -221,6 +221,10 @@ to call `search_apis`, `get_api`, confirm the returned price, and only then
 [`examples/openclaw.json`](examples/openclaw.json) is the manual example
 for the same lite URL.
 
+## Dify
+
+[plugins/dify](plugins/dify/README.md) is a Dify tool plugin for the same four tools on `https://mcp.openany.si`. Catalog calls stay free. `run_api` uses the optional Dify provider secret and can incur a charge. Marketplace submission is a later step, described in [plugins/dify/PUBLISHING.md](plugins/dify/PUBLISHING.md).
+
 ## Which URL the install files use
 
 The Gemini CLI extension, the Cursor `.mcp.json` plugin, the Claude Code
