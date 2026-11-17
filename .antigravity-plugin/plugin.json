@@ -1,0 +1,44 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "openany",
+  "displayName": "OpenAny",
+  "version": "0.1.0",
+  "description": "The B2A (business to agent) marketplace. 3,200+ APIs and 168+ AI models across social, SEO, crypto, and more. Browse free; pay per call.",
+  "logo": "assets/logo.png",
+  "suggestedPrompts": [
+    "Search OpenAny for a crypto price API and show the free catalog entry and its price before any paid call.",
+    "Find an SEO or company-data API on OpenAny and summarize what get_api says it costs.",
+    "List OpenAny model families such as GPT, Claude, and Gemini, and explain that run_api is pay per call."
+  ],
+  "author": {
+    "name": "Pistis Wang, Founder, OpenAny (Alephant AI LLC)",
+    "email": "team@openany.si",
+    "url": "https://openany.si"
+  },
+  "homepage": "https://openany.si",
+  "repository": "https://github.com/openanysi/openany-mcp",
+  "license": "MIT",
+  "keywords": [
+    "openany",
+    "b2a",
+    "marketplace",
+    "apis",
+    "models",
+    "social",
+    "seo",
+    "search",
+    "crypto",
+    "company",
+    "leads",
+    "finance",
+    "legal",
+    "gpt",
+    "claude",
+    "gemini",
+    "deepseek",
+    "qwen",
+    "midjourney",
+    "veo",
+    "kling"
+  ]
+}

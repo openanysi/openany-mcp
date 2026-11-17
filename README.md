@@ -133,6 +133,12 @@ server. The owner-run session, the CoinGecko tool result, request
 `420decad-3a6b-46f8-acff-53966bbd8b1c`, tool cost 0, and 807 microUSD of model
 calls are recorded in [docs/hermes-e2e.md](docs/hermes-e2e.md).
 
+Google Antigravity loads this repository as a plugin. The manifest is
+[`.antigravity-plugin/plugin.json`](.antigravity-plugin/plugin.json) and the
+remote server is [`mcp_config.json`](mcp_config.json), pointed at
+`https://mcp.openany.si`. Install and API-key notes are in
+[`.antigravity-plugin/README.md`](.antigravity-plugin/README.md).
+
 JSON does not support comments. The JSON examples use a top-level `$comment`
 annotation for the warning and CLI notes; only the `mcpServers` or `mcp` block
 is connection configuration. If your client rejects annotation fields, copy
