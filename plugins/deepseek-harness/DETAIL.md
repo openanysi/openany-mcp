@@ -1,6 +1,6 @@
 # OpenAny
 
-The B2A (business to agent) marketplace for DeepSeek Harness.
+The business-to-agent marketplace. One MCP endpoint for 3,200+ APIs across social, SEO/search, company/leads, finance and legal, plus 168+ AI models for chat, reasoning, image, video and audio—including GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo and Kling. Browse free; pay per call.
 
 This plugin registers `https://mcp.openany.si` through the harness MCP manager. The server lists `openany_overview`, `search_apis`, `get_api`, and `run_api`.
 

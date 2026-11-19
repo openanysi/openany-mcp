@@ -1,10 +1,12 @@
 # OpenAny for DeepSeek Harness
 
-OpenAny is the B2A (business to agent) marketplace. This bundle registers one remote MCP server, `https://mcp.openany.si`, with DeepSeek Harness. The server exposes `openany_overview`, `search_apis`, `get_api`, and `run_api` for 3,200+ APIs and 168+ AI models.
+The business-to-agent marketplace. One MCP endpoint for 3,200+ APIs across social, SEO/search, company/leads, finance and legal, plus 168+ AI models for chat, reasoning, image, video and audio—including GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo and Kling. Browse free; pay per call.
+
+This bundle registers that endpoint, `https://mcp.openany.si`, with DeepSeek Harness. The server exposes `openany_overview`, `search_apis`, `get_api`, and `run_api`.
 
 Searching, schema reads, and price checks are free and do not need a key. `run_api` uses your own OpenAny API key and can charge per call. This package does not call `run_api`, does not contain a key, and is not a DeepSeek product.
 
-The Go server in this repository is unchanged. The root `package.json` is the installable bundle for a commit that contains it. A subdirectory package by itself is not the install command. An unpinned `github:openanysi/openany-mcp` follows the default branch. Until this change is merged, that branch has no `package.json`, so that command does not install this bundle.
+The Go server in this repository is unchanged. The root `package.json` is the installable bundle for a commit that contains it. A subdirectory package by itself is not the install command. An unpinned `github:openanysi/openany-mcp` follows the default branch. As of merge `c5006a83f5ce10d1d24b7ec132fb1825683adfe9`, that branch contains this bundle. Before that merge, the same URL installed the Go tree and `dsh` rejected it because the tree had no `dsh.bundle`.
 
 ## What it registers
 
@@ -62,7 +64,7 @@ dsh plugin --profile web add github:openanysi/openany-mcp#675f24c553580756739164
 
 That commit is on the pull-request branch. A squash merge creates a new commit on the default branch. Pin the commit that actually contains the bundle. This package has no `prepare` script, so pnpm does not need an `allowBuilds` entry.
 
-The pinned install places the `files` list, plus `README.md`, `LICENSE`, and `package.json`, into the profile. It does not install `cmd/`, `internal/`, `providers/`, or `plugins/deepseek-harness/test/`. The unpinned URL `github:openanysi/openany-mcp` was also run against the default branch on 2026-11-19. pnpm checked out that branch as `openany-mcp` (the Go tree included), and `dsh` then exited because that tree has no `dsh.bundle`. Nothing from that attempt is a working install.
+The pinned install places the `files` list, plus `README.md`, `LICENSE`, and `package.json`, into the profile. It does not install `cmd/`, `internal/`, `providers/`, or `plugins/deepseek-harness/test/`. The unpinned URL `github:openanysi/openany-mcp` follows the default branch and, after merge `c5006a83f5ce10d1d24b7ec132fb1825683adfe9`, installs `dsh-openany`. Before that merge, the same URL checked out the Go tree and `dsh` exited because that tree had no `dsh.bundle`.
 
 Confirm the layer without booting:
 

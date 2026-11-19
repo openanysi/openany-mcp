@@ -213,12 +213,39 @@ describe('package layout', () => {
     assert.equal(names.some((name) => name.startsWith('providers/')), false)
   })
 
-  it('does not tell readers to install the unpinned default branch', () => {
+  it('ships the saved marketplace introduction through the DSH display fields', () => {
+    const intro = 'The business-to-agent marketplace. One MCP endpoint for 3,200+ APIs across social, SEO/search, company/leads, finance and legal, plus 168+ AI models for chat, reasoning, image, video and audio—including GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo and Kling. Browse free; pay per call.'
+    const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
+    const english = JSON.parse(readFileSync(join(root, 'locale/en.json'), 'utf8'))
+    const chinese = JSON.parse(readFileSync(join(root, 'locale/zh.json'), 'utf8'))
+    const detail = readFileSync(join(root, 'plugins/deepseek-harness/DETAIL.md'), 'utf8')
+    const readme = readFileSync(join(root, 'plugins/deepseek-harness/README.md'), 'utf8')
+    assert.equal(manifest.description, intro)
+    assert.equal(english.meta.description, intro)
+    assert.equal(english.meta.detail, 'plugins/deepseek-harness/DETAIL.md')
+    assert.equal(manifest.icon, './plugins/deepseek-harness/icon.svg')
+    assert.equal(manifest.exports['./locale/*.json'], './locale/*.json')
+    assert.equal(manifest.exports['./icon'], './plugins/deepseek-harness/icon.svg')
+    assert.equal(detail.includes(intro), true)
+    assert.equal(readme.startsWith('# OpenAny for DeepSeek Harness\n\n' + intro + '\n'), true)
+    assert.equal(chinese.meta.description.startsWith('The business-to-agent marketplace'), true)
+    assert.equal(chinese.meta.description.includes('3,200+'), true)
+    assert.equal(chinese.meta.description.includes('168+'), true)
+    assert.equal(chinese.meta.description.includes('crypto'), false)
+    assert.equal(chinese.meta.description.includes('加密'), false)
+    for (const name of ['GPT', 'Claude', 'Gemini', 'DeepSeek', 'Qwen', 'Midjourney', 'Veo', 'Kling']) {
+      assert.equal(chinese.meta.description.includes(name), true, name)
+    }
+  })
+
+  it('does not tell readers the current default branch lacks the bundle', () => {
     const readme = readFileSync(join(root, 'plugins/deepseek-harness/README.md'), 'utf8')
     const rootReadme = readFileSync(join(root, 'README.md'), 'utf8')
     const bare = /github:openanysi\/openany-mcp(?!#)/
     assert.equal(bare.test(readme), true)
-    assert.match(readme, /does not install this bundle/)
+    assert.equal(readme.includes('Until this change is merged'), false)
+    assert.equal(readme.includes('does not install this bundle'), false)
+    assert.match(readme, /c5006a83f5ce10d1d24b7ec132fb1825683adfe9/)
     assert.match(readme, /675f24c553580756739164ea88338f5794373b92/)
     assert.equal([...readme.matchAll(/```sh\n([\s\S]*?)```/g)].some((match) => bare.test(match[1]) && !match[1].includes('#')) , false)
     assert.equal([...rootReadme.matchAll(/```sh\n([\s\S]*?)```/g)].some((match) => match[1].includes('github:openanysi/openany-mcp') && !match[1].includes('#')), false)
