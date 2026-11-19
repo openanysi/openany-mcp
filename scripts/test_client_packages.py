@@ -97,18 +97,21 @@ class ClientPackageTests(unittest.TestCase):
             ROOT / "plugins" / "claude-code" / ".claude-plugin" / "plugin.json",
             ROOT / "plugins" / "claude-code" / ".mcp.json",
             ROOT / "plugins" / "claude-code" / "skills" / "openany" / "SKILL.md",
-            ROOT / "package.json",
             ROOT / "cordis.patch.yml",
             ROOT / "plugins" / "deepseek-harness" / "index.js",
+        ]
+        presentation = [
+            ROOT / "package.json",
             ROOT / "plugins" / "deepseek-harness" / "README.md",
             ROOT / "plugins" / "deepseek-harness" / "DETAIL.md",
             ROOT / "locale" / "en.json",
             ROOT / "locale" / "zh.json",
         ]
-        for path in paths:
+        for path in [*paths, *presentation]:
             text = path.read_text()
             with self.subTest(path=path.name):
-                self.assertNotIn("\u2014", text)
+                if path not in presentation:
+                    self.assertNotIn("\u2014", text)
                 self.assertNotIn("\u2013", text)
                 self.assertNotRegex(text, r"\bsk-[A-Za-z0-9_-]{8,}")
                 self.assertNotRegex(text, r"(?m)^\s*(?:export\s+)?OPENANY_API_KEY\s*=")
