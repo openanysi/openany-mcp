@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "OpenAny",
+    "description": "The B2A (business to agent) marketplace. Registers https://mcp.openany.si for 3,200+ APIs and 168+ AI models. Browsing is free; run_api uses your OpenAny API key.",
+    "detail": "plugins/deepseek-harness/DETAIL.md"
+  }
+}

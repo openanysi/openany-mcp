@@ -122,6 +122,7 @@ of an end-to-end paid test of every client.
 | Pi | [pi.mcp.json](examples/pi.mcp.json) | `~/.pi/agent/mcp.json` or `.pi/mcp.json` |
 | Hermes | [hermes.config.yaml](examples/hermes.config.yaml) | `~/.hermes/config.yaml` |
 | OpenClaw | [openclaw.json](examples/openclaw.json) | `~/.openclaw/openclaw.json`, under `mcp.servers` |
+| DeepSeek Harness | [plugins/deepseek-harness](plugins/deepseek-harness/README.md) | `dsh plugin --profile web add` of this repository root |
 | Other clients | [generic.md](examples/generic.md) | Client-specific remote MCP settings |
 
 The Hermes row is a manual `mcp_servers` example for the lite server.
@@ -220,6 +221,12 @@ to call `search_apis`, `get_api`, confirm the returned price, and only then
 
 [`examples/openclaw.json`](examples/openclaw.json) is the manual example
 for the same lite URL.
+
+## DeepSeek Harness
+
+The repository root is a DeepSeek Harness bundle named `dsh-openany`. [`package.json`](package.json) declares `dsh.bundle.patch` as [`cordis.patch.yml`](cordis.patch.yml). The plugin module is [`plugins/deepseek-harness/index.js`](plugins/deepseek-harness/index.js). It registers `https://mcp.openany.si` with `ctx.mcpManager.register()` and removes that server when the plugin unloads. The Go server, provider packages, and the other client plugins are unchanged.
+
+`engines.dsh` accepts DeepSeek Harness `>=0.2.2-rc.2 <0.3.0-0`. The npm `latest` tag `0.2.2-rc.1` does not mount the MCP manager and is outside that range. Install and load notes, the `OPENANY_API_KEY` credential, timeouts, and removal are in [plugins/deepseek-harness/README.md](plugins/deepseek-harness/README.md). This repository does not publish the package and does not add the `dsh-plugin` topic.
 
 ## Which URL the install files use
 

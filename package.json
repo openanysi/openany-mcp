@@ -1,0 +1,48 @@
+{
+  "name": "dsh-openany",
+  "version": "0.1.0",
+  "description": "The B2A (business to agent) marketplace. Registers the OpenAny MCP server at https://mcp.openany.si for DeepSeek Harness: 3,200+ APIs and 168+ AI models. Browsing, schema, and pricing are free; run_api uses your own OpenAny API key.",
+  "type": "module",
+  "main": "./plugins/deepseek-harness/index.js",
+  "exports": {
+    ".": "./plugins/deepseek-harness/index.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./plugins/deepseek-harness/icon.svg"
+  },
+  "files": [
+    "cordis.patch.yml",
+    "plugins/deepseek-harness/index.js",
+    "plugins/deepseek-harness/icon.svg",
+    "plugins/deepseek-harness/README.md",
+    "plugins/deepseek-harness/DETAIL.md",
+    "locale/en.json",
+    "locale/zh.json",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "icon": "./plugins/deepseek-harness/icon.svg",
+  "engines": {
+    "node": ">=24.9.0",
+    "dsh": ">=0.2.2-rc.2 <0.3.0-0"
+  },
+  "scripts": {
+    "test": "node --test plugins/deepseek-harness/test/unit.test.js",
+    "test:integration": "node plugins/deepseek-harness/test/install.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openanysi/openany-mcp.git"
+  },
+  "author": "Alephant AI LLC",
+  "license": "MIT",
+  "homepage": "https://openany.si",
+  "keywords": [
+    "openany",
+    "mcp",
+    "dsh"
+  ]
+}

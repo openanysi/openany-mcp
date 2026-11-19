@@ -97,6 +97,13 @@ class ClientPackageTests(unittest.TestCase):
             ROOT / "plugins" / "claude-code" / ".claude-plugin" / "plugin.json",
             ROOT / "plugins" / "claude-code" / ".mcp.json",
             ROOT / "plugins" / "claude-code" / "skills" / "openany" / "SKILL.md",
+            ROOT / "package.json",
+            ROOT / "cordis.patch.yml",
+            ROOT / "plugins" / "deepseek-harness" / "index.js",
+            ROOT / "plugins" / "deepseek-harness" / "README.md",
+            ROOT / "plugins" / "deepseek-harness" / "DETAIL.md",
+            ROOT / "locale" / "en.json",
+            ROOT / "locale" / "zh.json",
         ]
         for path in paths:
             text = path.read_text()
