@@ -4,7 +4,7 @@ OpenAny is the B2A (business to agent) marketplace. This bundle registers one re
 
 Searching, schema reads, and price checks are free and do not need a key. `run_api` uses your own OpenAny API key and can charge per call. This package does not call `run_api`, does not contain a key, and is not a DeepSeek product.
 
-The Go server in this repository is unchanged. The root `package.json` is the installable bundle. `dsh plugin add github:openanysi/openany-mcp` installs that root. A subdirectory package by itself is not the install command.
+The Go server in this repository is unchanged. The root `package.json` is the installable bundle for a commit that contains it. A subdirectory package by itself is not the install command. An unpinned `github:openanysi/openany-mcp` follows the default branch. Until this change is merged, that branch has no `package.json`, so that command does not install this bundle.
 
 ## What it registers
 
@@ -40,23 +40,29 @@ dsh --version
 
 ## Install
 
-From a git checkout, which is the same package root a `github:` install uses:
+These commands were run with `@deepseek-ai/dsh@0.2.2-rc.5`, Node 24.22.3, and pnpm 10.24.0, each in its own `DSH_HOME`.
+
+From a git checkout of a commit that contains this package:
 
 ```sh
 dsh plugin --profile web add /path/to/openany-mcp
 ```
 
-From the packed tarball, after `npm pack` in this repository:
+From the packed tarball, after `npm pack` in that checkout:
 
 ```sh
 dsh plugin --profile web add ./dsh-openany-0.1.0.tgz
 ```
 
-From GitHub, after this commit is on the public default branch. Pin a commit. This package has no `prepare` script, so pnpm does not need an `allowBuilds` entry:
+From GitHub, pin a commit that contains `package.json` and `cordis.patch.yml`. This was run successfully before merge:
 
 ```sh
-dsh plugin --profile web add github:openanysi/openany-mcp#<commit>
+dsh plugin --profile web add github:openanysi/openany-mcp#675f24c553580756739164ea88338f5794373b92
 ```
+
+That commit is on the pull-request branch. A squash merge creates a new commit on the default branch. Pin the commit that actually contains the bundle. This package has no `prepare` script, so pnpm does not need an `allowBuilds` entry.
+
+The pinned install places the `files` list, plus `README.md`, `LICENSE`, and `package.json`, into the profile. It does not install `cmd/`, `internal/`, `providers/`, or `plugins/deepseek-harness/test/`. The unpinned URL `github:openanysi/openany-mcp` was also run against the default branch on 2026-11-19. pnpm checked out that branch as `openany-mcp` (the Go tree included), and `dsh` then exited because that tree has no `dsh.bundle`. Nothing from that attempt is a working install.
 
 Confirm the layer without booting:
 
@@ -97,7 +103,7 @@ An empty value is absent. A value saved in the file outranks the launch environm
 
 With no configured reference, the plugin registers the server with no `Authorization` header. `initialize`, `tools/list`, `openany_overview`, `search_apis`, and `get_api` work. `run_api` is rejected by the OpenAny server as `openany_mcp_credentials_missing` and does not reach the gateway.
 
-When the reference becomes configured, the plugin disposes the registration and registers again with the Bearer template. The harness client sends that header to `https://mcp.openany.si`. Removing the reference registers the server again without the header. There is no OAuth flow.
+When the reference becomes configured, the plugin disposes the registration and registers again with the Bearer template. The harness client sends that header to `https://mcp.openany.si`. Removing the reference registers the server again without the header. There is no OAuth flow. On 0.2.2-rc.5 a synthetic key was resolved only against a local server: the saved registration kept the template, `list()` and `dsh --dump-config` did not contain the key, and Node fetch, which that release's Streamable HTTP transport uses, did not forward `Authorization` on a cross-origin redirect. The synthetic key was not sent to `https://mcp.openany.si`.
 
 A displayed price is not a price lock. A `run_api` timeout after the server has accepted the call has an unknown charging state. Do not retry it automatically.
 
@@ -107,7 +113,8 @@ The registration sets three budgets on the official client:
 
 - 30 seconds for template resolution, connect, and the first tool list. A failed attempt follows the client reconnect policy. After the attempt budget is exhausted the client withdraws the tools until the server is restarted from the harness.
 - 60 seconds for one tool call. A timeout is reported by the client as `MCP_TIMEOUT`. The call outcome is unknown.
-- 5 seconds to close the transport when the registration is removed.
+- 5 second budget for transport close and local cleanup when the registration is removed. On 0.2.2-rc.5 an idle session left the manager list in under a second. That release closes Streamable HTTP by aborting the client. It does not send HTTP DELETE.
+- The published rc.5 client performs one `tools/call` per invocation. Connection retry reconnects the session. It does not send the tool call again. This plugin does not add a retry loop, and it does not call `run_api`.
 
 If another server already uses the name `openany`, `register()` throws and this plugin logs that failure. The log line is passed through a redaction that replaces `Bearer` tokens. Rename the other server or remove it before loading this one.
 

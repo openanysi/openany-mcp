@@ -199,9 +199,28 @@ describe('package layout', () => {
     ]) {
       assert.equal(names.includes(required), true, required)
     }
-    for (const banned of ['go.mod', 'cmd/openany-mcp/main.go', 'internal/mcpserver/server.go', '.env']) {
+    for (const banned of [
+      'go.mod',
+      'cmd/openany-mcp/main.go',
+      'internal/mcpserver/server.go',
+      '.env',
+      'plugins/deepseek-harness/test/unit.test.js',
+      'plugins/deepseek-harness/test/install.mjs',
+      'plugins/deepseek-harness/test/review.mjs',
+    ]) {
       assert.equal(names.includes(banned), false, banned)
     }
     assert.equal(names.some((name) => name.startsWith('providers/')), false)
+  })
+
+  it('does not tell readers to install the unpinned default branch', () => {
+    const readme = readFileSync(join(root, 'plugins/deepseek-harness/README.md'), 'utf8')
+    const rootReadme = readFileSync(join(root, 'README.md'), 'utf8')
+    const bare = /github:openanysi\/openany-mcp(?!#)/
+    assert.equal(bare.test(readme), true)
+    assert.match(readme, /does not install this bundle/)
+    assert.match(readme, /675f24c553580756739164ea88338f5794373b92/)
+    assert.equal([...readme.matchAll(/```sh\n([\s\S]*?)```/g)].some((match) => bare.test(match[1]) && !match[1].includes('#')) , false)
+    assert.equal([...rootReadme.matchAll(/```sh\n([\s\S]*?)```/g)].some((match) => match[1].includes('github:openanysi/openany-mcp') && !match[1].includes('#')), false)
   })
 })
