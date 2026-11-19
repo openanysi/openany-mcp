@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "OpenAny",
+    "description": "B2A（business to agent）市场。为 DeepSeek Harness 注册 https://mcp.openany.si，覆盖 3,200+ API 与 168+ AI 模型。浏览免费；run_api 使用你自己的 OpenAny API key。",
+    "detail": "plugins/deepseek-harness/DETAIL.md"
+  }
+}

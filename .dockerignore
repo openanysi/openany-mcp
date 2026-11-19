@@ -1,5 +1,7 @@
 .git
 .env*
+node_modules
+*.tgz
 .superpowers
 .venv
 bin

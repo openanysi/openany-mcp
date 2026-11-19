@@ -1,0 +1,7 @@
+# DeepSeek Harness bundle layer for OpenAny.
+# The row name is the package name so Node resolves plugins/deepseek-harness/index.js.
+# That module registers https://mcp.openany.si through ctx.mcpManager.
+# Web and Desktop profiles mount the manager. Headless, sdk, sdk-minimal, and acp do not.
+- insert:
+    - id: openany
+      name: dsh-openany
