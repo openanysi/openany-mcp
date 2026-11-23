@@ -1,0 +1,42 @@
+{
+  "name": "pi-openany",
+  "version": "0.1.0",
+  "description": "The B2A (business to agent) marketplace. One MCP endpoint for 4,400+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Alephant AI LLC <team@openany.si>",
+  "homepage": "https://openany.si",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openanysi/openany-mcp.git",
+    "directory": "plugins/pi"
+  },
+  "bugs": {
+    "url": "https://github.com/openanysi/openany-mcp/issues"
+  },
+  "keywords": [
+    "pi-package",
+    "openany",
+    "mcp"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/package.test.js"
+  },
+  "files": [
+    "extensions",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions/index.js"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  }
+}

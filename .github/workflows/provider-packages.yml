@@ -32,6 +32,22 @@ jobs:
       - run: npm test
       - run: npm pack --dry-run
 
+  pi-package:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugins/pi
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+      - run: npm install --no-save --prefix "$RUNNER_TEMP/pi" @earendil-works/pi-coding-agent@1.6.0
+      - run: npm test
+        env:
+          PI_BIN: ${{ runner.temp }}/pi/node_modules/.bin/pi
+      - run: npm pack --dry-run
+
   python:
     runs-on: ubuntu-latest
     defaults:

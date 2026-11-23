@@ -11,5 +11,6 @@ providers/**/dist/
 bin/
 .superpowers/
 *.log
+*.tgz
 var/maintenance/
 .DS_Store
