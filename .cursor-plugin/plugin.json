@@ -1,7 +1,7 @@
 {
   "name": "openany",
-  "version": "0.1.0",
-  "description": "The B2A (business to agent) marketplace. One MCP endpoint for 3,200+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call.",
+  "version": "0.1.1",
+  "description": "Discover models and APIs for your agent through OpenAny's marketplace.",
   "author": {
     "name": "Alephant AI LLC"
   },
@@ -16,7 +16,7 @@
       "OPENANY_API_KEY": {
         "type": "string",
         "title": "OpenAny API key",
-        "description": "Optional Bearer token for paid OpenAny calls. Browsing, search, and pricing work without it. Set this in Cursor plugin settings when executing. The repository does not contain the key."
+        "description": "Set this in Cursor plugin settings. Saving it does not approve a charge. The repository does not contain the key."
       }
     },
     "required": []

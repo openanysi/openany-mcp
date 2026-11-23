@@ -195,19 +195,55 @@ this repository. [`GEMINI.md`](GEMINI.md) is the extension context file.
 
 ## Cursor
 
-[`.mcp.json`](.mcp.json) is the root file cursor.directory reads for an MCP
-server. [`.cursor-plugin/plugin.json`](.cursor-plugin/plugin.json) is the
-Cursor plugin manifest. It declares `OPENANY_API_KEY` as an optional string
-variable and sets `mcpServers` to `.mcp.json`. The header in that file is
-`Authorization: Bearer ${OPENANY_API_KEY}`. Cursor fills the placeholder from
-the plugin setting when it is set. The file does not contain a key.
+[`.cursor-plugin/plugin.json`](.cursor-plugin/plugin.json) is the Cursor plugin
+manifest. Its name is `openany`. It sets `mcpServers` to
+[`.mcp.json`](.mcp.json). The [Cursor plugin reference](https://cursor.com/docs/reference/plugins)
+documents that field as a custom path that overrides default `mcp.json`
+discovery. There is no root `mcp.json`. This repository does not claim that
+Cursor prefers `.mcp.json` when both filenames exist.
 
-A manual merge into `~/.cursor/mcp.json` uses
-[`examples/cursor.mcp.json`](examples/cursor.mcp.json), which expands
-`${env:OPENANY_API_KEY}` and points at `https://mcp.openany.si`.
+The plugin is MIT licensed. Installing it and using these plugin files is
+free. OpenAny models, APIs, and other listings are a separate service. A
+listing can charge under its own current terms. Installing the plugin,
+connecting, and saving `OPENANY_API_KEY` do not approve that charge.
 
-There is no root `mcp.json`. Cursor's plugin loader reads `.mcp.json` before
-`mcp.json` when both exist, so the manifest points at the one file.
+The server URL is `https://mcp.openany.si`. The header is
+`Authorization: Bearer ${OPENANY_API_KEY}`. `OPENANY_API_KEY` is a plugin
+variable, and it is not in the manifest `required` list. A manual
+`~/.cursor/mcp.json` entry is a different file and a different syntax:
+[`examples/cursor.mcp.json`](examples/cursor.mcp.json) uses
+`${env:OPENANY_API_KEY}`.
+
+On 2026-11-23 at 10:02 Taipei time, Cursor 3.31.15 on Debian 13 x86_64 loaded
+commit `471af31347bde22eff348e9d71e619d1174777d1` from
+`/home/box/.cursor/plugins/local/openany`. The version came from
+`cursor --version` on the official deb package. The GUI About box was not
+checked. With a signed-in Cursor account, Customize showed the Openany plugin
+at version 0.1.1 and the openany skill. `OPENANY_API_KEY` was marked Optional
+and was empty. The key was not entered or saved. The MCP server showed
+Connected and listed `get_api`, `openany_overview`, `search_apis`, and
+`run_api`. Disabling the server, enabling it, and running Reload Window
+returned it to Connected.
+
+That is not a full end-to-end test. No chat was sent to a model. No tool was
+invoked from the GUI. `run_api` was not called. A filled key, a rejected key,
+uninstall, a full quit and restart, and a paid call were not tested. The
+check also did not show whether Cursor expanded `${OPENANY_API_KEY}` or
+`${env:OPENANY_API_KEY}`. The OS keyring said it could not recognize the
+desktop environment. The prompt was closed without choosing a weaker
+encryption setting, and the client continued to work after that. The record
+is [docs/cursor-marketplace/client-test-2026-11-23.md](docs/cursor-marketplace/client-test-2026-11-23.md).
+
+[skills/openany/SKILL.md](skills/openany/SKILL.md) tells the agent to read the
+current price and billing unit with `get_api`, then to call `run_api` only
+after the user explicitly approves that call. That approval is usage guidance.
+This plugin does not add a technical block that enforces it. Requests and
+tool inputs are sent to OpenAny and leave the machine.
+
+The plugin description does not quote a fixed catalog size or one billing
+rule for every listing. Suggested store text and the unpublished reviewer
+note are in [docs/cursor-marketplace/store-listing.md](docs/cursor-marketplace/store-listing.md)
+and [docs/cursor-marketplace/reviewer-note.md](docs/cursor-marketplace/reviewer-note.md).
 
 ## OpenClaw
 
