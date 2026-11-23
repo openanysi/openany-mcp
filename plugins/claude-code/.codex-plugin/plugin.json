@@ -1,0 +1,32 @@
+{
+  "name": "openany",
+  "version": "0.2.1",
+  "description": "The B2A (business to agent) marketplace. One MCP endpoint for 4,400+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call.",
+  "author": {
+    "name": "Alephant AI LLC",
+    "email": "team@openany.si",
+    "url": "https://openany.si"
+  },
+  "homepage": "https://openany.si",
+  "repository": "https://github.com/openanysi/openany-mcp",
+  "license": "MIT",
+  "keywords": ["openany", "mcp", "marketplace", "agents"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "OpenAny",
+    "shortDescription": "4,400+ APIs and 168+ models. Browse free; pay per call.",
+    "longDescription": "The B2A (business to agent) marketplace. One MCP endpoint for 4,400+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call.",
+    "developerName": "Alephant AI LLC",
+    "category": "Developer Tools",
+    "capabilities": ["Interactive", "Read", "Write"],
+    "websiteURL": "https://openany.si",
+    "privacyPolicyURL": "https://openany.si/privacy/",
+    "termsOfServiceURL": "https://openany.si/terms/",
+    "defaultPrompt": [
+      "What can OpenAny do for me?",
+      "Find a public API for recent posts from one account.",
+      "Look up the current price of bitcoin before I approve a call."
+    ]
+  }
+}

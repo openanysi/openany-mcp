@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "OpenAny",
-    "description": "The business-to-agent marketplace。一个 MCP 端点，覆盖社交、SEO/搜索、公司与线索、金融和法律领域的 3,200+ API，以及用于对话、推理、图像、视频和音频的 168+ AI 模型，包括 GPT、Claude、Gemini、DeepSeek、Qwen、Midjourney、Veo 和 Kling。浏览免费；按次付费。",
+    "description": "The business-to-agent marketplace。一个 MCP 端点，覆盖社交、SEO/搜索、公司与线索、金融和法律领域的 4,400+ API，以及用于对话、推理、图像、视频和音频的 168+ AI 模型，包括 GPT、Claude、Gemini、DeepSeek、Qwen、Midjourney、Veo 和 Kling。浏览免费；按次付费。",
     "detail": "plugins/deepseek-harness/DETAIL.md"
   }
 }
