@@ -187,7 +187,7 @@ claude plugin uninstall openany@openanysi --scope user
 claude plugin marketplace remove openanysi --scope user
 ```
 
-`claude plugin marketplace remove` without `--scope` also edits other settings scopes. The commands above were run with Claude Code 2.1.330. The GitHub add cloned `https://github.com/openanysi/openany-mcp.git` and installed the plugin that was on `main` at that time. A checkout of this repository was added with `claude plugin marketplace add ./ --scope user` and installed the same plugin id from `./plugins/claude-code`. Those checks did not start a model chat and did not call `run_api`. Copy in this section is not on GitHub `main` until this change is merged.
+`claude plugin marketplace remove` without `--scope` also edits other settings scopes. The commands above were run with Claude Code 2.1.330. The GitHub add cloned `https://github.com/openanysi/openany-mcp.git` and installed the plugin that was on `main` at that time. A checkout of this repository was added with `claude plugin marketplace add ./ --scope user` and installed the same plugin id from `./plugins/claude-code`. Those checks did not start a model chat and did not call `run_api`.
 
 [`plugins/claude-code/.mcp.json`](plugins/claude-code/.mcp.json) sets `Authorization: Bearer ${OPENANY_API_KEY:-}` for the remote server `https://mcp.openany.si`. Do not put a key in this repository, a chat, or a log. Export `OPENANY_API_KEY` in the environment that starts Claude Code before a call that needs it.
 
