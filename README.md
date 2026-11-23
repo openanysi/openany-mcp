@@ -1,6 +1,6 @@
 # OpenAny MCP
 
-OpenAny is the B2A (business to agent) marketplace. Add one MCP endpoint, https://mcp.openany.si, and your agent can find and use 3,200+ APIs and 168+ AI models.
+OpenAny is the B2A (business to agent) marketplace. Add one MCP endpoint, https://mcp.openany.si, and your agent can find and use 4,400+ APIs and 168+ AI models.
 
 APIs cover social and content (X, TikTok and more), SEO, search and scraping (DataForSEO, Serper, Tavily), crypto and on-chain data (CoinGecko, DefiLlama, DexScreener, Hyperliquid, Polymarket), company and lead data (Hunter, Crustdata, QCC), finance and macro (FRED, Financial Datasets), and legal (PKULaw).
 
@@ -179,6 +179,19 @@ A manual server, without the plugin, remains [`examples/claude-code.sh`](example
 
 From a checkout of this repository, `claude plugin validate .` checks the marketplace and the plugin. [Privacy](https://openany.si/privacy/) covers how Alephant AI LLC handles account and API information.
 
+## Codex
+
+The same `plugins/claude-code` package is also a Codex plugin. [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json) points at that directory, and [`plugins/claude-code/.codex-plugin/plugin.json`](plugins/claude-code/.codex-plugin/plugin.json) marks it Codex-compatible. The skill and the remote server are the ones Claude Code already uses.
+
+```
+codex plugin marketplace add openanysi/openany-mcp
+codex plugin add openany@openanysi
+```
+
+[`plugins/claude-code/.mcp.json`](plugins/claude-code/.mcp.json) keeps the Claude header and adds `bearer_token_env_var` `OPENANY_API_KEY`. Codex CLI 0.171.0 installed this package from a local checkout, listed the server as Streamable HTTP at `https://mcp.openany.si`, and ignored the Claude `headers` object. A local probe, not the production server, showed `Authorization: Bearer <value>` when `OPENANY_API_KEY` was a non-secret dummy. The same CLI did not open the MCP connection when the variable was unset or empty. Set `OPENANY_API_KEY` before starting Codex if the server should connect. This check is not an OpenAI or Codex certification, and it did not call `run_api`.
+
+A manual server, without the plugin, remains [`examples/codex.config.toml`](examples/codex.config.toml).
+
 ## Gemini CLI
 
 Install this repository as a Gemini CLI extension:
@@ -267,7 +280,7 @@ The repository root is a DeepSeek Harness bundle named `dsh-openany`. [`package.
 ## Which URL the install files use
 
 The Gemini CLI extension, the Cursor `.mcp.json` plugin, the Claude Code
-plugin, the OpenClaw skill, and the files under `examples/` use `https://mcp.openany.si`. Public `tools/list` on that URL
+and Codex plugin, the OpenClaw skill, and the files under `examples/` use `https://mcp.openany.si`. Public `tools/list` on that URL
 returns `openany_overview`, `search_apis`, `get_api`, and `run_api` in a single page and does not
 send `nextCursor`. The advanced `https://mcp.openany.si/mcp` URL returns one tool
 per API, 3,268 tools, 50 tools per page, with `nextCursor` until the last page.

@@ -13,7 +13,7 @@ Antigravity namespaces the server as `openany_openany`. The lite server exposes:
 - `openany_overview`, `search_apis`, and `get_api` read the catalog. They do not call the paid gateway.
 - `run_api` runs one selected API or model call. It is pay per call, with no monthly fee. Read the price from `get_api` before you approve it.
 
-The catalog has 3,200+ APIs across social, SEO and search, crypto, company and leads, finance, and legal, plus 168+ AI models from families including GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, and Kling. Live counts come from `openany_overview`.
+The catalog has 4,400+ APIs across social, SEO and search, crypto, company and leads, finance, and legal, plus 168+ AI models from families including GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, and Kling. Live counts come from `openany_overview`.
 
 Website: https://openany.si
 

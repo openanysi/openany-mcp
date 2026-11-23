@@ -5,7 +5,8 @@
       "url": "https://mcp.openany.si",
       "headers": {
         "Authorization": "Bearer ${OPENANY_API_KEY:-}"
-      }
+      },
+      "bearer_token_env_var": "OPENANY_API_KEY"
     }
   }
 }

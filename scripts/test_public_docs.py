@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ENDPOINT = "https://mcp.openany.si"
 RECOMMENDED = "https://mcp.openany.si"
 FULL_CATALOG = "https://mcp.openany.si/mcp"
-REGISTRY_DESCRIPTION = "The B2A (business to agent) marketplace: 3,200+ APIs and 168+ AI models. Browse free; pay per call."
+REGISTRY_DESCRIPTION = "The B2A (business to agent) marketplace: 4,400+ APIs and 168+ AI models. Browse free; pay per call."
 
 
 class PublicDocsTests(unittest.TestCase):
@@ -90,7 +90,7 @@ class PublicDocsTests(unittest.TestCase):
         for target in re.findall(r"\]\(([^)]+)\)", readme):
             if not target.startswith(("https://", "#")):
                 self.assertTrue((ROOT / target).exists(), target)
-        for text in ["Alephant AI LLC", "No OAuth", "Confirmed authentication header", "OpenAny is the B2A (business to agent) marketplace", "3,200+ APIs and 168+ AI models", "Browsing, search, and price checks do not need a key", "no subscription", "https://api.openany.si/v1", "Authorization: Bearer <OpenAny API key>` is optional"]:
+        for text in ["Alephant AI LLC", "No OAuth", "Confirmed authentication header", "OpenAny is the B2A (business to agent) marketplace", "4,400+ APIs and 168+ AI models", "Browsing, search, and price checks do not need a key", "no subscription", "https://api.openany.si/v1", "Authorization: Bearer <OpenAny API key>` is optional"]:
             self.assertIn(text, readme)
         self.assertIn("168+", readme)
         for stale in ["100+ AI models", "100+ models", "3,201", "3,220", "3,220 MCP tools"]:

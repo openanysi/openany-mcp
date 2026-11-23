@@ -13,12 +13,12 @@ SECRET = "OPENANY_API_KEY"
 HEADER = "Bearer ${OPENANY_API_KEY}"
 CLAUDE_HEADER = "Bearer ${OPENANY_API_KEY:-}"
 DESCRIPTION = (
-    "The B2A (business to agent) marketplace. One MCP endpoint for 3,200+ APIs "
+    "The B2A (business to agent) marketplace. One MCP endpoint for 4,400+ APIs "
     "(social, SEO, crypto, company, finance, legal) and 168+ AI models "
     "(GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call."
 )
 SHORT_DESCRIPTION = (
-    "The B2A (business to agent) marketplace: 3,200+ APIs and 168+ AI models. Browse free; pay per call."
+    "The B2A (business to agent) marketplace: 4,400+ APIs and 168+ AI models. Browse free; pay per call."
 )
 
 
@@ -56,7 +56,7 @@ class ClientPackageTests(unittest.TestCase):
             plugin["description"],
             "Discover models and APIs for your agent through OpenAny's marketplace.",
         )
-        for banned in ("B2A", "3,200", "168+", "pay per call", "no monthly fee", "OAuth"):
+        for banned in ("B2A", "3,200", "4,400", "168+", "pay per call", "no monthly fee", "OAuth"):
             self.assertNotIn(banned, plugin["description"])
         self.assertNotEqual(plugin["description"], DESCRIPTION)
         self.assertEqual(plugin["mcpServers"], ".mcp.json")
@@ -85,6 +85,7 @@ class ClientPackageTests(unittest.TestCase):
         self.assertNotIn("has not installed the plugin in Cursor", cursor)
         self.assertNotIn("plugin loader reads", cursor)
         self.assertNotIn("3,200", cursor)
+        self.assertNotIn("4,400", cursor)
         self.assertNotIn("168+", cursor)
         self.assertIn("separate service", skill)
         note = (ROOT / "docs" / "cursor-marketplace" / "reviewer-note.md").read_text()
@@ -133,6 +134,8 @@ class ClientPackageTests(unittest.TestCase):
             ROOT / "plugins" / "claude-code" / ".claude-plugin" / "plugin.json",
             ROOT / "plugins" / "claude-code" / ".mcp.json",
             ROOT / "plugins" / "claude-code" / "skills" / "openany" / "SKILL.md",
+            ROOT / "plugins" / "claude-code" / ".codex-plugin" / "plugin.json",
+            ROOT / ".agents" / "plugins" / "marketplace.json",
             ROOT / "cordis.patch.yml",
             ROOT / "plugins" / "deepseek-harness" / "index.js",
         ]
@@ -186,8 +189,9 @@ class ClientPackageTests(unittest.TestCase):
         self.assertEqual(entry["license"], "MIT")
         self.assertNotIn("..", entry["source"])
         server = mcp["mcpServers"]["openany"]
-        self.assertEqual(set(server), {"type", "url", "headers"})
+        self.assertEqual(set(server), {"type", "url", "headers", "bearer_token_env_var"})
         self.assertEqual(server["type"], "streamable-http")
+        self.assertEqual(server["bearer_token_env_var"], SECRET)
         self.assertEqual(server["url"], LITE)
         self.assertEqual(server["headers"], {"Authorization": CLAUDE_HEADER})
         self.assertNotIn("/mcp/", server["url"])
@@ -211,6 +215,51 @@ class ClientPackageTests(unittest.TestCase):
         self.assertIn("/plugin install openany@openanysi", readme)
         self.assertIn(CLAUDE_HEADER, readme)
         self.assertIn("plugins/claude-code/.mcp.json", readme)
+        self.assertIn("Codex", skill)
+        self.assertIn("Claude Code", skill)
+
+    def test_codex_plugin_manifest_paths_and_env_bearer(self):
+        plugin_root = ROOT / "plugins" / "claude-code"
+        manifest = load_json(plugin_root / ".codex-plugin" / "plugin.json")
+        claude = load_json(plugin_root / ".claude-plugin" / "plugin.json")
+        market = load_json(ROOT / ".agents" / "plugins" / "marketplace.json")
+        mcp = load_json(plugin_root / ".mcp.json")
+        self.assertEqual(manifest["name"], "openany")
+        self.assertEqual(manifest["version"], claude["version"])
+        self.assertEqual(manifest["description"], DESCRIPTION)
+        self.assertEqual(manifest["license"], "MIT")
+        self.assertEqual(manifest["author"]["email"], "team@openany.si")
+        self.assertEqual(manifest["skills"], "./skills/")
+        self.assertEqual(manifest["mcpServers"], "./.mcp.json")
+        self.assertNotIn("..", json.dumps(manifest))
+        for key in ("skills", "mcpServers"):
+            relative = manifest[key][2:]
+            self.assertTrue((plugin_root / relative).exists(), relative)
+        interface = manifest["interface"]
+        self.assertEqual(interface["displayName"], "OpenAny")
+        self.assertEqual(interface["developerName"], "Alephant AI LLC")
+        self.assertEqual(interface["category"], "Developer Tools")
+        self.assertLessEqual(len(interface["defaultPrompt"]), 3)
+        for prompt in interface["defaultPrompt"]:
+            self.assertLessEqual(len(prompt), 128)
+            self.assertNotIn(SECRET, prompt)
+        self.assertIn("4,400+", interface["shortDescription"])
+        self.assertNotIn("3,200", json.dumps(manifest))
+        self.assertEqual(market["name"], "openanysi")
+        entry, = market["plugins"]
+        self.assertEqual(entry["name"], "openany")
+        self.assertEqual(entry["source"], {"source": "local", "path": "./plugins/claude-code"})
+        self.assertEqual(entry["policy"], {"installation": "AVAILABLE", "authentication": "ON_USE"})
+        self.assertTrue((ROOT / "plugins" / "claude-code" / ".codex-plugin" / "plugin.json").is_file())
+        server = mcp["mcpServers"]["openany"]
+        self.assertEqual(server["url"], LITE)
+        self.assertEqual(server["bearer_token_env_var"], SECRET)
+        self.assertNotIn("sk-", json.dumps(mcp))
+        readme = (ROOT / "README.md").read_text()
+        self.assertIn("## Codex", readme)
+        self.assertIn("codex plugin marketplace add openanysi/openany-mcp", readme)
+        self.assertIn("codex plugin add openany@openanysi", readme)
+        self.assertIn("not an OpenAI or Codex certification", readme)
 
 
 if __name__ == "__main__":
