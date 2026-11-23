@@ -1,6 +1,6 @@
 {
   "name": "openanysi",
-  "description": "The B2A (business to agent) marketplace. One MCP endpoint for 4,400+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call.",
+  "description": "Marketplace for AI agents. Discover models, APIs, skills, data, and services. This community marketplace is free to add. A listing may charge under its own terms.",
   "owner": {
     "name": "Alephant AI LLC",
     "email": "team@openany.si",
@@ -10,7 +10,7 @@
     {
       "name": "openany",
       "source": "./plugins/claude-code",
-      "description": "The B2A (business to agent) marketplace. One MCP endpoint for 4,400+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call.",
+      "description": "Marketplace for AI agents. Discover models, APIs, skills, data, and services. This community plugin is free. A listing may charge under its own terms.",
       "author": {
         "name": "Alephant AI LLC",
         "email": "team@openany.si",

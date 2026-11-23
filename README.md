@@ -164,20 +164,38 @@ client documentation if a field or command is rejected.
 
 ## Claude Code
 
-Add this repository as a marketplace, then install the plugin:
+This repository is a community marketplace for Claude Code. Anthropic does not review it, and it is not a listing in Anthropic's official plugin directory. The marketplace name in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) is `openanysi`. Its plugin entry `openany` uses source `./plugins/claude-code`, which is [`plugins/claude-code/.claude-plugin/plugin.json`](plugins/claude-code/.claude-plugin/plugin.json) version `0.2.1`. That plugin is free to install. OpenAny models, APIs, and other listings are a separate service and may charge under their own terms. Installing the plugin, connecting, and saving a key do not approve that charge.
+
+In a Claude Code session, add the GitHub marketplace and install the plugin:
 
 ```
 /plugin marketplace add openanysi/openany-mcp
 /plugin install openany@openanysi
 ```
 
-[`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) names the marketplace `openanysi` and points at [`plugins/claude-code`](plugins/claude-code/.claude-plugin/plugin.json). That plugin is `openany` version `0.2.1`, the same version as the Hermes package. It includes the `openany` skill and a Streamable HTTP server at `https://mcp.openany.si`.
+The same actions from a shell, with user scope:
 
-[`plugins/claude-code/.mcp.json`](plugins/claude-code/.mcp.json) sets `Authorization: Bearer ${OPENANY_API_KEY:-}`. The key is optional. When `OPENANY_API_KEY` is unset, Claude Code expands the header to an empty token, and browsing, search, and pricing still work. Only `run_api` needs the key. Export `OPENANY_API_KEY` in the environment that starts Claude Code, then start a new session, before a paid call. Do not paste the key into the chat or into this repository.
+```sh
+claude plugin marketplace add openanysi/openany-mcp --scope user
+claude plugin install openany@openanysi --scope user
+```
+
+Remove them from user scope with:
+
+```sh
+claude plugin uninstall openany@openanysi --scope user
+claude plugin marketplace remove openanysi --scope user
+```
+
+`claude plugin marketplace remove` without `--scope` also edits other settings scopes. The commands above were run with Claude Code 2.1.330. The GitHub add cloned `https://github.com/openanysi/openany-mcp.git` and installed the plugin that was on `main` at that time. A checkout of this repository was added with `claude plugin marketplace add ./ --scope user` and installed the same plugin id from `./plugins/claude-code`. Those checks did not start a model chat and did not call `run_api`.
+
+[`plugins/claude-code/.mcp.json`](plugins/claude-code/.mcp.json) sets `Authorization: Bearer ${OPENANY_API_KEY:-}` for the remote server `https://mcp.openany.si`. Do not put a key in this repository, a chat, or a log. Export `OPENANY_API_KEY` in the environment that starts Claude Code before a call that needs it.
+
+The skill tells the agent to call `openany_overview`, then `search_apis`, then `get_api`, and to call `run_api` only after the user approves the price and billing unit shown for that item. If execution or charging state is unknown, do not retry automatically.
 
 A manual server, without the plugin, remains [`examples/claude-code.sh`](examples/claude-code.sh). That script adds the header only when `OPENANY_API_KEY` is set.
 
-From a checkout of this repository, `claude plugin validate .` checks the marketplace and the plugin. [Privacy](https://openany.si/privacy/) covers how Alephant AI LLC handles account and API information.
+From a checkout of this repository, `claude plugin validate .` checks the marketplace and `claude plugin validate plugins/claude-code` checks the plugin. [Privacy](https://openany.si/privacy/) covers how Alephant AI LLC handles account and API information.
 
 ## Codex
 
