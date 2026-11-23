@@ -15,9 +15,9 @@ This plugin does not use OAuth. It does not run the catalog on the local machine
 
 The plugin variable is `OPENANY_API_KEY`. The header placeholder in `.mcp.json` is `Authorization: Bearer ${OPENANY_API_KEY}`. Set the value in Cursor plugin settings. Do not paste the key into chat, a prompt, a screenshot, or a file in this repository. Do not print the header.
 
-Installing the plugin, connecting, and saving the key do not approve spending.
+The plugin is MIT licensed. Installing it and using the plugin is free. OpenAny models, APIs, and other listings are a separate service and can charge under that listing's current terms. Installing the plugin, connecting, and saving the key do not approve that charge.
 
-Cursor's plugin reference says a plugin variable is substituted into `${OPENANY_API_KEY}` from Plugins, then Configure. This skill does not claim that an empty value connects, because that substitution was not observed in the Cursor client.
+On 2026-11-23, Cursor 3.31.15 connected with `OPENANY_API_KEY` empty and unsaved, and listed the tools below. That session did not call a tool and did not show whether a saved value expands `${OPENANY_API_KEY}`. A saved key was not tested.
 
 A hand-written `~/.cursor/mcp.json` entry is a different file. That file uses `${env:OPENANY_API_KEY}`, which is Cursor's MCP config interpolation, not this plugin variable.
 

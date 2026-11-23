@@ -78,9 +78,23 @@ class ClientPackageTests(unittest.TestCase):
         cursor = readme.split("## Cursor", 1)[1].split("## OpenClaw", 1)[0]
         self.assertIn("skills/openany/SKILL.md", cursor)
         self.assertIn("docs/cursor-marketplace/store-listing.md", cursor)
+        self.assertIn("docs/cursor-marketplace/client-test-2026-11-23.md", cursor)
+        self.assertIn("Cursor 3.31.15", cursor)
+        self.assertIn("MIT licensed", cursor)
+        self.assertIn("not a full end-to-end test", cursor)
+        self.assertNotIn("has not installed the plugin in Cursor", cursor)
         self.assertNotIn("plugin loader reads", cursor)
         self.assertNotIn("3,200", cursor)
         self.assertNotIn("168+", cursor)
+        self.assertIn("separate service", skill)
+        note = (ROOT / "docs" / "cursor-marketplace" / "reviewer-note.md").read_text()
+        self.assertIn("https://cursor.com/marketplace-publisher-terms", note)
+        self.assertIn("does not treat the split as exempt or approved", note)
+        self.assertNotIn("Not installed or enabled in Cursor", note)
+        record = (ROOT / "docs" / "cursor-marketplace" / "client-test-2026-11-23.md").read_text()
+        self.assertIn("471af31347bde22eff348e9d71e619d1174777d1", record)
+        self.assertIn("Not tested", record)
+        self.assertIn("`run_api`", record)
 
     def test_openclaw_skill_front_matter_declares_the_key(self):
         text = (ROOT / "plugins" / "openclaw" / "openany" / "SKILL.md").read_text()

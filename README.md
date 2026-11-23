@@ -202,18 +202,38 @@ documents that field as a custom path that overrides default `mcp.json`
 discovery. There is no root `mcp.json`. This repository does not claim that
 Cursor prefers `.mcp.json` when both filenames exist.
 
+The plugin is MIT licensed. Installing it and using these plugin files is
+free. OpenAny models, APIs, and other listings are a separate service. A
+listing can charge under its own current terms. Installing the plugin,
+connecting, and saving `OPENANY_API_KEY` do not approve that charge.
+
 The server URL is `https://mcp.openany.si`. The header is
 `Authorization: Bearer ${OPENANY_API_KEY}`. `OPENANY_API_KEY` is a plugin
-variable, and it is not in the manifest `required` list. The plugin reference
-says the value is set under Plugins, then Configure, and substituted into
-`${OPENANY_API_KEY}`. A manual `~/.cursor/mcp.json` entry is a different file
-and a different syntax: [`examples/cursor.mcp.json`](examples/cursor.mcp.json)
-uses `${env:OPENANY_API_KEY}`, the interpolation documented for Cursor MCP
-config. This repository has not installed the plugin in Cursor, so it does
-not claim that Cursor connects when the value is empty, or that Cursor
-expands either placeholder.
+variable, and it is not in the manifest `required` list. A manual
+`~/.cursor/mcp.json` entry is a different file and a different syntax:
+[`examples/cursor.mcp.json`](examples/cursor.mcp.json) uses
+`${env:OPENANY_API_KEY}`.
 
-Installing the plugin, connecting, and saving the key do not approve a charge.
+On 2026-11-23 at 10:02 Taipei time, Cursor 3.31.15 on Debian 13 x86_64 loaded
+commit `471af31347bde22eff348e9d71e619d1174777d1` from
+`/home/box/.cursor/plugins/local/openany`. The version came from
+`cursor --version` on the official deb package. The GUI About box was not
+checked. With a signed-in Cursor account, Customize showed the Openany plugin
+at version 0.1.1 and the openany skill. `OPENANY_API_KEY` was marked Optional
+and was empty. The key was not entered or saved. The MCP server showed
+Connected and listed `get_api`, `openany_overview`, `search_apis`, and
+`run_api`. Disabling the server, enabling it, and running Reload Window
+returned it to Connected.
+
+That is not a full end-to-end test. No chat was sent to a model. No tool was
+invoked from the GUI. `run_api` was not called. A filled key, a rejected key,
+uninstall, a full quit and restart, and a paid call were not tested. The
+check also did not show whether Cursor expanded `${OPENANY_API_KEY}` or
+`${env:OPENANY_API_KEY}`. The OS keyring said it could not recognize the
+desktop environment. The prompt was closed without choosing a weaker
+encryption setting, and the client continued to work after that. The record
+is [docs/cursor-marketplace/client-test-2026-11-23.md](docs/cursor-marketplace/client-test-2026-11-23.md).
+
 [skills/openany/SKILL.md](skills/openany/SKILL.md) tells the agent to read the
 current price and billing unit with `get_api`, then to call `run_api` only
 after the user explicitly approves that call. That approval is usage guidance.
