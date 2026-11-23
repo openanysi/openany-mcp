@@ -119,7 +119,7 @@ of an end-to-end paid test of every client.
 | Claude Code | [claude-code.sh](examples/claude-code.sh) | Run from a private shell. The header is added only when `OPENANY_API_KEY` is set |
 | Cursor | [cursor.mcp.json](examples/cursor.mcp.json) | `~/.cursor/mcp.json` |
 | Codex | [codex.config.toml](examples/codex.config.toml) | `~/.codex/config.toml` |
-| Pi | [pi.mcp.json](examples/pi.mcp.json) | `~/.pi/agent/mcp.json` or `.pi/mcp.json` |
+| Pi | [pi.mcp.json](examples/pi.mcp.json) | Manual `mcp.json`. The installable package is [plugins/pi](plugins/pi/README.md) |
 | Hermes | [hermes.config.yaml](examples/hermes.config.yaml) | `~/.hermes/config.yaml` |
 | OpenClaw | [openclaw.json](examples/openclaw.json) | `~/.openclaw/openclaw.json`, under `mcp.servers` |
 | DeepSeek Harness | [plugins/deepseek-harness](plugins/deepseek-harness/README.md) | `dsh plugin --profile web add` of this repository root |
