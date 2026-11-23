@@ -50,15 +50,37 @@ class ClientPackageTests(unittest.TestCase):
         plugin = load_json(ROOT / ".cursor-plugin" / "plugin.json")
         mcp = load_json(ROOT / ".mcp.json")
         self.assertEqual(plugin["name"], "openany")
+        self.assertEqual(plugin["version"], "0.1.1")
+        self.assertRegex(plugin["name"], r"^[a-z0-9][a-z0-9.-]*[a-z0-9]$")
+        self.assertEqual(
+            plugin["description"],
+            "Discover models and APIs for your agent through OpenAny's marketplace.",
+        )
+        for banned in ("B2A", "3,200", "168+", "pay per call", "no monthly fee", "OAuth"):
+            self.assertNotIn(banned, plugin["description"])
+        self.assertNotEqual(plugin["description"], DESCRIPTION)
         self.assertEqual(plugin["mcpServers"], ".mcp.json")
         self.assertEqual(plugin["license"], "MIT")
         variable = plugin["variables"]["properties"][SECRET]
         self.assertEqual(variable["type"], "string")
         self.assertNotIn(SECRET, plugin["variables"]["required"])
+        self.assertNotRegex(json.dumps(plugin), r"\bsk-[A-Za-z0-9_-]{8,}")
         server = mcp["mcpServers"]["openany"]
         self.assertEqual(server["url"], LITE)
         self.assertEqual(server["headers"], {"Authorization": HEADER})
         self.assertFalse((ROOT / "mcp.json").exists())
+        skill = (ROOT / "skills" / "openany" / "SKILL.md").read_text()
+        self.assertIn("name: openany", skill)
+        self.assertIn(LITE, skill)
+        self.assertIn("run_api", skill)
+        self.assertNotIn("plugins/openany", skill)
+        readme = (ROOT / "README.md").read_text()
+        cursor = readme.split("## Cursor", 1)[1].split("## OpenClaw", 1)[0]
+        self.assertIn("skills/openany/SKILL.md", cursor)
+        self.assertIn("docs/cursor-marketplace/store-listing.md", cursor)
+        self.assertNotIn("plugin loader reads", cursor)
+        self.assertNotIn("3,200", cursor)
+        self.assertNotIn("168+", cursor)
 
     def test_openclaw_skill_front_matter_declares_the_key(self):
         text = (ROOT / "plugins" / "openclaw" / "openany" / "SKILL.md").read_text()

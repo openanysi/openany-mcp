@@ -195,19 +195,35 @@ this repository. [`GEMINI.md`](GEMINI.md) is the extension context file.
 
 ## Cursor
 
-[`.mcp.json`](.mcp.json) is the root file cursor.directory reads for an MCP
-server. [`.cursor-plugin/plugin.json`](.cursor-plugin/plugin.json) is the
-Cursor plugin manifest. It declares `OPENANY_API_KEY` as an optional string
-variable and sets `mcpServers` to `.mcp.json`. The header in that file is
-`Authorization: Bearer ${OPENANY_API_KEY}`. Cursor fills the placeholder from
-the plugin setting when it is set. The file does not contain a key.
+[`.cursor-plugin/plugin.json`](.cursor-plugin/plugin.json) is the Cursor plugin
+manifest. Its name is `openany`. It sets `mcpServers` to
+[`.mcp.json`](.mcp.json). The [Cursor plugin reference](https://cursor.com/docs/reference/plugins)
+documents that field as a custom path that overrides default `mcp.json`
+discovery. There is no root `mcp.json`. This repository does not claim that
+Cursor prefers `.mcp.json` when both filenames exist.
 
-A manual merge into `~/.cursor/mcp.json` uses
-[`examples/cursor.mcp.json`](examples/cursor.mcp.json), which expands
-`${env:OPENANY_API_KEY}` and points at `https://mcp.openany.si`.
+The server URL is `https://mcp.openany.si`. The header is
+`Authorization: Bearer ${OPENANY_API_KEY}`. `OPENANY_API_KEY` is a plugin
+variable, and it is not in the manifest `required` list. The plugin reference
+says the value is set under Plugins, then Configure, and substituted into
+`${OPENANY_API_KEY}`. A manual `~/.cursor/mcp.json` entry is a different file
+and a different syntax: [`examples/cursor.mcp.json`](examples/cursor.mcp.json)
+uses `${env:OPENANY_API_KEY}`, the interpolation documented for Cursor MCP
+config. This repository has not installed the plugin in Cursor, so it does
+not claim that Cursor connects when the value is empty, or that Cursor
+expands either placeholder.
 
-There is no root `mcp.json`. Cursor's plugin loader reads `.mcp.json` before
-`mcp.json` when both exist, so the manifest points at the one file.
+Installing the plugin, connecting, and saving the key do not approve a charge.
+[skills/openany/SKILL.md](skills/openany/SKILL.md) tells the agent to read the
+current price and billing unit with `get_api`, then to call `run_api` only
+after the user explicitly approves that call. That approval is usage guidance.
+This plugin does not add a technical block that enforces it. Requests and
+tool inputs are sent to OpenAny and leave the machine.
+
+The plugin description does not quote a fixed catalog size or one billing
+rule for every listing. Suggested store text and the unpublished reviewer
+note are in [docs/cursor-marketplace/store-listing.md](docs/cursor-marketplace/store-listing.md)
+and [docs/cursor-marketplace/reviewer-note.md](docs/cursor-marketplace/reviewer-note.md).
 
 ## OpenClaw
 
