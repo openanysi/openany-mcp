@@ -20,6 +20,14 @@ DESCRIPTION = (
 SHORT_DESCRIPTION = (
     "The B2A (business to agent) marketplace: 4,400+ APIs and 168+ AI models. Browse free; pay per call."
 )
+CLAUDE_DESCRIPTION = (
+    "Marketplace for AI agents. Discover models, APIs, skills, data, and services. "
+    "This community plugin is free. A listing may charge under its own terms."
+)
+CLAUDE_MARKET_DESCRIPTION = (
+    "Marketplace for AI agents. Discover models, APIs, skills, data, and services. "
+    "This community marketplace is free to add. A listing may charge under its own terms."
+)
 
 
 def load_json(path: Path) -> dict:
@@ -166,8 +174,10 @@ class ClientPackageTests(unittest.TestCase):
         mcp = load_json(ROOT / "plugins" / "claude-code" / ".mcp.json")
         self.assertLessEqual(len(SHORT_DESCRIPTION), 200)
         self.assertGreater(len(DESCRIPTION), 200)
-        self.assertEqual(plugin["description"], DESCRIPTION)
-        self.assertEqual(plugin["description"], hermes["description"])
+        self.assertEqual(plugin["description"], CLAUDE_DESCRIPTION)
+        self.assertNotEqual(plugin["description"], hermes["description"])
+        for banned in ("B2A", "4,400", "168+", "pay per call", "no monthly fee"):
+            self.assertNotIn(banned, plugin["description"])
         self.assertEqual(plugin["name"], "openany")
         self.assertEqual(plugin["displayName"], "OpenAny")
         self.assertEqual(plugin["version"], hermes["version"])
@@ -178,14 +188,14 @@ class ClientPackageTests(unittest.TestCase):
         self.assertEqual(plugin["license"], "MIT")
         self.assertEqual(plugin["privacyPolicyUrl"], "https://openany.si/privacy/")
         self.assertEqual(market["name"], "openanysi")
-        self.assertEqual(market["description"], DESCRIPTION)
+        self.assertEqual(market["description"], CLAUDE_MARKET_DESCRIPTION)
         self.assertEqual(market["owner"]["name"], "Alephant AI LLC")
         self.assertEqual(market["owner"]["email"], "team@openany.si")
         entry, = market["plugins"]
         self.assertEqual(entry["name"], plugin["name"])
         self.assertEqual(entry["source"], "./plugins/claude-code")
         self.assertNotIn("version", entry)
-        self.assertEqual(entry["description"], DESCRIPTION)
+        self.assertEqual(entry["description"], CLAUDE_DESCRIPTION)
         self.assertEqual(entry["license"], "MIT")
         self.assertNotIn("..", entry["source"])
         server = mcp["mcpServers"]["openany"]
@@ -201,7 +211,7 @@ class ClientPackageTests(unittest.TestCase):
         frontmatter = match.group(1)
         self.assertIn("name: openany", frontmatter)
         description = re.search(r"description: (.+)", frontmatter).group(1)
-        self.assertEqual(description, DESCRIPTION)
+        self.assertEqual(description, "Marketplace for AI agents. Discover models, APIs, skills, data, and services. Use when this community plugin is connected and the user wants something from OpenAny.")
         self.assertLessEqual(len(description), 1024)
         self.assertIn(LITE, skill)
         self.assertIn("Streamable HTTP", skill)
@@ -213,6 +223,9 @@ class ClientPackageTests(unittest.TestCase):
         self.assertIn("## Claude Code", readme)
         self.assertIn("/plugin marketplace add openanysi/openany-mcp", readme)
         self.assertIn("/plugin install openany@openanysi", readme)
+        self.assertIn("claude plugin uninstall openany@openanysi --scope user", readme)
+        self.assertIn("claude plugin marketplace remove openanysi --scope user", readme)
+        self.assertIn("not a listing in Anthropic's official plugin directory", readme)
         self.assertIn(CLAUDE_HEADER, readme)
         self.assertIn("plugins/claude-code/.mcp.json", readme)
         self.assertIn("Codex", skill)
