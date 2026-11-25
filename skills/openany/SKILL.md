@@ -7,19 +7,33 @@ description: Discover models and APIs for your agent through OpenAny's marketpla
 
 OpenAny is the marketplace for AI agents. Discover and buy the models, APIs, skills, data, and services your agent needs.
 
-Use this skill when the user wants one of those from OpenAny. The Cursor plugin connects to the hosted MCP server at `https://mcp.openany.si`. Queries and tool inputs are sent to OpenAny. They leave this machine.
+Use this skill when the user wants one of those from OpenAny. Cursor and Google Antigravity both load this file. The hosted server for both is `https://mcp.openany.si`. Do not point either client at `https://mcp.openany.si/mcp`. Queries and tool inputs are sent to OpenAny. They leave this machine.
 
 This plugin does not use OAuth. It does not run the catalog on the local machine. Do not describe it as zero-configuration or as a local-only tool.
 
+Follow only the Key section for the client that loaded this plugin. Do not copy one client's key rule onto the other. If you cannot tell which client loaded this file, ask before telling the user whether a key is required to connect.
+
 ## Key
 
-The plugin variable is `OPENANY_API_KEY`. The header placeholder in `.mcp.json` is `Authorization: Bearer ${OPENANY_API_KEY}`. Set the value in Cursor plugin settings. Do not paste the key into chat, a prompt, a screenshot, or a file in this repository. Do not print the header.
+Do not paste the key into chat, a prompt, a screenshot, or a file in this repository. Do not print the header.
 
 The plugin is MIT licensed. Installing it and using the plugin is free. OpenAny models, APIs, and other listings are a separate service and can charge under that listing's current terms. Installing the plugin, connecting, and saving the key do not approve that charge.
 
-On 2026-11-23, Cursor 3.31.15 connected with `OPENANY_API_KEY` empty and unsaved, and listed the tools below. That session did not call a tool and did not show whether a saved value expands `${OPENANY_API_KEY}`. A saved key was not tested.
+### Cursor
+
+The plugin variable is `OPENANY_API_KEY`. The header placeholder in `.mcp.json` is `Authorization: Bearer ${OPENANY_API_KEY}`. Set the value in Cursor plugin settings.
+
+On 2026-11-23, Cursor 3.31.15 connected with `OPENANY_API_KEY` empty and unsaved, and listed the tools below. That session did not call a tool and did not show whether a saved value expands `${OPENANY_API_KEY}`. A saved key was not tested. That result is about Cursor only.
 
 A hand-written `~/.cursor/mcp.json` entry is a different file. That file uses `${env:OPENANY_API_KEY}`, which is Cursor's MCP config interpolation, not this plugin variable.
+
+### Google Antigravity
+
+Antigravity reads `mcp_config.json`. It does not use the Cursor `.mcp.json` header. The header placeholder is `Authorization: Bearer ${OPENANY_API_KEY}`. The declared variable is `OPENANY_API_KEY`.
+
+Antigravity's plugin guide says that declaring MCP `variables` leaves the plugin disabled after `agy plugin install` until those values are entered. The documented variable fields are `name`, `title`, `description`, and `link`. That field list has no optional flag. Enter the key in the Antigravity setup dialog (Customizations > Installed, or `/plugin` in the CLI). Create it at https://openany.si/dashboard?page=api-keys.
+
+Do not tell an Antigravity user to leave the key empty because the Cursor session above connected that way. A catalog response without a key, where the server allows one, does not enable this Antigravity plugin. Enter the key in the dialog before expecting the plugin to connect.
 
 ## Tools
 
