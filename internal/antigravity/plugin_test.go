@@ -205,6 +205,70 @@ func TestPluginReadmeDocumentsInstallAndAuth(t *testing.T) {
 	rejectSecrets(t, readme)
 }
 
+func TestSharedSkillSeparatesCursorFromAntigravity(t *testing.T) {
+	root := repoRoot(t)
+	skill := string(readRepoFile(t, root, "skills/openany/SKILL.md"))
+	rejectSecrets(t, skill)
+	if !strings.Contains(skill, endpoint) {
+		t.Fatal("lite endpoint")
+	}
+	if strings.Count(skill, "### Cursor") != 1 || strings.Count(skill, "### Google Antigravity") != 1 {
+		t.Fatal("client headings")
+	}
+	for _, phrase := range []string{
+		"Cursor and Google Antigravity both load this file.",
+		"Follow only the Key section for the client that loaded this plugin.",
+		"Do not copy one client's key rule onto the other.",
+		"Do not point either client at `" + endpoint + "/mcp`.",
+	} {
+		if !strings.Contains(skill, phrase) {
+			t.Fatal("missing shared rule", phrase)
+		}
+	}
+	cursor := between(t, skill, "### Cursor", "### Google Antigravity")
+	antigravity := between(t, skill, "### Google Antigravity", "## Tools")
+	for _, phrase := range []string{
+		"Set the value in Cursor plugin settings.",
+		"The header placeholder in `.mcp.json` is `Authorization: " + placeholderHeader + "`.",
+		"On 2026-11-23, Cursor 3.31.15 connected with `OPENANY_API_KEY` empty and unsaved, and listed the tools below.",
+		"That session did not call a tool and did not show whether a saved value expands `${OPENANY_API_KEY}`.",
+		"A saved key was not tested.",
+		"That result is about Cursor only.",
+		"`${env:OPENANY_API_KEY}`",
+	} {
+		if !strings.Contains(cursor, phrase) {
+			t.Fatal("cursor boundary", phrase)
+		}
+	}
+	for _, phrase := range []string{
+		"Antigravity reads `mcp_config.json`.",
+		"It does not use the Cursor `.mcp.json` header.",
+		"The header placeholder is `Authorization: " + placeholderHeader + "`.",
+		"declaring MCP `variables` leaves the plugin disabled after `agy plugin install`",
+		"Do not tell an Antigravity user to leave the key empty because the Cursor session above connected that way.",
+	} {
+		if !strings.Contains(antigravity, phrase) {
+			t.Fatal("antigravity section", phrase)
+		}
+	}
+	if strings.Contains(antigravity, "empty and unsaved") || strings.Contains(antigravity, "Cursor 3.31.15") {
+		t.Fatal("antigravity section repeats the cursor session as its own result")
+	}
+	if strings.Contains(cursor, "mcp_config.json") || strings.Contains(cursor, "agy plugin install") {
+		t.Fatal("cursor section picked up antigravity install rules")
+	}
+}
+
+func between(t *testing.T, text, start, end string) string {
+	t.Helper()
+	i := strings.Index(text, start)
+	j := strings.Index(text, end)
+	if i < 0 || j <= i {
+		t.Fatalf("sections %q %q", start, end)
+	}
+	return text[i:j]
+}
+
 func rewriteLookaheadPatterns(v any) {
 	switch node := v.(type) {
 	case map[string]any:
