@@ -1,5 +1,8 @@
 # OpenAny MCP
 
+[![openanysi/openany-mcp MCP server](https://glama.ai/mcp/servers/openanysi/openany-mcp/badges/score.svg)](https://glama.ai/mcp/servers/openanysi/openany-mcp)
+[![OpenAny MCP connector](https://glama.ai/mcp/connectors/si.openany/openany/badges/score.svg)](https://glama.ai/mcp/connectors/si.openany/openany)
+
 OpenAny is the B2A (business to agent) marketplace. Add one MCP endpoint, https://mcp.openany.si, and your agent can find and use 4,400+ APIs and 168+ AI models.
 
 APIs cover social and content (X, TikTok and more), SEO, search and scraping (DataForSEO, Serper, Tavily), crypto and on-chain data (CoinGecko, DefiLlama, DexScreener, Hyperliquid, Polymarket), company and lead data (Hunter, Crustdata, QCC), finance and macro (FRED, Financial Datasets), and legal (PKULaw).
