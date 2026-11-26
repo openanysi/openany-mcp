@@ -69,6 +69,12 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Forbidden host", 403)
 		return
 	}
+	// Public discovery metadata. Browser clients send Origin and must not be
+	// blocked by MCP_ALLOWED_ORIGINS; the card carries no credentials.
+	if r.URL.Path == serverCardPath {
+		serveServerCard(w, r)
+		return
+	}
 	if origin := r.Header.Get("Origin"); origin != "" && !slices.Contains(h.options.Origins, origin) {
 		http.Error(w, "Forbidden origin", 403)
 		return
