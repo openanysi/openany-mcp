@@ -59,6 +59,7 @@ func (h *Handler) executeModel(ctx context.Context, req *mcp.CallToolRequest, d 
 		headers = req.Extra.Header
 	}
 	result := clarifyRejectedKey(h.models.PostChatCompletion(ctx, args, headers))
+	result = h.withAlternatives(result, d)
 	h.options.Logger.Info("model call completed", "model_id", api, "catalog_hash", catalogHash, "gateway_request_id", result.Value["request_id"], "http_status", result.Value["http_status"], "is_error", result.IsError, "duration_ms", time.Since(start).Milliseconds())
 	return result
 }

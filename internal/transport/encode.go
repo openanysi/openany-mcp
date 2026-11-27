@@ -48,12 +48,35 @@ func scalar(v any) (string, error) {
 		return "", fmt.Errorf("value has no scalar HTTP encoding")
 	}
 }
+
+// FormFieldName only permits a scalar field at one published body level.
+// Nested/root objects and arrays need a separately reviewed encoding contract.
+func FormFieldName(in model.Parameter) (string, error) {
+	name := in.Name
+	if in.Pointer != nil {
+		p := *in.Pointer
+		if !strings.HasPrefix(p, "/") || strings.Contains(p[1:], "/") || strings.Contains(strings.ReplaceAll(strings.ReplaceAll(p, "~0", ""), "~1", ""), "~") {
+			return "", fmt.Errorf("form fields require a flat body pointer")
+		}
+		name = strings.ReplaceAll(strings.ReplaceAll(p[1:], "~1", "/"), "~0", "~")
+	}
+	if name == "" {
+		return "", fmt.Errorf("form field name is empty")
+	}
+	return name, nil
+}
+
 func Encode(r model.Request, args map[string]any) (Encoded, error) {
 	e := Encoded{Path: r.PublicPath, Headers: make(http.Header)}
 	if err := ValidateInputs(r.Inputs); err != nil {
 		return e, err
 	}
 	q := url.Values{}
+	form := url.Values{}
+	isForm := r.RequestContentType == "application/x-www-form-urlencoded"
+	if isForm && (r.Method == "GET" || r.Method == "HEAD") {
+		return e, fmt.Errorf("form body requires a non-GET/HEAD request")
+	}
 	body := map[string]any{}
 	var root any
 	hasRoot := false
@@ -143,6 +166,18 @@ func Encode(r model.Request, args map[string]any) (Encoded, error) {
 			}
 			e.Headers.Set(in.Name, s)
 		case "body":
+			if isForm {
+				name, err := FormFieldName(in)
+				if err != nil {
+					return e, err
+				}
+				s, err := scalar(v)
+				if err != nil {
+					return e, err
+				}
+				form.Set(name, s)
+				continue
+			}
 			if in.Pointer != nil && *in.Pointer == "" {
 				if hasRoot || len(body) > 0 {
 					return e, fmt.Errorf("conflicting root body")
@@ -169,7 +204,10 @@ func Encode(r model.Request, args map[string]any) (Encoded, error) {
 		return e, fmt.Errorf("missing path parameter")
 	}
 	e.Query = q.Encode()
-	if r.Method != "GET" && r.RequestContentType == "application/json" {
+	if isForm {
+		e.Body = []byte(form.Encode())
+		e.Headers.Set("Content-Type", "application/x-www-form-urlencoded")
+	} else if r.Method != "GET" && r.RequestContentType == "application/json" {
 		var value any = body
 		if hasRoot {
 			value = root

@@ -20,16 +20,17 @@ import (
 )
 
 type Options struct {
-	LiteEnabled     bool
-	BenefitsEnabled bool
-	MaxBody         int64
-	MaxCalls        int
-	Hosts           []string
-	Origins         []string
-	Logger          *slog.Logger
-	ModelGateway    *gateway.Client
-	AccountClient   *account.Client
-	PolicyCache     *account.PolicyCache
+	AlternativesEnabled bool
+	LiteEnabled         bool
+	BenefitsEnabled     bool
+	MaxBody             int64
+	MaxCalls            int
+	Hosts               []string
+	Origins             []string
+	Logger              *slog.Logger
+	ModelGateway        *gateway.Client
+	AccountClient       *account.Client
+	PolicyCache         *account.PolicyCache
 }
 
 const fullCatalogInstructions = "OpenAny Full Catalog lists one tool per data API and does not include AI models. For models, live catalog counts, and search across the whole catalog, connect to https://mcp.openany.si. Tool calls need the caller's OpenAny API key on the MCP connection as Authorization: Bearer <key>. Create a key at https://openany.si/dashboard?page=api-keys and store it in the client's secure secret or connector settings. Never ask the user to paste the key into the chat or prompt. A call with no key is rejected locally. This server has no OAuth flow and does not collect secrets with form elicitation. Confirm the live price with the user before calling a tool. A call can incur charges."

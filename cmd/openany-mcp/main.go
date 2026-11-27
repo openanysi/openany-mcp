@@ -77,6 +77,7 @@ func run() int {
 		return 1
 	}
 	defer client.Close()
+	client.EnableAlternatives(c.AlternativesEnabled)
 	var modelClient *gateway.Client
 	if c.LiteEnabled {
 		modelClient, err = gateway.New(c.ModelsOrigin, c.GatewayTimeout, c.ConnectTimeout, c.MaxResponse, c.MaxResult)
@@ -85,10 +86,11 @@ func run() int {
 			return 1
 		}
 		defer modelClient.Close()
+		modelClient.EnableAlternatives(c.AlternativesEnabled)
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	opts := mcpserver.Options{LiteEnabled: c.LiteEnabled, MaxBody: c.MaxBody, MaxCalls: c.MaxCalls, Hosts: c.Hosts, Origins: c.Origins, Logger: logger, ModelGateway: modelClient, BenefitsEnabled: c.BenefitsEnabled}
+	opts := mcpserver.Options{LiteEnabled: c.LiteEnabled, MaxBody: c.MaxBody, MaxCalls: c.MaxCalls, Hosts: c.Hosts, Origins: c.Origins, Logger: logger, ModelGateway: modelClient, BenefitsEnabled: c.BenefitsEnabled, AlternativesEnabled: c.AlternativesEnabled}
 	if c.BenefitsEnabled || (c.LiteEnabled && c.AccountEnabled) {
 		accountClient, err := account.NewClient(c.AccountOrigin)
 		if err != nil {

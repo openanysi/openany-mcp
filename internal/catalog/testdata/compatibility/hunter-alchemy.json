@@ -1,0 +1,79 @@
+[
+  {
+    "api_id": "552cf63d-c901-419b-bfb4-a5175d3b36d9",
+    "name": "Hunter — Domain Finder (POST)",
+    "description": "Find the domain for a company via POST",
+    "provider_id": "hunter",
+    "public_mcp_tool_name": "hunter_post_v2_domain_finder",
+    "method": "POST",
+    "path_template": "/v2/domain-finder",
+    "public_path": "/v1/agent-apis/hunter/v2/domain-finder",
+    "status": "active",
+    "revision": 4,
+    "upstream_protocol": "http",
+    "request_content_type": "application/x-www-form-urlencoded",
+    "unknown_parameters": "reject",
+    "billing_mode": "fixed",
+    "config_present": true,
+    "inputs": [
+      {
+        "name": "company",
+        "type": "string",
+        "pointer": "/company",
+        "location": "body",
+        "nullable": false,
+        "required": true,
+        "min_length": 3,
+        "description": "Company name to resolve to a domain."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "maximum": "10",
+        "minimum": "1",
+        "pointer": "/limit",
+        "location": "body",
+        "nullable": false,
+        "required": false,
+        "description": "Maximum suggestions to return."
+      },
+      {
+        "name": "perfect_match",
+        "type": "boolean",
+        "pointer": "/perfect_match",
+        "location": "body",
+        "nullable": false,
+        "required": false,
+        "description": "Only return an exact company-name match."
+      }
+    ]
+  },
+  {
+    "api_id": "fe26bda6-dc26-4423-81a6-94826c96f872",
+    "name": "Alchemy — Token Prices By Symbol",
+    "description": "Fetches current prices for multiple tokens using their symbols. Returns a list of token prices, each containing the symbol, prices, and an optional error field. Uses the shared Alchemy Free quota; not unlimited. Documentation prepared only, not runtime-verified.",
+    "provider_id": "alchemy",
+    "public_mcp_tool_name": "alchemy_get_prices_v1_tokens_by_symbol",
+    "method": "GET",
+    "path_template": "/prices/v1/tokens/by-symbol",
+    "public_path": "/v1/agent-apis/alchemy/prices/v1/tokens/by-symbol",
+    "status": "active",
+    "revision": 2,
+    "upstream_protocol": "http",
+    "request_content_type": "none",
+    "unknown_parameters": "reject",
+    "billing_mode": "fixed",
+    "config_present": true,
+    "inputs": [
+      {
+        "name": "symbols",
+        "type": "array",
+        "location": "query",
+        "nullable": false,
+        "required": true,
+        "item_type": "string",
+        "description": "Array of token symbols (limit 25). Example: symbols=[ETH,BTC]\n"
+      }
+    ]
+  }
+]

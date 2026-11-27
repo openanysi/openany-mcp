@@ -1,0 +1,75 @@
+{
+  "type": "openany_error",
+  "code": "openany_upstream_service_error",
+  "message": "Platform provider failure",
+  "request_id": "local-fixture-request",
+  "openany_cost": 0,
+  "details": {
+    "alternatives_version": 1,
+    "alternatives": [
+      {
+        "candidate_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "kind": "api",
+        "relation": "same_operation",
+        "operation_key": "youtube.search.suggestions",
+        "provider_id": "target",
+        "name": "Reviewed search suggestions",
+        "api_id": "00000000-0000-4000-8000-000000000002",
+        "api_revision": 1,
+        "method": "GET",
+        "public_path": "/v1/agent-apis/target/suggestions",
+        "definition_path": "/api/v1/agent-apis/00000000-0000-4000-8000-000000000002",
+        "price_micro_usd": "1000",
+        "currency": "USD",
+        "billing_unit": "call",
+        "compatibility": {
+          "level": "requires_adaptation",
+          "differences": [],
+          "input_mapping": [
+            {
+              "from": "query:query",
+              "to": "query:keyword"
+            }
+          ]
+        },
+        "execution": {
+          "protocol": "http",
+          "method": "GET",
+          "path": "/v1/agent-apis/target/suggestions",
+          "definition_path": "/api/v1/agent-apis/00000000-0000-4000-8000-000000000002",
+          "request_overrides": {}
+        },
+        "pricing": {
+          "scope": "public_catalog",
+          "amount_micro_usd": "1000",
+          "currency": "USD",
+          "unit": "call",
+          "requires_quote": false,
+          "as_of": "2026-11-27T00:00:00Z"
+        },
+        "availability": {
+          "published": true,
+          "health": "unknown",
+          "basis": "current_catalog"
+        },
+        "checks": [
+          "reviewed_operation",
+          "current_contract",
+          "request_covered",
+          "recheck_price_and_access"
+        ]
+      }
+    ],
+    "recovery": {
+      "version": 1,
+      "reason": "upstream_failure",
+      "execution_state": "failed",
+      "charge_state": "not_charged",
+      "replay_safety": "safe",
+      "alternatives_status": "available",
+      "primary_action": "inspect_alternatives",
+      "next_step_target": "/api/v1/agent-apis/00000000-0000-4000-8000-000000000002",
+      "recovery_id": "local-fixture-request"
+    }
+  }
+}

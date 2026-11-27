@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/openany/openany-mcp/internal/model"
 	"net/http"
+	"net/url"
 	"testing"
 )
 
@@ -66,6 +67,23 @@ func TestBodyAncestorPointersAreRejectedWithoutMutatingInput(t *testing.T) {
 		}
 		if len(parent) != 1 {
 			t.Fatal("validated input mutated")
+		}
+	}
+}
+
+func TestEncodeFlatFormPreservesScalarsAndPublishedPointerNames(t *testing.T) {
+	r := model.Request{Method: "POST", PublicPath: "/v1/agent-apis/hunter/v2/domain-finder", RequestContentType: "application/x-www-form-urlencoded", Inputs: []model.Parameter{{Name: "company_name", Location: "body", Pointer: ptr("/company")}, {Name: "limit", Location: "body"}, {Name: "perfect_match", Location: "body"}, {Name: "optional", Location: "body"}}}
+	e, err := Encode(r, map[string]any{"company_name": "中国 A&B+Corp", "limit": json.Number("2"), "perfect_match": false})
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := url.Values{"company": {"中国 A&B+Corp"}, "limit": {"2"}, "perfect_match": {"false"}}.Encode()
+	if e.Headers.Get("Content-Type") != "application/x-www-form-urlencoded" || string(e.Body) != expected || e.Query != "" {
+		t.Fatalf("form not encoded: %q %+v", e.Body, e.Headers)
+	}
+	for _, value := range []any{nil, []any{"a"}, map[string]any{"a": "b"}} {
+		if _, err := Encode(r, map[string]any{"company_name": value}); err == nil {
+			t.Fatalf("unsupported scalar encoded: %T", value)
 		}
 	}
 }

@@ -23,12 +23,15 @@ type Result struct {
 	IsError bool
 }
 type Client struct {
-	base        *url.URL
-	http        *http.Client
-	timeout     time.Duration
-	maxResponse int64
-	maxResult   int64
+	alternatives bool
+	base         *url.URL
+	http         *http.Client
+	timeout      time.Duration
+	maxResponse  int64
+	maxResult    int64
 }
+
+func (c *Client) EnableAlternatives(enabled bool) { c.alternatives = enabled }
 
 func New(base string, timeout, connect time.Duration, maxResponse, maxResult int64) (*Client, error) {
 	u, err := url.Parse(base)
@@ -39,7 +42,7 @@ func New(base string, timeout, connect time.Duration, maxResponse, maxResult int
 	p.SetHTTP1(true)
 	tr := &http.Transport{Proxy: nil, DialContext: (&net.Dialer{Timeout: connect}).DialContext, DisableKeepAlives: true, Protocols: p, TLSHandshakeTimeout: connect}
 	h := &http.Client{Transport: tr, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
-	return &Client{u, h, timeout, maxResponse, maxResult}, nil
+	return &Client{base: u, http: h, timeout: timeout, maxResponse: maxResponse, maxResult: maxResult}, nil
 }
 func Failure(code, message, stage, state string, status any, id any) Result {
 	return Result{map[string]any{"http_status": status, "request_id": id, "error": map[string]any{"code": code, "message": message, "stage": stage, "execution_state": state}}, true}
@@ -122,8 +125,8 @@ func (c *Client) Call(ctx context.Context, r model.Request, args map[string]any,
 			return formatFailure("openany_mcp_invalid_response", "Gateway returned invalid JSON.")
 		}
 	}
-	if obj, ok := data.(map[string]any); ok && obj["type"] == "openany_error" {
-		return c.LimitResult(publicFailure(obj, resp.StatusCode, id))
+	if obj, ok := data.(map[string]any); ok && obj["type"] == "openany_error" && (resp.StatusCode >= 400 || resp.Header.Get("x-openmodels-heartbeat") == "true" && gatewayErrorStatus(obj["openany_gateway_status"])) {
+		return c.LimitResult(publicFailure(obj, resp.StatusCode, id, c.alternatives))
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return Failure("openany_mcp_gateway_http_error", "Gateway returned an unsuccessful HTTP status.", "gateway", "reported_failure", resp.StatusCode, id)
@@ -177,3 +180,12 @@ func (c *Client) PostChatCompletion(ctx context.Context, payload map[string]any,
 }
 
 func (c *Client) Close() { c.http.CloseIdleConnections() }
+
+func gatewayErrorStatus(value any) bool {
+	n, ok := value.(json.Number)
+	if !ok {
+		return false
+	}
+	status, err := n.Int64()
+	return err == nil && status >= 400 && status <= 599
+}

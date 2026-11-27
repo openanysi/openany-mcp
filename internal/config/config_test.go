@@ -69,3 +69,25 @@ func TestAccountConfigurationFlagsAndOrigin(t *testing.T) {
 		t.Fatal("account origin accepted a path")
 	}
 }
+
+func TestAlternativesFlagDefaultsFalseAndAcceptsExternalOverride(t *testing.T) {
+	t.Setenv("POSTGRES_DATABASE_URL", "postgres://localhost/test")
+	t.Setenv("OPENANY_GATEWAY_BASE_URL", "http://localhost:8888")
+	t.Setenv("MCP_ALTERNATIVES_ENABLED", "")
+	os.Unsetenv("MCP_ALTERNATIVES_ENABLED")
+	c, err := Load()
+	if err != nil || c.AlternativesEnabled {
+		t.Fatal("default must be false", err)
+	}
+	for _, v := range []string{"true", "false"} {
+		t.Setenv("MCP_ALTERNATIVES_ENABLED", v)
+		c, err = Load()
+		if err != nil || c.AlternativesEnabled != (v == "true") {
+			t.Fatal("external override", err)
+		}
+	}
+	t.Setenv("MCP_ALTERNATIVES_ENABLED", "maybe")
+	if _, err = Load(); err == nil {
+		t.Fatal("invalid boolean accepted")
+	}
+}

@@ -1315,6 +1315,18 @@
           "source": "https://docs.li.fi/openapi.yaml#/v1/advanced/stepTransaction; OpenAPI query form/explode=true; empty-array behavior unverified"
         }
       }
+    },
+    {
+      "provider_id": "alchemy",
+      "method": "GET",
+      "path_template": "/prices/v1/tokens/by-symbol",
+      "query_arrays": {
+        "symbols": {
+          "encoding": "csv",
+          "empty": "reject",
+          "source": "https://www.alchemy.com/docs/reference/prices-api-quickstart — By Symbol example explicitly uses symbols.join(','); current endpoint reference declares a required string array, limit 25: https://www.alchemy.com/docs/data/prices-api/prices-api-endpoints/prices-api-endpoints/get-token-prices-by-symbol"
+        }
+      }
     }
   ]
 }

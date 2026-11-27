@@ -43,6 +43,11 @@ func (h *Handler) executeResult(ctx context.Context, req *mcp.CallToolRequest, b
 		headers = req.Extra.Header
 	}
 	result := clarifyRejectedKey(h.gateway.Call(ctx, b.Request, args, headers))
+	if snapshot, ok := ctx.Value(snapshotKey{}).(*catalog.Snapshot); ok {
+		result = h.withAlternatives(result, snapshot.Discovery)
+	} else {
+		result = h.withAlternatives(result, nil)
+	}
 	h.options.Logger.Info("tool completed", "api_id", b.APIID, "tool_name", name, "catalog_hash", catalogHash, "gateway_request_id", result.Value["request_id"], "http_status", result.Value["http_status"], "is_error", result.IsError, "duration_ms", time.Since(start).Milliseconds())
 	return result
 }

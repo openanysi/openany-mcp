@@ -11,6 +11,9 @@ var publicToken = regexp.MustCompile(`^[A-Za-z0-9_.:-]{1,128}$`)
 
 // RecoveryActionText renders platform actions without treating upstream prose as instructions.
 func RecoveryActionText(action, target string) string {
+	if action == "inspect_alternatives" && officialDefinitionTarget(target) {
+		return "Inspect the reviewed alternatives and refresh the target contract and price. Continue only within the original task and budget authorization. " + target
+	}
 	if !officialRecoveryTarget(target) {
 		return ""
 	}
@@ -137,7 +140,7 @@ func recoveryMatchesCode(code string, r map[string]any) bool {
 	return (u.Path == "/dashboard" || u.Path == "/dashboard/") && u.Query().Get("page") == expectedPage
 }
 
-func publicFailure(obj map[string]any, status int, id any) Result {
+func publicFailure(obj map[string]any, status int, id any, alternativesEnabled ...bool) Result {
 	code, _ := obj["code"].(string)
 	if !strings.HasPrefix(code, "openany_") || !publicToken.MatchString(code) {
 		code = "openany_mcp_gateway_error"
@@ -150,6 +153,16 @@ func publicFailure(obj map[string]any, status int, id any) Result {
 		} else if n, ok := cost.(json.Number); ok && regexp.MustCompile(`^(0|[1-9][0-9]{0,18})$`).MatchString(string(n)) {
 			r.Value["openany_cost"] = n
 		}
+	}
+	enabled := len(alternativesEnabled) > 0 && alternativesEnabled[0]
+	if recovery, alternatives, ok := candidateRecovery(obj, enabled); ok {
+		e["recovery"], e["execution_state"], e["charge_state"] = recovery, recovery["execution_state"], recovery["charge_state"]
+		e["message"] = RecoveryActionText(recovery["primary_action"].(string), recovery["next_step_target"].(string))
+		if len(alternatives) > 0 {
+			e["alternatives_version"] = json.Number("1")
+			e["alternatives"] = alternatives
+		}
+		return r
 	}
 	if details, ok := obj["details"].(map[string]any); ok {
 		if recovery := boundedRecovery(details["recovery"]); recovery != nil && recoveryMatchesCode(code, recovery) {

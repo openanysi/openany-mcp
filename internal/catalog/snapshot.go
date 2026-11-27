@@ -36,6 +36,7 @@ type Issue struct {
 }
 
 type Snapshot struct {
+	APIByID     map[string]string
 	Hash        string
 	Tools       map[string]*Binding
 	Providers   map[string]bool
@@ -60,7 +61,7 @@ func Build(records []model.Record, overrides model.Overrides, checkUnnamed bool)
 	if err != nil {
 		return nil, err
 	}
-	s := &Snapshot{Tools: map[string]*Binding{}, Providers: map[string]bool{}}
+	s := &Snapshot{Tools: map[string]*Binding{}, Providers: map[string]bool{}, APIByID: map[string]string{}}
 	routes := map[string]bool{}
 	for _, r := range records {
 		if r.Status != "active" {
@@ -98,6 +99,7 @@ func Build(records []model.Record, overrides model.Overrides, checkUnnamed bool)
 		}
 		routes[route] = true
 		s.Tools[name] = binding
+		s.APIByID[r.APIID] = name
 		s.Names = append(s.Names, name)
 	}
 	sort.Strings(s.Names)
@@ -151,14 +153,18 @@ func compileBinding(r model.Record, o model.Override) (*Binding, []Issue, error)
 	for _, in := range r.Inputs {
 		hasBody = hasBody || in.Location == "body"
 	}
-	if hasBody && (r.Method == "GET" || r.RequestContentType != "application/json") {
-		return nil, nil, fmt.Errorf("api %s: body inputs require a JSON body on a non-GET request", r.APIID)
+	isForm := r.RequestContentType == "application/x-www-form-urlencoded"
+	if isForm && (r.Method == "GET" || r.Method == "HEAD") {
+		return nil, nil, fmt.Errorf("api %s: form body requires a non-GET/HEAD request", r.APIID)
+	}
+	if hasBody && (r.Method == "GET" || r.Method == "HEAD" || r.RequestContentType != "application/json" && !isForm) {
+		return nil, nil, fmt.Errorf("api %s: body inputs require a JSON body or a flat form on a non-GET request", r.APIID)
 	}
 	if r.Method == "GET" && r.RequestContentType == "application/json" && !hasBody {
 		warn("bodyless GET request content type normalized to none")
 		r.RequestContentType = "none"
 	}
-	if r.RequestContentType != "none" && r.RequestContentType != "application/json" {
+	if r.RequestContentType != "none" && r.RequestContentType != "application/json" && !isForm {
 		return nil, nil, fmt.Errorf("api %s: unsupported request encoding", r.APIID)
 	}
 	if !r.ConfigPresent {
@@ -172,6 +178,14 @@ func compileBinding(r model.Record, o model.Override) (*Binding, []Issue, error)
 	}
 	r.Inputs = append([]model.Input(nil), r.Inputs...)
 	for i, in := range r.Inputs {
+		if isForm && in.Location == "body" {
+			if in.Nullable || in.Type != "string" && in.Type != "integer" && in.Type != "number" && in.Type != "boolean" {
+				return nil, nil, fmt.Errorf("api %s: form body inputs require non-null scalar types", r.APIID)
+			}
+			if _, err := transport.FormFieldName(model.Parameter{Name: in.Name, Pointer: in.Pointer}); err != nil {
+				return nil, nil, fmt.Errorf("api %s: %w", r.APIID, err)
+			}
+		}
 		if internalDescription.MatchString(in.Description) {
 			r.Inputs[i].Description = in.Name
 			warn("input description replaced with parameter name for public display: " + in.Name)
@@ -215,6 +229,17 @@ func compileBinding(r model.Record, o model.Override) (*Binding, []Issue, error)
 	compiled, err := schema.Compile(r)
 	if err != nil {
 		return nil, nil, fmt.Errorf("api %s: input schema invalid: %w", r.APIID, err)
+	}
+	if isForm {
+		properties := compiled.Document["properties"].(map[string]any)
+		for _, in := range r.Inputs {
+			if in.Location == "body" {
+				property, _ := properties[in.Name].(map[string]any)
+				if property["type"] != in.Type {
+					return nil, nil, fmt.Errorf("api %s: form input schema must confirm its scalar type", r.APIID)
+				}
+			}
+		}
 	}
 	description := o.Description
 	if description == "" {

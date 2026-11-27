@@ -14,6 +14,7 @@ import (
 )
 
 type Config struct {
+	AlternativesEnabled                                                            bool
 	LiteEnabled, AccountEnabled, BenefitsEnabled                                   bool
 	DatabaseURL, GatewayURL, ModelsOrigin, AccountOrigin, Listen, OverridesFile    string
 	Hosts, Origins                                                                 []string
@@ -33,7 +34,7 @@ func Load() (Config, error) {
 	for _, flag := range []struct {
 		name   string
 		target *bool
-	}{{"MCP_ACCOUNT_ENABLED", &c.AccountEnabled}, {"MCP_BENEFITS_ENABLED", &c.BenefitsEnabled}} {
+	}{{"MCP_ACCOUNT_ENABLED", &c.AccountEnabled}, {"MCP_BENEFITS_ENABLED", &c.BenefitsEnabled}, {"MCP_ALTERNATIVES_ENABLED", &c.AlternativesEnabled}} {
 		if raw, configured := os.LookupEnv(flag.name); configured {
 			switch raw {
 			case "true":

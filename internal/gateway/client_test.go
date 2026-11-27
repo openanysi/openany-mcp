@@ -53,6 +53,7 @@ func TestCallPreservesCredentialsAndPublicErrors(t *testing.T) {
 		mu.Unlock()
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("X-Request-ID", "gateway-123")
+		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte(`   {"type":"openany_error","code":"openany_authentication_invalid","message":"invalid"}`))
 	}))
 	defer server.Close()
