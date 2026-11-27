@@ -1,0 +1,86 @@
+{
+  "code": "openany_route_unavailable",
+  "details": {
+    "alternatives": [
+      {
+        "availability": {
+          "basis": "current_route_catalog",
+          "health": "unknown",
+          "published": true
+        },
+        "billing_unit": "token",
+        "candidate_id": "68c0af196d84e3c80a361e633ca9d3bf96e3ba455dde532aade73b9b5f1e172e",
+        "checks": [
+          "request_covered",
+          "provider_route_checked",
+          "recheck_price_and_access"
+        ],
+        "compatibility": {
+          "basis": "contract_verified",
+          "differences": [
+            {
+              "code": "model_changed",
+              "message": "Different model; quality and behavior are not guaranteed to match. Recheck the request and authorized budget."
+            }
+          ],
+          "input_mapping": [],
+          "level": "similar",
+          "missing_evidence": []
+        },
+        "currency": "USD",
+        "definition_path": "/api/v1/key-market/model-prices?modelid=similar-chat-model",
+        "execution": {
+          "definition_path": "/api/v1/key-market/model-prices?modelid=similar-chat-model",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "protocol": "openai-chat-completions",
+          "request_overrides": {
+            "model": "similar-chat-model",
+            "route": {
+              "provider": "alternative"
+            },
+            "stream": false
+          }
+        },
+        "kind": "model",
+        "method": "POST",
+        "model_id": "similar-chat-model",
+        "model_revision": "2da127be3333beb3401974731348e80e3e82715ff723bdabfcc0d3a13b9558af",
+        "name": "similar-chat-model",
+        "operation_key": "chat.completion",
+        "pricing": {
+          "completion": "0.000003",
+          "currency": "USD",
+          "prompt": "0.000001",
+          "requires_quote": false,
+          "scope": "public_catalog",
+          "status": "known",
+          "unit": "token"
+        },
+        "provider_id": "alternative",
+        "public_path": "/v1/chat/completions",
+        "relation": "similar_model"
+      }
+    ],
+    "alternatives_meta": {
+      "generated_at": "2026-11-27T00:00:00Z",
+      "rule_version": "api-discovery-v2-r2",
+      "snapshot_revision": "287031e11e67f40e66806282e319798eb751fa4dc62d4d8ccab404a3c8a9bb22"
+    },
+    "alternatives_version": 2,
+    "recovery": {
+      "alternatives_status": "available",
+      "charge_state": "not_charged",
+      "execution_state": "not_started",
+      "next_step_target": "/api/v1/key-market/model-prices?modelid=similar-chat-model",
+      "primary_action": "inspect_alternatives",
+      "reason": "upstream_failure",
+      "recovery_id": "00000000-0000-4000-8000-000000000001",
+      "replay_safety": "safe",
+      "version": 1
+    }
+  },
+  "message": "The provider could not complete this request. Inspect candidate compatibility and missing evidence, refresh the selected target's contract and price, and continue only within the original task and budget authorization.",
+  "param": null,
+  "type": "openany_error"
+}

@@ -1,0 +1,81 @@
+{
+  "code": "openany_route_unavailable",
+  "details": {
+    "alternatives": [
+      {
+        "availability": {
+          "basis": "current_route_catalog",
+          "health": "unknown",
+          "published": true
+        },
+        "billing_unit": "token",
+        "candidate_id": "48ff4fe8ff5b54919b393f4e1f8a585873a31bb9a027bed5cf485b9d75cc6b3b",
+        "checks": [
+          "request_covered",
+          "provider_route_checked",
+          "recheck_price_and_access"
+        ],
+        "compatibility": {
+          "basis": "contract_verified",
+          "differences": [],
+          "input_mapping": [],
+          "level": "direct",
+          "missing_evidence": []
+        },
+        "currency": "USD",
+        "definition_path": "/api/v1/key-market/model-prices?modelid=public-model",
+        "execution": {
+          "definition_path": "/api/v1/key-market/model-prices?modelid=public-model",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "protocol": "openai-chat-completions",
+          "request_overrides": {
+            "model": "public-model",
+            "route": {
+              "provider": "backup"
+            },
+            "stream": false
+          }
+        },
+        "kind": "model",
+        "method": "POST",
+        "model_id": "public-model",
+        "model_revision": "acd322b7f3f2351f2af5d3b4227eb81a53bf1706afb67023eefb74c1449bf0fe",
+        "name": "public-model",
+        "operation_key": "chat.completion",
+        "pricing": {
+          "completion": "0.000003",
+          "currency": "USD",
+          "prompt": "0.000001",
+          "requires_quote": false,
+          "scope": "public_catalog",
+          "status": "known",
+          "unit": "token"
+        },
+        "provider_id": "backup",
+        "public_path": "/v1/chat/completions",
+        "relation": "same_model"
+      }
+    ],
+    "alternatives_meta": {
+      "generated_at": "2026-11-27T00:00:00Z",
+      "rule_version": "api-discovery-v2-r2",
+      "snapshot_revision": "ea16f70f2681a43a32f5745f8cf2c6d72f04997c3020f40e06bf39ef976f801c"
+    },
+    "alternatives_version": 2,
+    "recovery": {
+      "alternatives_status": "available",
+      "charge_state": "not_charged",
+      "execution_state": "not_started",
+      "next_step_target": "/api/v1/key-market/model-prices?modelid=public-model",
+      "primary_action": "inspect_alternatives",
+      "reason": "upstream_failure",
+      "recovery_id": "00000000-0000-4000-8000-000000000001",
+      "replay_safety": "safe",
+      "version": 1
+    }
+  },
+  "message": "The provider could not complete this request. Inspect candidate compatibility and missing evidence, refresh the selected target's contract and price, and continue only within the original task and budget authorization.",
+  "param": null,
+  "type": "openany_error"
+}
