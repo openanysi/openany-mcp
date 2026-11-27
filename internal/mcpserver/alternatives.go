@@ -19,6 +19,7 @@ func (h *Handler) withAlternatives(result gateway.Result, discovery *catalog.Dis
 	if !h.options.AlternativesEnabled {
 		delete(e, "alternatives")
 		delete(e, "alternatives_version")
+		delete(e, "alternatives_meta")
 		if recovery, ok := e["recovery"].(map[string]any); ok {
 			recovery["primary_action"] = "check_original_request"
 			recovery["next_step_target"] = "https://openany.si/dashboard?page=usage"
@@ -46,7 +47,17 @@ func (h *Handler) withAlternatives(result gateway.Result, discovery *catalog.Dis
 			}
 		}
 		if api != "" && h.options.LiteEnabled {
-			c["continuation"] = map[string]any{"mcp": map[string]any{"endpoint": "/mcp-lite", "connect_before_use": true, "inspect": map[string]any{"tool": "get_api", "arguments": map[string]any{"api": api}}, "execute_tool": "run_api", "refresh_api_version": true}}
+			continuation := map[string]any{"endpoint": "/mcp-lite", "connect_before_use": true, "inspect": map[string]any{"tool": "get_api", "arguments": map[string]any{"api": api}}}
+			compatibility, _ := c["compatibility"].(map[string]any)
+			if compatibility["level"] != "needs_inspection" {
+				continuation["execute_tool"], continuation["refresh_api_version"] = "run_api", true
+			}
+			c["continuation"] = map[string]any{"mcp": continuation}
+			if e["alternatives_version"] == json.Number("2") {
+				if encoded, err := json.Marshal(c); err != nil || len(encoded) > 4096 {
+					delete(c, "continuation")
+				}
+			}
 		}
 	}
 	return result

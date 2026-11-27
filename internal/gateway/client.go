@@ -164,6 +164,15 @@ func (c *Client) LimitResult(result Result) Result {
 					e["charge_state"] = recovery["charge_state"]
 				}
 			}
+			if e["recovery"] == nil {
+				// Candidate presentation may exceed the result limit. Keep the
+				// validated failure facts, but remove its now-unavailable actions.
+				obj := map[string]any{"type": "openany_error", "code": code, "details": map[string]any{"recovery": original["recovery"]}}
+				if recovery, _, ok := candidateRecoveryV1(obj, false); ok {
+					recovery["alternatives_status"] = "none"
+					e["recovery"], e["charge_state"] = recovery, recovery["charge_state"]
+				}
+			}
 		}
 		if cost, exists := result.Value["openany_cost"]; exists {
 			limited.Value["openany_cost"] = cost

@@ -120,14 +120,25 @@ func TestHunterAndAlchemyFullLiteRPCSendReviewedWireContracts(t *testing.T) {
 			}
 			results = append(results, map[string]any{"endpoint": path, "api": *record.ToolName, "one_dispatch": true, "result": result})
 		}
-		bad := map[string]any{}
+		invalidInputs := []map[string]any{{}}
 		if record.ProviderID == "alchemy" {
-			bad["symbols"] = []any{}
+			invalidInputs[0]["symbols"] = []any{}
+		} else {
+			invalidInputs = append(invalidInputs, map[string]any{"company": map[string]any{"nested": "not a flat form scalar"}})
 		}
-		before := calls.Load()
-		invalid := rpc("/mcp-lite", "run_api", map[string]any{"api": *record.ToolName, "api_version": detail["api_version"], "input": bad})
-		if invalid["isError"] != true || calls.Load() != before {
-			t.Fatal("invalid input was dispatched", invalid)
+		for _, bad := range invalidInputs {
+			for _, path := range []string{"/mcp-lite", "/mcp/" + record.ProviderID} {
+				before := calls.Load()
+				var invalid map[string]any
+				if path == "/mcp-lite" {
+					invalid = rpc(path, "run_api", map[string]any{"api": *record.ToolName, "api_version": detail["api_version"], "input": bad})
+				} else {
+					invalid = rpc(path, *record.ToolName, bad)
+				}
+				if invalid["isError"] != true || calls.Load() != before {
+					t.Fatal("invalid input was dispatched", invalid)
+				}
+			}
 		}
 	}
 	if calls.Load() != 4 {

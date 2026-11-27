@@ -14,6 +14,9 @@ func RecoveryActionText(action, target string) string {
 	if action == "inspect_alternatives" && officialDefinitionTarget(target) {
 		return "Inspect the reviewed alternatives and refresh the target contract and price. Continue only within the original task and budget authorization. " + target
 	}
+	if action == "inspect_related_apis" && strings.HasPrefix(target, "/api/v1/agent-apis/") && officialDefinitionTarget(target) {
+		return "Inspect related API details to determine task suitability, inputs and current price. Compatibility is unconfirmed; this is a read-only inspection step. " + target
+	}
 	if !officialRecoveryTarget(target) {
 		return ""
 	}
@@ -159,8 +162,12 @@ func publicFailure(obj map[string]any, status int, id any, alternativesEnabled .
 		e["recovery"], e["execution_state"], e["charge_state"] = recovery, recovery["execution_state"], recovery["charge_state"]
 		e["message"] = RecoveryActionText(recovery["primary_action"].(string), recovery["next_step_target"].(string))
 		if len(alternatives) > 0 {
-			e["alternatives_version"] = json.Number("1")
+			details := obj["details"].(map[string]any)
+			e["alternatives_version"] = details["alternatives_version"]
 			e["alternatives"] = alternatives
+			if details["alternatives_version"] == json.Number("2") {
+				e["alternatives_meta"], _ = boundedAlternativesMeta(details["alternatives_meta"])
+			}
 		}
 		return r
 	}

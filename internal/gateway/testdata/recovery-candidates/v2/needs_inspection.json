@@ -1,0 +1,63 @@
+{
+  "type": "openany_error",
+  "code": "openany_upstream_service_error",
+  "message": "Platform provider failure",
+  "request_id": "local-fixture-request",
+  "openany_cost": 0,
+  "details": {
+    "alternatives_version": 2,
+    "alternatives": [
+      {
+        "candidate_id": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "kind": "api",
+        "relation": "related_operation",
+        "provider_id": "target",
+        "name": "Reviewed search suggestions",
+        "api_id": "00000000-0000-4000-8000-000000000002",
+        "api_revision": 1,
+        "definition_path": "/api/v1/agent-apis/00000000-0000-4000-8000-000000000002",
+        "compatibility": {
+          "level": "needs_inspection",
+          "differences": [],
+          "input_mapping": [],
+          "basis": "catalog_inferred",
+          "missing_evidence": [
+            "output_contract"
+          ]
+        },
+        "pricing": {
+          "status": "unknown",
+          "requires_quote": true,
+          "scope": "public_catalog"
+        },
+        "availability": {
+          "published": true,
+          "health": "unknown",
+          "basis": "current_catalog"
+        },
+        "checks": [
+          "operation_matched",
+          "current_contract",
+          "request_covered",
+          "recheck_price_and_access"
+        ]
+      }
+    ],
+    "recovery": {
+      "version": 1,
+      "reason": "upstream_failure",
+      "execution_state": "failed",
+      "charge_state": "not_charged",
+      "replay_safety": "safe",
+      "alternatives_status": "available",
+      "primary_action": "inspect_related_apis",
+      "next_step_target": "/api/v1/agent-apis/00000000-0000-4000-8000-000000000002",
+      "recovery_id": "local-fixture-request"
+    },
+    "alternatives_meta": {
+      "rule_version": "api-discovery-v2-r1",
+      "snapshot_revision": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "generated_at": "2026-11-27T08:00:00Z"
+    }
+  }
+}

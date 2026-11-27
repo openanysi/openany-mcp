@@ -43,4 +43,18 @@ func TestFullCatalogSnapshot(t *testing.T) {
 			t.Errorf("%s %s: %s", r.ProviderID, r.PathTemplate, issue.Reason)
 		}
 	}
+	snapshot, err := Build(records, o, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	active := 0
+	for _, r := range records {
+		if r.Status == "active" {
+			active++
+		}
+	}
+	t.Logf("historical local snapshot: records=%d active=%d tools=%d quarantined=%d pending=%d issues=%d; no gateway calls", len(records), active, len(snapshot.Tools), snapshot.Quarantined, snapshot.Pending, len(snapshot.Issues))
+	if snapshot.Quarantined != 0 || snapshot.Pending != 0 || len(snapshot.Issues) != 0 || len(snapshot.Tools) != active {
+		t.Fatal("full catalog reconciliation is incomplete")
+	}
 }

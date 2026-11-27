@@ -1,0 +1,86 @@
+{
+  "type": "openany_error",
+  "code": "openany_upstream_service_error",
+  "message": "Platform provider failure",
+  "request_id": "local-fixture-request",
+  "openany_cost": 0,
+  "details": {
+    "alternatives_version": 2,
+    "alternatives": [
+      {
+        "candidate_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "kind": "model",
+        "relation": "similar_model",
+        "operation_key": "chat.completion",
+        "provider_id": "target",
+        "name": "chat-b",
+        "model_id": "chat-b",
+        "model_revision": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "method": "POST",
+        "public_path": "/v1/chat/completions",
+        "definition_path": "/api/v1/key-market/model-prices?modelid=chat-b",
+        "currency": "USD",
+        "billing_unit": "token",
+        "compatibility": {
+          "level": "similar",
+          "differences": [
+            {
+              "code": "model_changed",
+              "message": "Different model; quality is not guaranteed to match."
+            }
+          ],
+          "input_mapping": [],
+          "basis": "contract_verified",
+          "missing_evidence": []
+        },
+        "execution": {
+          "protocol": "openai-chat-completions",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "definition_path": "/api/v1/key-market/model-prices?modelid=chat-b",
+          "request_overrides": {
+            "model": "chat-b",
+            "route": {
+              "provider": "target"
+            }
+          }
+        },
+        "pricing": {
+          "currency": "USD",
+          "unit": "token",
+          "prompt": "0.000001",
+          "completion": "0.000003",
+          "requires_quote": false,
+          "scope": "public_catalog",
+          "status": "known"
+        },
+        "availability": {
+          "published": true,
+          "health": "unknown",
+          "basis": "current_route_catalog"
+        },
+        "checks": [
+          "request_covered",
+          "provider_route_checked",
+          "recheck_price_and_access"
+        ]
+      }
+    ],
+    "recovery": {
+      "version": 1,
+      "reason": "upstream_failure",
+      "execution_state": "failed",
+      "charge_state": "not_charged",
+      "replay_safety": "safe",
+      "alternatives_status": "available",
+      "primary_action": "inspect_alternatives",
+      "next_step_target": "/api/v1/key-market/model-prices?modelid=chat-b",
+      "recovery_id": "local-fixture-request"
+    },
+    "alternatives_meta": {
+      "rule_version": "api-discovery-v2-r1",
+      "snapshot_revision": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "generated_at": "2026-11-27T08:00:00Z"
+    }
+  }
+}

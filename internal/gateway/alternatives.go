@@ -243,6 +243,13 @@ func boundedCandidate(raw any) (map[string]any, bool) {
 	return out, true
 }
 func candidateRecovery(obj map[string]any, enabled bool) (map[string]any, []any, bool) {
+	if details, ok := obj["details"].(map[string]any); ok && details["alternatives_version"] == json.Number("2") {
+		return candidateRecoveryV2(obj, enabled)
+	}
+	return candidateRecoveryV1(obj, enabled)
+}
+
+func candidateRecoveryV1(obj map[string]any, enabled bool) (map[string]any, []any, bool) {
 	if obj["type"] != "openany_error" {
 		return nil, nil, false
 	}
