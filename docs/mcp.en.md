@@ -6,7 +6,7 @@ APIs cover social and content (X, TikTok and more), SEO, search and scraping (Da
 
 Models include chat and reasoning (GPT, Claude, Gemini, DeepSeek, Qwen, Kimi, GLM, MiniMax), image (Midjourney, FLUX, Nano Banana, Seedream, GPT Image), video (Veo, Kling, Seedance, Hailuo, Wan) and audio.
 
-Searching and checking prices is free with no key. You only need an OpenAny API key to run a call, and you pay per call.
+Search and price checks are free and keyless. Use an OpenAny API key for business calls, which are billed per call.
 
 ## Get started in 3 steps
 
@@ -14,7 +14,7 @@ Searching and checking prices is free with no key. You only need an OpenAny API 
 2. Click "Get started with OpenAny" (`openany-start`) if your client shows it, or say "What can OpenAny do for me?"
 3. Ask something you can use right away, such as recent tweets from a Twitter user, backlinks for a domain, the price of bitcoin, a company's registration, the latest CPI, or an image.
 
-Browsing and pricing need no key. Create a key at https://openany.si/dashboard?page=api-keys only when executing, and put it in the client's secure connector settings, never in chat.
+Browsing and pricing need no key. To check your account or run a call, [create a key](https://openany.si/dashboard?page=api-keys) and put it in the client's secure connector settings. The overview shows current trial-credit and referral terms when available.
 
 <!-- developer-docs -->
 
@@ -43,14 +43,14 @@ This server has no OAuth. OpenAny also has no MCP URL-elicitation completion pag
 | Path | Contents |
 | --- | --- |
 | `/` | The same lightweight server as `/mcp-lite`. MCP POST uses the tool protocol; a browser GET returns this guide |
-| `/mcp-lite` | openany_overview, search_apis, get_api, and run_api, same as `/` |
+| `/mcp-lite` | openany_overview, search_apis, get_api, run_api, and get_account when enabled. Same as `/` |
 | `/mcp` | One tool per API, no models, for an existing exact call |
 | `/mcp/{provider_id}` | One provider's tools |
 | `/docs/mcp` | This guide, public when the lightweight server is enabled |
 
 Configure one endpoint. Connecting the full catalog as well still loads the whole catalog, and that catalog has no models.
 
-In a client that supports remote MCP, set the server URL, Streamable HTTP, and the Authorization header. Client config formats differ. An HTTP check here does not mean every client UI version has been verified. After a new config, reconnect and confirm the four tools appear.
+In a client that supports remote MCP, set the server URL, Streamable HTTP, and the Authorization header. Client config formats differ. Reconnect and check the tool list. The lightweight endpoint lists five tools when account lookup is enabled.
 
 ## Call order
 
@@ -78,6 +78,12 @@ That is a shape sketch, not JSON to execute as-is. The tool call is still a stan
 ### openany_overview
 
 No arguments. It reads the current catalog snapshot and does not call the paid gateway. It returns `api_count`, `model_count`, APIs grouped by provider and by a human category, and model ids grouped by primary modality. Categories are social/content, crypto/on-chain, company & leads, SEO/search/scraping, finance/macro, legal, e-commerce/real estate/travel, and other. Model modalities are chat/reasoning, image, video, and audio. A model with no text, image, video, or audio output is other. Counts come from the current snapshot. Do not hardcode them. When `models_available` is false, a zero model count does not mean the product has no models.
+
+When benefits are enabled, `openany_overview`, `search_apis`, and `get_api` return a `benefits` field with current public terms and an account link. Eligible Agent newcomers automatically receive trial credit after registration. Referral rewards are calculated using marginal tiers on each invited user's cumulative qualifying top-ups and are automatically credited to the inviter's OpenAny balance. Check the current rules for the amount, terms, and eligible channels. [Public benefits policy](https://openany.si/api/v1/agent-onboarding)
+
+### get_account
+
+When enabled, this tool accepts an optional `lang` (`en`, `zh`, `ja`, or `ar`, default `en`). Without a key it returns public benefits and setup links. With the OpenAny key in your secure connector settings it reads your available balance, key allowance, and recorded signup credit. Ordinary API keys receive `restricted` for private referral details. Use the linked account page to review them. An account lookup starts no business request and incurs no charge. It works on a reachable server instance while the catalog is loading. After replacing a rejected key, check the account, then verify the original request's parameters and current price before execution.
 
 ### search_apis
 
@@ -183,6 +189,8 @@ api_version includes the revision, schema, public price, and forwarding rules. I
 
 The lightweight endpoint is on by default. Restart the service after updating the binary. Set `MCP_LITE_ENABLED=false` to turn it off. When it is off, the lightweight price and search indexes are not loaded, and the original endpoints still work. The database role stays read-only. Public price and auxiliary data share a separate refresh and a read-only pool of at most one connection. Those queries do not take a connection from the original catalog pool. Database connection quota still reserves that extra connection.
 
+`MCP_ACCOUNT_ENABLED` controls account lookup on Lite. `MCP_BENEFITS_ENABLED` controls public benefits in catalog responses and tool descriptions. They default to off in the binary and on in the container image. Set each to `true` or `false` at runtime. Configure the trusted account backend origin with `MCP_ACCOUNT_BASE_URL` (default `https://openany.si`, no path). The server attempts to refresh public benefits every 30 seconds and expires them after 120 seconds. It fetches private account summaries for each call.
+
 The public price query needs the public billing and charge-condition columns on agent_apis, and api_id, policy_version, parameters, and sale_policy on agent_api_pricing_policies. It does not read supplier_policy or supplier_price_micro_usd. The auxiliary query reads only existing public columns:
 
 - agent_apis: id, revision, status, categories, data_platform, data_product, capability_id, upstream_key_id, name_translations, description_translations.
@@ -199,7 +207,7 @@ The server does not project a whole JSON row and does not load supplier cost, in
 
 An unset or empty variable defaults to on. An explicit false in .env still turns it off. Delete that setting or set it to true to turn it on. Source development also needs the environment loaded first. run-local.sh runs bin/openany-mcp, so rebuild after changing code.
 
-In /readyz, ready still means the original catalog. When lite is enabled it also shows lite_ready, pricing_available, and metadata_available. When the model catalog is enabled it also shows models_available, models_stale, and models_published. A failed price, auxiliary, or model read does not fail the original catalog. A failed model read keeps the last success and sets models_stale. get_api returns price unavailable or says no usable example. search_apis and get_api also report metadata_available. An auxiliary refresh does not change the original catalog hash. An example-only update refreshes display and does not invalidate an old api_version. The model catalog is not part of the `/mcp` catalog hash. Until lightweight preparation finishes, MCP requests to `/` and /mcp-lite return 503. A browser GET of `/` and /docs/mcp does not wait for catalog readiness.
+In /readyz, ready still means the original catalog. When lite is enabled it also shows lite_ready, pricing_available, and metadata_available. When the model catalog is enabled it also shows models_available, models_stale, and models_published. A failed price, auxiliary, or model read does not fail the original catalog. A failed model read keeps the last success and sets models_stale. get_api returns price unavailable or says no usable example. search_apis and get_api also report metadata_available. An auxiliary refresh does not change the original catalog hash. An example-only update refreshes display and does not invalidate an old api_version. The model catalog is not part of the `/mcp` catalog hash. When the account tool is enabled, MCP initialization, tools/list, and get_account on `/` and /mcp-lite remain available before the business catalog is ready; catalog-dependent calls retain their catalog-unavailable response. Without the account tool, the existing readiness gate still applies. A browser GET of `/` and /docs/mcp does not wait for catalog readiness.
 
 The model catalog is read from `https://api.openany.si/v1/models` by default, with no API key. `OPENANY_MODELS_BASE_URL` can name another origin, or the same origin with a `/v1` path. The process must be able to reach that origin. Model execution goes to `/v1/chat/completions` on the same origin and uses the caller's own key. The service configuration does not store a model-call key.
 

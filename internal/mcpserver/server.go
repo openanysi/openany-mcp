@@ -5,26 +5,31 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/modelcontextprotocol/go-sdk/jsonrpc"
-	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/openany/openany-mcp/internal/catalog"
-	"github.com/openany/openany-mcp/internal/gateway"
 	"log/slog"
 	"net"
 	"net/http"
 	"slices"
 	"strings"
 	"sync"
+
+	"github.com/modelcontextprotocol/go-sdk/jsonrpc"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/openany/openany-mcp/internal/account"
+	"github.com/openany/openany-mcp/internal/catalog"
+	"github.com/openany/openany-mcp/internal/gateway"
 )
 
 type Options struct {
-	LiteEnabled  bool
-	MaxBody      int64
-	MaxCalls     int
-	Hosts        []string
-	Origins      []string
-	Logger       *slog.Logger
-	ModelGateway *gateway.Client
+	LiteEnabled     bool
+	BenefitsEnabled bool
+	MaxBody         int64
+	MaxCalls        int
+	Hosts           []string
+	Origins         []string
+	Logger          *slog.Logger
+	ModelGateway    *gateway.Client
+	AccountClient   *account.Client
+	PolicyCache     *account.PolicyCache
 }
 
 const fullCatalogInstructions = "OpenAny Full Catalog lists one tool per data API and does not include AI models. For models, live catalog counts, and search across the whole catalog, connect to https://mcp.openany.si. Tool calls need the caller's OpenAny API key on the MCP connection as Authorization: Bearer <key>. Create a key at https://openany.si/dashboard?page=api-keys and store it in the client's secure secret or connector settings. Never ask the user to paste the key into the chat or prompt. A call with no key is rejected locally. This server has no OAuth flow and does not collect secrets with form elicitation. Confirm the live price with the user before calling a tool. A call can incur charges."
@@ -72,7 +77,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Public discovery metadata. Browser clients send Origin and must not be
 	// blocked by MCP_ALLOWED_ORIGINS; the card carries no credentials.
 	if r.URL.Path == serverCardPath {
-		serveServerCard(w, r)
+		serveServerCard(w, r, h.options.BenefitsEnabled)
 		return
 	}
 	if origin := r.Header.Get("Origin"); origin != "" && !slices.Contains(h.options.Origins, origin) {
@@ -120,26 +125,50 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	if !h.manager.Ready() {
-		http.Error(w, "Catalog unavailable", 503)
-		return
-	}
-	snapshot := h.manager.Current()
-	if scope != "" && !snapshot.Providers[scope] {
-		http.NotFound(w, r)
-		return
+	var snapshot *catalog.Snapshot
+	if h.manager.Ready() {
+		snapshot = h.manager.Current()
 	}
 	server := h.lite
-	if lite && snapshot.Discovery == nil {
-		http.Error(w, "Discovery catalog is loading", 503)
-		return
-	}
 	if !lite {
+		if snapshot == nil {
+			http.Error(w, "Catalog unavailable", 503)
+			return
+		}
+		if scope != "" && !snapshot.Providers[scope] {
+			http.NotFound(w, r)
+			return
+		}
 		server = h.server(snapshot, scope)
+	}
+	if lite && h.accountEnabled() && r.Method == http.MethodPost {
+		w = noStoreResponse{w}
 	}
 	ctx := context.WithValue(r.Context(), snapshotKey{}, snapshot)
 	h.sdk.ServeHTTP(w, r.WithContext(context.WithValue(ctx, serverKey{}, server)))
 }
+
+// The SDK sets stream cache directives before writing. Add no-store at the
+// response boundary so it also applies to JSON-RPC batches with account data.
+type noStoreResponse struct{ http.ResponseWriter }
+
+func (w noStoreResponse) Unwrap() http.ResponseWriter { return w.ResponseWriter }
+
+func (w noStoreResponse) WriteHeader(status int) {
+	w.Header().Set("Cache-Control", "no-store, no-transform")
+	w.ResponseWriter.WriteHeader(status)
+}
+
+func (w noStoreResponse) Write(p []byte) (int, error) {
+	w.Header().Set("Cache-Control", "no-store, no-transform")
+	return w.ResponseWriter.Write(p)
+}
+
+func (w noStoreResponse) FlushError() error {
+	w.Header().Set("Cache-Control", "no-store, no-transform")
+	return http.NewResponseController(w.ResponseWriter).Flush()
+}
+
 func humanRead(r *http.Request) bool {
 	if r.Method != http.MethodGet && r.Method != http.MethodHead {
 		return false
@@ -174,7 +203,7 @@ func (h *Handler) server(snapshot *catalog.Snapshot, scope string) *mcp.Server {
 	if s := h.views.servers[scope]; s != nil {
 		return s
 	}
-	s := mcp.NewServer(&mcp.Implementation{Name: "OpenAny Full Catalog", Version: "0.1.0"}, &mcp.ServerOptions{Instructions: fullCatalogInstructions, Logger: h.options.Logger, Capabilities: &mcp.ServerCapabilities{Tools: &mcp.ToolCapabilities{ListChanged: false}}, SupportedProtocolVersions: []string{"2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"}, PageSize: 50})
+	s := mcp.NewServer(&mcp.Implementation{Name: "OpenAny Full Catalog", Version: "0.1.0"}, &mcp.ServerOptions{Instructions: fullCatalogInstructions + h.benefitsInstructions(), Logger: h.options.Logger, Capabilities: &mcp.ServerCapabilities{Tools: &mcp.ToolCapabilities{ListChanged: false}}, SupportedProtocolVersions: []string{"2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"}, PageSize: 50})
 	tools := []*mcp.Tool{}
 	for _, name := range snapshot.Names {
 		b := snapshot.Tools[name]
@@ -200,7 +229,11 @@ func (h *Handler) server(snapshot *catalog.Snapshot, scope string) *mcp.Server {
 			if list.Params != nil {
 				cursor = list.Params.Cursor
 			}
-			return page(tools, snapshot.Hash, scope, cursor)
+			result, err := page(tools, snapshot.Hash, scope, cursor)
+			if err != nil {
+				return nil, err
+			}
+			return h.describeBenefits(result, false), nil
 		}
 	})
 	h.views.servers[scope] = s

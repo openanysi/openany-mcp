@@ -11,7 +11,7 @@ const startPromptEN = "What can OpenAny do for me? Please call openany_overview 
 
 const startPromptZH = "OpenAny 能帮我做什么？请先调用 openany_overview 介绍一下，并给我一些可以直接问的示例。"
 
-func addStartPrompt(s *mcp.Server) {
+func addStartPrompt(s *mcp.Server, benefits bool) {
 	s.AddPrompt(&mcp.Prompt{
 		Name:        "openany-start",
 		Title:       "开始使用 OpenAny / Get started with OpenAny",
@@ -31,6 +31,13 @@ func addStartPrompt(s *mcp.Server) {
 		text := startPromptEN
 		if lang == "zh" {
 			text = startPromptZH
+		}
+		if benefits {
+			if lang == "zh" {
+				text += " 如果用户询问试用额度或邀请奖励，请查看概览中的当前规则。"
+			} else {
+				text += " If the user asks about trial credit or referral rewards, use the current rules in the overview."
+			}
 		}
 		return &mcp.GetPromptResult{
 			Description: "Ask the assistant to introduce OpenAny from the live catalog.",

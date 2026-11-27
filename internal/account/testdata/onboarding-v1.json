@@ -1,0 +1,265 @@
+{
+  "contractVersion": 1,
+  "keyReferralRestricted": {
+    "data": {
+      "apiKey": {
+        "status": "unavailable"
+      },
+      "authentication": "authenticated",
+      "businessRequestStarted": false,
+      "referral": {
+        "status": "restricted"
+      },
+      "version": 1
+    }
+  },
+  "publicDisabled": {
+    "data": {
+      "asOf": "1970-01-01T00:00:00.000Z",
+      "lang": "en",
+      "links": {
+        "account": "https://openany.si/dashboard/?page=api-keys",
+        "publicPolicy": "https://openany.si/api/v1/agent-onboarding",
+        "referralRules": "https://openany.si/dashboard/?page=rewards&rewardsTab=referral",
+        "register": "https://openany.si/dashboard/?page=api-keys",
+        "setup": "https://openany.si/setup.md",
+        "topUp": "https://openany.si/dashboard/?page=credits"
+      },
+      "policyRevision": "df81a471f602044896f0bdbffe285be80d7333e488e994ef72008eba2491fcbb",
+      "referralReward": {
+        "automatic": true,
+        "calculation": "marginal_tiers",
+        "capAppliesTo": "cumulative_topups_per_invited_user",
+        "capMicroUsd": "10000000000",
+        "minimumIsExclusive": true,
+        "minimumTopupMicroUsd": "10000000",
+        "recipient": "inviter",
+        "rulesUrl": "https://openany.si/dashboard/?page=rewards&rewardsTab=referral",
+        "tiers": [
+          {
+            "displayFromMicroUsd": "10000000",
+            "displayToMicroUsd": "499000000",
+            "fromMicroUsd": "10000000",
+            "rateBps": 500,
+            "toMicroUsd": "499000000"
+          },
+          {
+            "displayFromMicroUsd": "500000000",
+            "displayToMicroUsd": "999000000",
+            "fromMicroUsd": "500000000",
+            "rateBps": 450,
+            "toMicroUsd": "1000000000"
+          },
+          {
+            "displayFromMicroUsd": "1000000000",
+            "displayToMicroUsd": "4999000000",
+            "fromMicroUsd": "1000000000",
+            "rateBps": 400,
+            "toMicroUsd": "5000000000"
+          },
+          {
+            "displayFromMicroUsd": "5000000000",
+            "displayToMicroUsd": "10000000000",
+            "fromMicroUsd": "5000000000",
+            "rateBps": 350,
+            "toMicroUsd": "10000000000"
+          }
+        ]
+      },
+      "signupCredit": {
+        "amountMicroUsd": "0",
+        "automatic": true,
+        "currency": "USD",
+        "eligibleChannels": [],
+        "rulesUrl": "https://openany.si/api/v1/agent-onboarding",
+        "status": "disabled"
+      },
+      "status": "available",
+      "summary": "Newcomer trial credit is not enabled in this environment. Check the actual account balance. Referral rewards follow each invited user's cumulative qualifying top-ups and marginal tiers; see the current rules.",
+      "version": 1
+    }
+  },
+  "publicEnabled": {
+    "data": {
+      "asOf": "1970-01-01T00:00:00.000Z",
+      "lang": "en",
+      "links": {
+        "account": "https://openany.si/dashboard/?page=api-keys",
+        "publicPolicy": "https://openany.si/api/v1/agent-onboarding",
+        "referralRules": "https://openany.si/dashboard/?page=rewards&rewardsTab=referral",
+        "register": "https://openany.si/dashboard/?page=api-keys",
+        "setup": "https://openany.si/setup.md",
+        "topUp": "https://openany.si/dashboard/?page=credits"
+      },
+      "policyRevision": "5b6d032b07585f5e229468dda4e94017fe3103db1a3c4fa49601aee7a7499789",
+      "referralReward": {
+        "automatic": true,
+        "calculation": "marginal_tiers",
+        "capAppliesTo": "cumulative_topups_per_invited_user",
+        "capMicroUsd": "10000000000",
+        "minimumIsExclusive": true,
+        "minimumTopupMicroUsd": "10000000",
+        "recipient": "inviter",
+        "rulesUrl": "https://openany.si/dashboard/?page=rewards&rewardsTab=referral",
+        "tiers": [
+          {
+            "displayFromMicroUsd": "10000000",
+            "displayToMicroUsd": "499000000",
+            "fromMicroUsd": "10000000",
+            "rateBps": 500,
+            "toMicroUsd": "499000000"
+          },
+          {
+            "displayFromMicroUsd": "500000000",
+            "displayToMicroUsd": "999000000",
+            "fromMicroUsd": "500000000",
+            "rateBps": 450,
+            "toMicroUsd": "1000000000"
+          },
+          {
+            "displayFromMicroUsd": "1000000000",
+            "displayToMicroUsd": "4999000000",
+            "fromMicroUsd": "1000000000",
+            "rateBps": 400,
+            "toMicroUsd": "5000000000"
+          },
+          {
+            "displayFromMicroUsd": "5000000000",
+            "displayToMicroUsd": "10000000000",
+            "fromMicroUsd": "5000000000",
+            "rateBps": 350,
+            "toMicroUsd": "10000000000"
+          }
+        ]
+      },
+      "signupCredit": {
+        "amountMicroUsd": "100000",
+        "automatic": true,
+        "currency": "USD",
+        "eligibleChannels": [
+          "agent_wallet",
+          "cli_email"
+        ],
+        "rulesUrl": "https://openany.si/api/v1/agent-onboarding",
+        "status": "enabled"
+      },
+      "status": "available",
+      "summary": "Eligible Agent newcomers automatically receive trial credit after registration. Referral rewards use each invited user's cumulative qualifying top-ups and marginal tiers, and are automatically credited to the inviter's OpenAny balance. See the current rules.",
+      "version": 1
+    }
+  },
+  "recoveries": [
+    {
+      "code": "openany_authentication_missing",
+      "httpStatus": 401,
+      "recovery": {
+        "charge_state": "not_charged",
+        "execution_state": "not_started",
+        "next_step_target": "https://openany.si/dashboard?page=api-keys",
+        "primary_action": "configure_credentials",
+        "reason": "missing_credentials",
+        "recovery_id": "example-request",
+        "version": 1
+      }
+    },
+    {
+      "code": "openany_key_invalid",
+      "httpStatus": 401,
+      "recovery": {
+        "charge_state": "not_charged",
+        "execution_state": "not_started",
+        "next_step_target": "https://openany.si/dashboard?page=api-keys",
+        "primary_action": "replace_credentials",
+        "reason": "invalid_credentials",
+        "recovery_id": "example-request",
+        "version": 1
+      }
+    },
+    {
+      "code": "openany_insufficient_balance",
+      "httpStatus": 402,
+      "recovery": {
+        "charge_state": "not_charged",
+        "execution_state": "not_started",
+        "next_step_target": "https://openany.si/dashboard?page=credits",
+        "primary_action": "top_up",
+        "reason": "insufficient_balance",
+        "recovery_id": "example-request",
+        "version": 1
+      }
+    },
+    {
+      "code": "openany_spend_limit_exceeded",
+      "httpStatus": 403,
+      "recovery": {
+        "charge_state": "not_charged",
+        "execution_state": "not_started",
+        "next_step_target": "https://openany.si/dashboard?page=api-keys",
+        "primary_action": "review_key_limit",
+        "reason": "spend_limit_exceeded",
+        "recovery_id": "example-request",
+        "version": 1
+      }
+    },
+    {
+      "code": "openany_invalid_parameter",
+      "httpStatus": 400,
+      "recovery": {
+        "charge_state": "not_charged",
+        "execution_state": "not_started",
+        "next_step_target": "https://openany.si/docs",
+        "primary_action": "correct_input",
+        "reason": "invalid_parameters",
+        "recovery_id": "example-request",
+        "version": 1
+      }
+    },
+    {
+      "code": "openany_upstream_timeout",
+      "httpStatus": 504,
+      "recovery": {
+        "charge_state": "unknown",
+        "execution_state": "unknown",
+        "next_step_target": "https://openany.si/dashboard?page=usage",
+        "primary_action": "check_original_request",
+        "reason": "upstream_failure",
+        "recovery_id": "example-request",
+        "version": 1
+      }
+    }
+  ],
+  "unknownVersion": {
+    "next_step_target": "https://openany.si/dashboard?page=credits",
+    "primary_action": "top_up",
+    "version": 2
+  },
+  "untrustedTarget": {
+    "next_step_target": "https://untrusted.invalid/redirect",
+    "primary_action": "top_up",
+    "version": 1
+  },
+  "legacyError": {
+    "type": "openany_error",
+    "code": "openany_upstream_timeout",
+    "message": "Gateway timed out."
+  },
+  "partialAccount": {
+    "data": {
+      "version": 1,
+      "authentication": "authenticated",
+      "businessRequestStarted": false,
+      "balance": {
+        "status": "unavailable"
+      },
+      "signupCredit": {
+        "status": "unknown"
+      },
+      "apiKey": {
+        "status": "unavailable"
+      },
+      "referral": {
+        "status": "restricted"
+      }
+    }
+  }
+}

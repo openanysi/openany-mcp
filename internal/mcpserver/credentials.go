@@ -10,7 +10,7 @@ import (
 
 const keyPageURL = "https://openany.si/dashboard?page=api-keys"
 
-const missingKeyMessage = "This request has no OpenAny API key. Discovery does not need a key and does not call the paid gateway. 1. Create a key at " + keyPageURL + ". 2. Set Authorization: Bearer <key> in the client's secure connector settings. 3. Retry the call. Do not ask the user to paste the key into the chat or prompt."
+const missingKeyMessage = "This request has no OpenAny API key. Eligible Agent newcomers receive trial credit automatically after registration; verify the current rules at https://openany.si/api/v1/agent-onboarding and actual available balance. Discovery does not need a key and does not call the paid gateway. 1. Create a key at " + keyPageURL + ". 2. Set Authorization: Bearer <key> in the client's secure connector settings. 3. Retry the call. Do not ask the user to paste the key into the chat or prompt."
 
 const rejectedKeyMessage = "The OpenAny API key on this MCP connection was rejected. It may be invalid, expired, or revoked. Replace it in the client's secure secret or connector settings. Do not ask the user to paste a key into the chat or prompt. Manage keys at " + keyPageURL + "."
 

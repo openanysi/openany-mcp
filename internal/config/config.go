@@ -3,17 +3,19 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/openany/openany-mcp/internal/model"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/openany/openany-mcp/internal/account"
+	"github.com/openany/openany-mcp/internal/model"
 )
 
 type Config struct {
-	LiteEnabled                                                                    bool
-	DatabaseURL, GatewayURL, ModelsOrigin, Listen, OverridesFile                   string
+	LiteEnabled, AccountEnabled, BenefitsEnabled                                   bool
+	DatabaseURL, GatewayURL, ModelsOrigin, AccountOrigin, Listen, OverridesFile    string
 	Hosts, Origins                                                                 []string
 	Refresh, MaxAge, QueryTimeout, GatewayTimeout, ConnectTimeout, ShutdownTimeout time.Duration
 	MaxConns                                                                       int32
@@ -27,6 +29,28 @@ func Load() (Config, error) {
 	c.LiteEnabled, err = strconv.ParseBool(value("MCP_LITE_ENABLED", "true"))
 	if err != nil {
 		return c, fmt.Errorf("invalid MCP_LITE_ENABLED")
+	}
+	for _, flag := range []struct {
+		name   string
+		target *bool
+	}{{"MCP_ACCOUNT_ENABLED", &c.AccountEnabled}, {"MCP_BENEFITS_ENABLED", &c.BenefitsEnabled}} {
+		if raw, configured := os.LookupEnv(flag.name); configured {
+			switch raw {
+			case "true":
+				*flag.target = true
+			case "false":
+			default:
+				return c, fmt.Errorf("invalid %s", flag.name)
+			}
+		}
+	}
+	accountOrigin, configured := os.LookupEnv("MCP_ACCOUNT_BASE_URL")
+	if !configured {
+		accountOrigin = "https://openany.si"
+	}
+	c.AccountOrigin, err = account.ParseOrigin(accountOrigin)
+	if err != nil {
+		return c, err
 	}
 	if c.DatabaseURL == "" || c.GatewayURL == "" {
 		return c, fmt.Errorf("POSTGRES_DATABASE_URL and OPENANY_GATEWAY_BASE_URL are required")

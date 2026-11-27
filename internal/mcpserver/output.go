@@ -268,8 +268,19 @@ func withRecovery(result gateway.Result) gateway.Result {
 	if !ok {
 		return result
 	}
+	state := e["execution_state"]
+	if state != "unknown" && state != "completed" && state != "started" {
+		if recovery, ok := e["recovery"].(map[string]any); ok {
+			action, _ := recovery["primary_action"].(string)
+			target, _ := recovery["next_step_target"].(string)
+			if message := gateway.RecoveryActionText(action, target); message != "" {
+				e["next_action"] = message
+				return result
+			}
+		}
+	}
 	switch e["execution_state"] {
-	case "unknown":
+	case "unknown", "started":
 		e["next_action"] = "Do not retry automatically: execution or charging may have occurred. Save request_id and check the gateway."
 	case "completed":
 		e["next_action"] = "Execution completed. Inspect the available result and request_id; do not rerun to fix presentation."

@@ -123,11 +123,7 @@ func (c *Client) Call(ctx context.Context, r model.Request, args map[string]any,
 		}
 	}
 	if obj, ok := data.(map[string]any); ok && obj["type"] == "openany_error" {
-		code, _ := obj["code"].(string)
-		if code == "" {
-			code = "openany_mcp_gateway_error"
-		}
-		return Failure(code, "Gateway rejected or failed the request; inspect the request ID.", "gateway", "reported_failure", resp.StatusCode, id)
+		return c.LimitResult(publicFailure(obj, resp.StatusCode, id))
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return Failure("openany_mcp_gateway_http_error", "Gateway returned an unsuccessful HTTP status.", "gateway", "reported_failure", resp.StatusCode, id)
@@ -152,7 +148,24 @@ func (c *Client) LimitResult(result Result) Result {
 		if state != "completed" {
 			message = "Result exceeds MCP output limit; inspect execution_state before deciding on another call."
 		}
-		return Failure("openany_mcp_result_too_large", message, "result", state, result.Value["http_status"], result.Value["request_id"])
+		limited := Failure("openany_mcp_result_too_large", message, "result", state, result.Value["http_status"], result.Value["request_id"])
+		if original, ok := result.Value["error"].(map[string]any); ok {
+			e := limited.Value["error"].(map[string]any)
+			code, _ := original["code"].(string)
+			if publicToken.MatchString(code) {
+				e["original_code"] = code
+			}
+			if recovery, ok := original["recovery"].(map[string]any); ok {
+				if recovery = boundedRecovery(recovery); recovery != nil && recoveryMatchesCode(code, recovery) {
+					e["recovery"] = recovery
+					e["charge_state"] = recovery["charge_state"]
+				}
+			}
+		}
+		if cost, exists := result.Value["openany_cost"]; exists {
+			limited.Value["openany_cost"] = cost
+		}
+		return limited
 	}
 	return result
 }

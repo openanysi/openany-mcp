@@ -9,6 +9,8 @@ WORKDIR /app
 COPY --from=build /out/openany-mcp /app/openany-mcp
 COPY config /app/config
 ENV OPENANY_GATEWAY_BASE_URL=http://127.0.0.1:8888 \
-    MCP_LISTEN_ADDR=0.0.0.0:3000
+    MCP_LISTEN_ADDR=0.0.0.0:3000 \
+    MCP_ACCOUNT_ENABLED=true \
+    MCP_BENEFITS_ENABLED=true
 EXPOSE 3000
 ENTRYPOINT ["/app/openany-mcp"]

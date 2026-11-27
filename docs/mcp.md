@@ -1,6 +1,6 @@
 # OpenAny MCP 接入
 
-The B2A (business to agent) marketplace：一个 MCP 端点接入 4,400+ API 和 168+ AI 模型。API 覆盖社交内容（X、TikTok 等）、SEO 与搜索、加密货币与链上数据、企业工商与销售线索、金融宏观和法律；模型包括 GPT、Claude、Gemini、DeepSeek、Qwen、Kimi，以及 Midjourney、FLUX、Veo、Kling 等图像和视频模型。浏览、搜索、查价免费，只有 `run_api` 需要 API Key，按次付费。
+The B2A (business to agent) marketplace：一个 MCP 端点接入 4,400+ API 和 168+ AI 模型。API 覆盖社交内容（X、TikTok 等）、SEO 与搜索、加密货币与链上数据、企业工商与销售线索、金融宏观和法律；模型包括 GPT、Claude、Gemini、DeepSeek、Qwen、Kimi，以及 Midjourney、FLUX、Veo、Kling 等图像和视频模型。浏览、搜索、查价免费。执行业务请求时使用 API Key，按次计费。
 
 ## 三步开始使用
 
@@ -8,7 +8,7 @@ The B2A (business to agent) marketplace：一个 MCP 端点接入 4,400+ API 和
 2. 如果客户端有这个按钮，点「开始使用 OpenAny」（`openany-start`）；否则说「OpenAny 能帮我做什么？」
 3. 可以直接问：某个推特用户最近的推文、域名的反向链接、比特币价格、公司工商信息、美国 CPI，或画一张图。
 
-浏览和看价格不需要密钥。只有执行时才到 https://openany.si/dashboard?page=api-keys 创建密钥，并放进客户端的安全连接器设置，不要发到聊天里。
+浏览和看价格不需要密钥。查询个人账户或执行业务请求时，前往 [OpenAny 账户](https://openany.si/dashboard?page=api-keys) 创建密钥，并放进客户端的安全连接器设置。概览会显示当前可查的试用额度与邀请奖励规则。
 
 <!-- developer-docs -->
 
@@ -37,14 +37,14 @@ openany_overview、search_apis、get_api 读取目录，不需要密钥，也不
 | 路径 | 内容 |
 | --- | --- |
 | `/` | 与 `/mcp-lite` 相同的轻量服务。MCP POST 走工具协议；浏览器 GET 返回本文 |
-| `/mcp-lite` | openany_overview、search_apis、get_api、run_api，与 `/` 相同 |
+| `/mcp-lite` | openany_overview、search_apis、get_api、run_api，以及启用后的 get_account，与 `/` 相同 |
 | `/mcp` | 所有独立 API 工具，不含模型，适合已有精确调用配置 |
 | `/mcp/{provider_id}` | 指定供应商的独立工具 |
 | `/docs/mcp` | 本接入文档，轻量功能启用后公开提供 |
 
 通常只配置一个入口。把全量入口同时连接到 Agent，仍会加载完整目录，而且那里没有模型。
 
-在 Grok Bot 或其他支持远程 MCP 的客户端中，填写服务器 URL、Streamable HTTP 和 Authorization 请求头。不同客户端的配置格式不同；这里的 HTTP 联调不代表所有版本的客户端 UI 都已经验证。新配置后重新连接并检查四个工具是否出现。
+在 Grok Bot 或其他支持远程 MCP 的客户端中，填写服务器 URL、Streamable HTTP 和 Authorization 请求头。不同客户端的配置格式不同。重新连接后检查工具列表。在启用账户查询的轻量入口上应有五个工具。
 
 ## Agent 的调用顺序
 
@@ -72,6 +72,12 @@ run_api({
 ### openany_overview
 
 无参数。读取当前目录快照，不调用收费网关。返回 `api_count`、`model_count`、按供应商和人类类别分组的 API，以及按主模态分组的模型 id。类别为 social/content、crypto/on-chain、company & leads、SEO/search/scraping、finance/macro、legal、e-commerce/real estate/travel、other。模型模态为 chat/reasoning、image、video、audio；没有文本输出、图像、视频或音频的模型归入 other。数量来自当前快照，不要在文档或提示词里写死。`models_available=false` 时模型数量不能当成产品里没有模型。
+
+启用公开权益展示后，`openany_overview`、`search_apis` 和 `get_api` 的 `benefits` 包含当前公开权益和账户入口。符合条件的 Agent 新客在注册后自动获赠试用额度。邀请奖励按每个受邀用户累计有效充值金额采用边际阶梯计算，满足条件后自动计入邀请人的 OpenAny 余额。额度、阶梯与适用渠道以当前公开规则为准。[公开权益规则](https://openany.si/api/v1/agent-onboarding)
+
+### get_account
+
+启用后可传可选的 `lang`（`en`、`zh`、`ja`、`ar`，默认 `en`）。未配置密钥时返回公开权益和配置入口。使用连接器中已配置的 OpenAny 密钥，可查询可用余额、Key 限额和实际赠送记录。普通 API Key 的个人邀请详情为 `restricted`，可按结果链接前往账户页查看。查询不启动业务请求或扣费，目录暂不可用时仍可直接访问可用实例查询。更换已失效的密钥后，先核对账户状态，再按原任务复查参数和实时价格。
 
 ### search_apis
 
@@ -177,6 +183,8 @@ api_version 包含该接口的 revision、Schema、公开价格和转发规则�
 
 轻量入口默认开启，更新二进制后重启服务即可使用。需要关闭时设置 `MCP_LITE_ENABLED=false`；关闭后不加载轻量价格和搜索索引，原有入口照常工作。数据库角色仍为只读。价格和公开辅助资料共用独立刷新任务与最多1个连接的独立只读连接池；查询不占原目录连接池的连接。数据库连接配额仍预留这一个额外连接。
 
+`MCP_ACCOUNT_ENABLED` 控制轻量入口的账户工具，`MCP_BENEFITS_ENABLED` 控制目录和工具描述的公开权益展示。源码默认关闭，容器镜像默认开启，运行时可分别设为 `true` 或 `false`。通过 `MCP_ACCOUNT_BASE_URL` 指定账户服务的可信后端 origin，不带路径，默认 `https://openany.si`。公开权益每 30 秒尝试刷新，最多保留 120 秒。个人摘要逐次查询。
+
 公开价格辅助查询需要 agent_apis 的公开计费字段、收费条件字段，以及 agent_api_pricing_policies 的 api_id、policy_version、parameters、sale_policy 只读权限。无需读取 supplier_policy 或 supplier_price_micro_usd。新增辅助查询只读取现有公开字段：
 
 - agent_apis：id、revision、status、categories、data_platform、data_product、capability_id、upstream_key_id、name_translations、description_translations。
@@ -193,7 +201,7 @@ api_version 包含该接口的 revision、Schema、公开价格和转发规则�
 
 变量未设置或为空时默认开启。如果 .env 中已显式设置为 false，仍会关闭；删除该配置或改为 true 即可开启。源码开发也需要先加载环境变量。run-local.sh 运行 bin/openany-mcp，修改代码后先重新构建。
 
-/readyz 中 ready 继续表示原目录状态；启用后还会显示 lite_ready、pricing_available 和 metadata_available。模型目录启用后另外显示 models_available、models_stale 和 models_published。价格、辅助资料或模型目录读取失败不让原目录失败。模型目录失败时保留上一份成功结果，并标记 models_stale。get_api 明确返回价格 unavailable 或缺少可用示例，search_apis/get_api 也报告 metadata_available。辅助资料刷新不改变原目录 hash；示例单独更新会刷新展示但不会让旧 api_version 失效。模型目录不进入 `/mcp` 的目录 hash。目录尚未完成轻量准备时，`/` 的 MCP 请求和 /mcp-lite 暂时返回503。浏览器 GET `/` 与 /docs/mcp 不依赖目录就绪。
+/readyz 中 ready 继续表示原目录状态；启用后还会显示 lite_ready、pricing_available 和 metadata_available。模型目录启用后另外显示 models_available、models_stale 和 models_published。价格、辅助资料或模型目录读取失败不让原目录失败。模型目录失败时保留上一份成功结果，并标记 models_stale。get_api 明确返回价格 unavailable 或缺少可用示例，search_apis/get_api 也报告 metadata_available。辅助资料刷新不改变原目录 hash；示例单独更新会刷新展示但不会让旧 api_version 失效。模型目录不进入 `/mcp` 的目录 hash。账户工具启用时，即使业务目录未就绪，`/` 和 /mcp-lite 的 MCP 初始化、tools/list 与 get_account 仍可用；依赖目录的业务工具继续返回目录不可用。账户工具未启用时，保留原有目录就绪门控。浏览器 GET `/` 与 /docs/mcp 不依赖目录就绪。
 
 模型目录默认从 `https://api.openany.si/v1/models` 读取，不发送 API key。可用 `OPENANY_MODELS_BASE_URL` 改成另一个源站，只接受 origin，或带 `/v1` 路径的同一 origin。进程需要能访问该源站。模型执行发往同一源站的 `/v1/chat/completions`，使用调用方自己的 key。不在服务配置里保存模型调用密钥。
 

@@ -62,11 +62,12 @@ This block is the lite server. `https://mcp.openany.si/mcp-lite` is the same ser
 
 ## Tools
 
-`https://mcp.openany.si` is the lightweight server. `https://mcp.openany.si/mcp-lite` is the same server. It exposes four tools. `openany_overview` reports live catalog counts. `search_apis` finds models and APIs. Execution is pay per call, no monthly fee, with one API key.
+`https://mcp.openany.si` is the lightweight server. `https://mcp.openany.si/mcp-lite` is the same server. `openany_overview` reports live catalog counts. `search_apis` finds models and APIs. Execution is pay per call with one API key.
 
 - `openany_overview`: Return the current data API count, AI model count, APIs grouped by category, and models grouped by modality. No arguments, and it does not call the paid gateway.
 - `search_apis`: Find OpenAny models and APIs by keywords and optional kind (api, model, or all; default all), provider, category, data_platform, data_product or capability.
 - `get_api`: Read one model or API selected from search_apis.
+- `get_account`: When enabled, read your balance, key allowance, and signup credit without a business call. Without a key, get public rules and setup links.
 - `run_api`: Execute one selected OpenAny API, or send one selected model to chat completions, with the caller's current credentials.
 
 `https://mcp.openany.si/mcp` is the advanced full-catalog endpoint. It exposes 3,268 per-API tools across 45 providers, led by tikhub (1,009), anyapi (337), justoneapi (301), scrapecreators (193), and qcc (170). It does not include models. The list is in [TOOLS.md](TOOLS.md). Use it only when a workflow already has an exact tool name. It is not the default.
@@ -74,8 +75,8 @@ This block is the lite server. `https://mcp.openany.si/mcp-lite` is the same ser
 ## Recommended server
 
 When enabled and routed by the deployment, `https://mcp.openany.si` and
-`https://mcp.openany.si/mcp-lite` use the same Streamable HTTP transport and expose four tools:
-`openany_overview`, `search_apis`, `get_api` and `run_api`. One search covers the current model
+`https://mcp.openany.si/mcp-lite` use the same Streamable HTTP transport and expose
+`openany_overview`, `search_apis`, `get_api`, `run_api`, and `get_account` when enabled. One search covers the current model
 catalog and the API catalog. `get_api` reads the selected model or API.
 `run_api` executes an API through the gateway, or posts a model call to
 `/v1/chat/completions` on the model API origin, using the caller's key.

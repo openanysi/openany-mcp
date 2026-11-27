@@ -20,6 +20,7 @@ const serverCardSchemaURL = "https://static.modelcontextprotocol.io/schemas/v1/s
 // Published server.json description. It is 99 characters, inside the Server
 // Card schema's maxLength of 100.
 const serverCardDescription = "The B2A (business to agent) marketplace: 4,400+ APIs and 168+ AI models. Browse free; pay per call."
+const serverCardBenefits = "4,400+ APIs and 168+ AI models. Browse free, pay per call. Trial and referral terms at openany.si."
 
 const serverCardHeaderDescription = "Anonymous catalog discovery and pricing do not authorize charges. Execution uses a Bearer OpenAny API key from secure client settings. This service uses API keys, not OAuth."
 
@@ -99,21 +100,27 @@ var openAnyServerCard = serverCardDocument{
 }
 
 var (
-	serverCardBody []byte
-	serverCardETag string
+	serverCardBody, serverCardBenefitsBody []byte
+	serverCardETag, serverCardBenefitsETag string
 )
 
 func init() {
-	var err error
-	serverCardBody, err = json.Marshal(openAnyServerCard)
+	serverCardBody, serverCardETag = encodeServerCard(openAnyServerCard)
+	card := openAnyServerCard
+	card.Description = serverCardBenefits
+	serverCardBenefitsBody, serverCardBenefitsETag = encodeServerCard(card)
+}
+
+func encodeServerCard(card serverCardDocument) ([]byte, string) {
+	body, err := json.Marshal(card)
 	if err != nil {
 		panic(err)
 	}
-	sum := sha256.Sum256(serverCardBody)
-	serverCardETag = `"` + hex.EncodeToString(sum[:]) + `"`
+	sum := sha256.Sum256(body)
+	return body, `"` + hex.EncodeToString(sum[:]) + `"`
 }
 
-func serveServerCard(w http.ResponseWriter, r *http.Request) {
+func serveServerCard(w http.ResponseWriter, r *http.Request, benefits bool) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, If-None-Match")
@@ -131,14 +138,18 @@ func serveServerCard(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", serverCardMediaType)
 	w.Header().Set("Cache-Control", "public, max-age=3600")
-	w.Header().Set("ETag", serverCardETag)
-	if serverCardNoneMatch(r.Header.Get("If-None-Match"), serverCardETag) {
+	body, etag := serverCardBody, serverCardETag
+	if benefits {
+		body, etag = serverCardBenefitsBody, serverCardBenefitsETag
+	}
+	w.Header().Set("ETag", etag)
+	if serverCardNoneMatch(r.Header.Get("If-None-Match"), etag) {
 		w.WriteHeader(http.StatusNotModified)
 		return
 	}
-	w.Header().Set("Content-Length", strconv.Itoa(len(serverCardBody)))
+	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
 	if r.Method == http.MethodGet {
-		w.Write(serverCardBody)
+		w.Write(body)
 	}
 }
 

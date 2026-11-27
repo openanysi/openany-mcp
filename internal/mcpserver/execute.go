@@ -12,7 +12,7 @@ import (
 )
 
 func (h *Handler) execute(ctx context.Context, req *mcp.CallToolRequest, b *catalog.Binding, name string, raw json.RawMessage, catalogHash string) (*mcp.CallToolResult, error) {
-	return toMCP(h.executeResult(ctx, req, b, name, raw, catalogHash, false)), nil
+	return toMCP(withRecovery(h.executeResult(ctx, req, b, name, raw, catalogHash, true))), nil
 }
 func (h *Handler) executeResult(ctx context.Context, req *mcp.CallToolRequest, b *catalog.Binding, name string, raw json.RawMessage, catalogHash string, details bool) gateway.Result {
 	start := time.Now()

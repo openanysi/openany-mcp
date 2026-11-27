@@ -4,17 +4,19 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/openany/openany-mcp/internal/catalog"
-	"github.com/openany/openany-mcp/internal/config"
-	"github.com/openany/openany-mcp/internal/gateway"
-	"github.com/openany/openany-mcp/internal/mcpserver"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/openany/openany-mcp/internal/account"
+	"github.com/openany/openany-mcp/internal/catalog"
+	"github.com/openany/openany-mcp/internal/config"
+	"github.com/openany/openany-mcp/internal/gateway"
+	"github.com/openany/openany-mcp/internal/mcpserver"
 )
 
 func main() { os.Exit(run()) }
@@ -86,7 +88,30 @@ func run() int {
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	handler := mcpserver.New(manager, client, mcpserver.Options{LiteEnabled: c.LiteEnabled, MaxBody: c.MaxBody, MaxCalls: c.MaxCalls, Hosts: c.Hosts, Origins: c.Origins, Logger: logger, ModelGateway: modelClient})
+	opts := mcpserver.Options{LiteEnabled: c.LiteEnabled, MaxBody: c.MaxBody, MaxCalls: c.MaxCalls, Hosts: c.Hosts, Origins: c.Origins, Logger: logger, ModelGateway: modelClient, BenefitsEnabled: c.BenefitsEnabled}
+	if c.BenefitsEnabled || (c.LiteEnabled && c.AccountEnabled) {
+		accountClient, err := account.NewClient(c.AccountOrigin)
+		if err != nil {
+			logger.Error(err.Error())
+			return 1
+		}
+		if c.LiteEnabled && c.AccountEnabled {
+			opts.AccountClient = accountClient
+		}
+		opts.PolicyCache = account.NewPolicyCache(accountClient)
+		policyCtx, cancel := context.WithCancel(ctx)
+		policyDone := make(chan struct{})
+		go func() {
+			defer close(policyDone)
+			opts.PolicyCache.Run(policyCtx)
+		}()
+		defer func() {
+			cancel()
+			<-policyDone
+			accountClient.Close()
+		}()
+	}
+	handler := mcpserver.New(manager, client, opts)
 	server := &http.Server{Addr: c.Listen, Handler: handler, ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 32 << 10}
 	done := make(chan error, 1)
 	go func() { done <- server.ListenAndServe() }()
