@@ -103,7 +103,7 @@ func (h *Handler) newLiteServer() *mcp.Server {
 			case "get_api":
 				detail, ok := d.Detail(text("api"))
 				if !ok {
-					return unavailableAPI(), nil
+					return toLiteMCP(h.unavailableModel(ctx, d, text("api"))), nil
 				}
 				return toLiteMCP(gateway.Result{Value: h.addBenefits(detail)}), nil
 			case "run_api":
@@ -122,7 +122,7 @@ func (h *Handler) newLiteServer() *mcp.Server {
 				}
 				binding := snapshot.Tools[api]
 				if binding == nil || d.Version(api) == "" {
-					return unavailableAPI(), nil
+					return toLiteMCP(h.unavailableModel(ctx, d, api)), nil
 				}
 				if d.Version(api) != text("api_version") {
 					return toLiteMCP(gateway.Failure("openany_mcp_api_changed", "API definition or displayed price changed; call get_api again.", "validate", "not_started", nil, nil)), nil

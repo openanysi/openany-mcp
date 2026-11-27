@@ -334,6 +334,17 @@ func (m LLMModel) textOutput() bool {
 	return m.hasOutput("chat") || m.hasOutput("coding") || m.hasOutput("reasoning")
 }
 
+// SupportsChatDiscovery checks explicit modalities rather than names or vendors.
+func (d *Discovery) SupportsChatDiscovery(id string) bool {
+	entry, ok := d.models[id]
+	if !ok {
+		return false
+	}
+	m := entry.model
+	textInput := m.hasInput("text") || m.hasInput("chat") || m.hasInput("coding") || m.hasInput("reasoning")
+	return textInput && (m.hasOutput("text") || m.textOutput())
+}
+
 func (m LLMModel) hasFeature(name string) bool {
 	for _, item := range m.Features {
 		if strings.EqualFold(item, name) {

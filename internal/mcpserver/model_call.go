@@ -15,7 +15,7 @@ import (
 func (h *Handler) executeModel(ctx context.Context, req *mcp.CallToolRequest, d *catalog.Discovery, api, version string, raw json.RawMessage, catalogHash string) gateway.Result {
 	start := time.Now()
 	if d.Kind(api) != "model" || d.Version(api) == "" {
-		return gateway.Failure("openany_mcp_api_unavailable", "Model or API is not currently published; search again.", "validate", "not_started", nil, nil)
+		return h.unavailableModel(ctx, d, api)
 	}
 	if d.Version(api) != version {
 		return gateway.Failure("openany_mcp_api_changed", "Model definition or displayed price changed; call get_api again.", "validate", "not_started", nil, nil)

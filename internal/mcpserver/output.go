@@ -304,7 +304,11 @@ func withRecovery(result gateway.Result) gateway.Result {
 		case "openany_mcp_api_changed":
 			e["next_action"] = "Call get_api again, review the current contract and price, then decide whether to execute."
 		case "openany_mcp_api_unavailable":
-			e["next_action"] = "Call search_apis to select a currently published model or API."
+			if related, ok := e["related_models"].([]any); ok && len(related) > 0 {
+				e["next_action"] = "Select a related model and call get_api to read its current contract, price and api_version. This changes the model; execute only after the user authorizes the task and price."
+			} else {
+				e["next_action"] = "Call search_apis to select a currently published model or API."
+			}
 		case "openany_mcp_busy":
 			e["next_action"] = "This call did not start. Wait before submitting another call."
 		case "openany_mcp_invalid_output":
