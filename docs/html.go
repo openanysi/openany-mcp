@@ -6,10 +6,31 @@ import (
 	"unicode/utf8"
 )
 
-const guideCSS = `body{margin:0;background:#f6f7f4;color:#1c1c1b;font:16px/1.5 ui-sans-serif,system-ui,sans-serif}main{max-width:46rem;margin:0 auto;padding:2rem 1.25rem 4rem}h1,h2,h3{line-height:1.25}code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}pre{overflow:auto;padding:0.9rem 1rem;background:#fff;border:1px solid #d9d6cc;border-radius:8px}code{background:#efece4;padding:0.1em 0.3em;border-radius:4px}pre code{background:transparent;padding:0}table{border-collapse:collapse;width:100%;background:#fff}th,td{border:1px solid #d9d6cc;padding:0.4rem 0.6rem;text-align:left;vertical-align:top}a{color:#0b5}details{margin-top:2rem}summary{cursor:pointer;font-weight:600}`
+// Mirror the public site's ui-foundations tokens without loading remote assets.
+const guideCSS = `:root{--ui-text-primary:#111318;--ui-text-secondary:#394354;--ui-text-muted:#5f6b7c;--ui-line:#e5e9f0;--ui-control-line:#d7dee8;--ui-soft:#f8f9fb;--ui-accent:#0047ff}*{box-sizing:border-box}body{margin:0;background:#fff;color:var(--ui-text-secondary);font:14px/24px ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:0}main{max-width:960px;margin:0 auto;padding:24px 32px 64px;overflow-wrap:anywhere}.guide-header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:20px;margin-bottom:32px;border-bottom:1px solid var(--ui-line)}.brand{font-size:16px;font-weight:700;color:var(--ui-text-primary);text-decoration:none}.guide-header nav{display:flex;gap:20px;flex-wrap:wrap;font-size:12px}.guide-header [aria-current]{color:var(--ui-text-primary);font-weight:600}h1{margin:0 0 24px;color:var(--ui-text-primary);font-size:28px;line-height:36px;font-weight:600}h2{margin:32px 0 16px;padding-top:24px;border-top:1px solid var(--ui-line);color:var(--ui-text-primary);font-size:16px;line-height:24px;font-weight:600}h3{margin:24px 0 12px;color:var(--ui-text-primary);font-size:14px;line-height:24px;font-weight:600}p{margin:12px 0}li{margin:8px 0}ul,ol{padding-left:24px}a{color:var(--ui-accent);text-underline-offset:3px}a:hover{text-decoration:underline}a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--ui-accent);outline-offset:4px}code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:20px}code{background:var(--ui-soft);padding:2px 4px;border-radius:4px}pre{max-width:100%;overflow:auto;white-space:pre;padding:16px;background:var(--ui-soft);border:1px solid var(--ui-line);border-radius:6px}pre code{background:transparent;padding:0;overflow-wrap:normal}.table-scroll{max-width:100%;overflow-x:auto;margin:16px 0;border:1px solid var(--ui-line);border-radius:6px}table{border-collapse:collapse;width:100%;min-width:520px;background:#fff;font-size:12px;line-height:20px}th,td{border-bottom:1px solid var(--ui-line);padding:10px 12px;text-align:left;vertical-align:top}th{color:var(--ui-text-primary);font-weight:600;background:var(--ui-soft)}tbody tr:last-child td{border-bottom:0}details{margin-top:32px;border-top:1px solid var(--ui-line)}summary{cursor:pointer;color:var(--ui-text-primary);font-size:16px;font-weight:600;padding:20px 0}details>h2:first-of-type{margin-top:8px}.endpoint{margin:0 0 24px;padding:16px;background:var(--ui-soft);border:1px solid var(--ui-line);border-radius:6px}.endpoint-label{display:block;font-size:12px;color:var(--ui-text-muted);margin-bottom:8px}.endpoint-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.endpoint-row code{padding:0;background:transparent;flex:1;min-width:0}.endpoint-links{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;font-size:12px}.copy-button{font-family:inherit;font-size:12px;line-height:20px;font-weight:500;min-height:36px;padding:7px 12px;background:#fff;color:var(--ui-text-primary);border:1px solid var(--ui-control-line);border-radius:4px;cursor:pointer}.copy-button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}.copy-status{display:block;min-height:20px;margin-top:4px;font-size:12px;color:var(--ui-text-muted)}.copy-status:empty{display:none}[hidden]{display:none!important}@media(max-width:620px){main{padding:20px 20px 48px}.guide-header{margin-bottom:24px}h1{font-size:26px;line-height:34px}.copy-button{min-height:44px}.guide-header nav{gap:16px}summary{min-height:44px}}`
+
+const clipboardScript = `<script>
+const copyButton = document.querySelector('[data-copy-endpoint]');
+if (copyButton && navigator.clipboard && window.isSecureContext) {
+  copyButton.hidden = false;
+  copyButton.addEventListener('click', async () => {
+    const status = document.querySelector('[data-copy-status]');
+    const zh = document.documentElement.lang === 'zh';
+    copyButton.disabled = true;
+    try {
+      await navigator.clipboard.writeText('https://mcp.openany.si');
+      status.textContent = zh ? '已复制端点' : 'Endpoint copied';
+    } catch {
+      status.textContent = zh ? '复制失败，请手动选择并复制端点。' : 'Copy failed. Select and copy the endpoint manually.';
+    } finally {
+      copyButton.disabled = false;
+    }
+  });
+}
+</script>`
 
 // HTML renders a small, safe subset of the connection guide.
-// It does not load scripts or remote stylesheets.
+// The only script copies the public endpoint; Markdown cannot add scripts.
 func HTML(markdown, lang string) string {
 	if lang != "zh" {
 		lang = "en"
@@ -26,8 +47,29 @@ func HTML(markdown, lang string) string {
 	b.WriteString("</title><style>")
 	b.WriteString(guideCSS)
 	b.WriteString("</style></head><body><main>")
-	b.WriteString(renderMarkdown(markdown, lang))
-	b.WriteString("</main></body></html>")
+	brandGuide, copyLabel, keyLabel, endpointLabel := "Connection guide", "Copy URL", "Get API key", "Server URL / Streamable HTTP"
+	if lang == "zh" {
+		brandGuide, copyLabel, keyLabel, endpointLabel = "接入指南", "复制端点", "创建 API key", "服务器 URL / Streamable HTTP"
+	}
+	b.WriteString(`<header class="guide-header"><a class="brand" href="https://openany.si/">OpenAny</a><nav aria-label="`)
+	b.WriteString(html.EscapeString(brandGuide))
+	b.WriteString(`"><a href="https://openany.si/mcp/">` + html.EscapeString(brandGuide) + `</a><a href="?lang=en" lang="en"`)
+	if lang == "en" {
+		b.WriteString(` aria-current="page"`)
+	}
+	b.WriteString(`>English</a><a href="?lang=zh" lang="zh"`)
+	if lang == "zh" {
+		b.WriteString(` aria-current="page"`)
+	}
+	b.WriteString(`>中文</a></nav></header>`)
+	endpoint := `<div class="endpoint"><span class="endpoint-label">` + html.EscapeString(endpointLabel) + `</span><div class="endpoint-row"><code>https://mcp.openany.si</code><button type="button" class="copy-button" data-copy-endpoint hidden>` + html.EscapeString(copyLabel) + `</button></div><span class="copy-status" role="status" aria-live="polite" data-copy-status></span><div class="endpoint-links"><a href="https://openany.si/mcp/">` + html.EscapeString(brandGuide) + `</a><a href="https://openany.si/dashboard?page=api-keys">` + html.EscapeString(keyLabel) + `</a></div></div>`
+	content := renderMarkdown(markdown, lang)
+	if end := strings.Index(content, "</h1>"); end >= 0 {
+		end += len("</h1>")
+		content = content[:end] + endpoint + content[end:]
+	}
+	b.WriteString(content)
+	b.WriteString("</main>" + clipboardScript + "</body></html>")
 	return b.String()
 }
 
@@ -69,7 +111,11 @@ func renderMarkdown(markdown, lang string) string {
 				i++
 			}
 			i--
-			b.WriteString("<table><thead><tr>")
+			label := "Reference table"
+			if lang == "zh" {
+				label = "参考表格"
+			}
+			b.WriteString(`<div class="table-scroll" role="region" tabindex="0" aria-label="` + label + `"><table><thead><tr>`)
 			for _, cell := range header {
 				b.WriteString("<th>")
 				b.WriteString(inline(cell))
@@ -85,19 +131,38 @@ func renderMarkdown(markdown, lang string) string {
 				}
 				b.WriteString("</tr>")
 			}
-			b.WriteString("</tbody></table>")
+			b.WriteString("</tbody></table></div>")
 			continue
 		}
-		if trim == "<!-- developer-docs -->" {
+		if trim == "<!-- developer-docs -->" || trim == "<!-- operations-docs -->" {
 			flush()
+			if details {
+				b.WriteString("</details>")
+			}
 			summary := "Developer docs"
 			if lang == "zh" {
 				summary = "开发者文档"
 			}
-			b.WriteString("<details><summary>")
+			if trim == "<!-- operations-docs -->" {
+				summary = "Deployment reference"
+				if lang == "zh" {
+					summary = "部署运维参考"
+				}
+				b.WriteString("<details><summary>")
+			} else {
+				b.WriteString("<details open><summary>")
+			}
 			b.WriteString(html.EscapeString(summary))
 			b.WriteString("</summary>")
 			details = true
+			continue
+		}
+		if trim == "<!-- /operations-docs -->" {
+			flush()
+			if details {
+				b.WriteString("</details>")
+				details = false
+			}
 			continue
 		}
 		if trim == "" {

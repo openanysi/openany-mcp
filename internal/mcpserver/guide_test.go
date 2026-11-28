@@ -54,7 +54,7 @@ func TestGuideLanguageAndHTMLNegotiation(t *testing.T) {
 		t.Fatal("lang=zh did not override", media)
 	}
 	status, media, body = get("/", "text/html,application/xhtml+xml", "en-US")
-	if status != 200 || !strings.HasPrefix(media, "text/html") || !strings.Contains(body, "<h1>") || !strings.Contains(body, "<table>") || !strings.Contains(body, "<pre><code>") || !strings.Contains(body, "https://mcp.openany.si") || !strings.Contains(body, "<summary>Developer docs</summary>") || strings.Contains(body, "<script") || strings.Contains(body, "选择入口") {
+	if status != 200 || !strings.HasPrefix(media, "text/html") || !strings.Contains(body, "<h1>") || !strings.Contains(body, "<table>") || !strings.Contains(body, "<pre><code>") || !strings.Contains(body, "https://mcp.openany.si") || !strings.Contains(body, "<details open><summary>Developer docs</summary>") || strings.Count(body, "<script>") != 1 || strings.Contains(body, "选择入口") {
 		t.Fatal("english html", status, media)
 	}
 	status, media, body = get("/docs/mcp", "text/html", "zh")
@@ -73,5 +73,33 @@ func TestGuideLanguageAndHTMLNegotiation(t *testing.T) {
 	raw, _ := io.ReadAll(res.Body)
 	if strings.Contains(res.Header.Get("Content-Type"), "text/html") || strings.Contains(string(raw), "<h1>") || strings.Contains(string(raw), "Choose an endpoint") {
 		t.Fatal("POST / returned the browser guide", res.StatusCode, res.Header.Get("Content-Type"), string(raw))
+	}
+}
+
+func TestGuidePresentationDoesNotCallGatewayOrLeakMarkers(t *testing.T) {
+	manager := catalog.NewManager(func(context.Context) ([]model.Record, error) {
+		t.Fatal("guide must not load a live catalog")
+		return nil, nil
+	}, model.Overrides{Version: 1}, time.Minute, false)
+	// A nil gateway also makes an accidental execution path fail this test.
+	handler := New(manager, nil, Options{LiteEnabled: true})
+	for _, path := range []string{"/", "/docs/mcp", "/?lang=zh", "/docs/mcp?lang=zh"} {
+		for _, accept := range []string{"text/plain", "text/html"} {
+			req := httptest.NewRequest(http.MethodGet, "http://localhost"+path, nil)
+			req.Header.Set("Accept", accept)
+			res := httptest.NewRecorder()
+			handler.ServeHTTP(res, req)
+			body := res.Body.String()
+			if res.Code != 200 || strings.Contains(body, "<!--") || !strings.Contains(body, "run_api") || !strings.Contains(body, "MCP_PUBLIC_HOSTS") {
+				t.Fatal(path, accept, "guide content or routing changed")
+			}
+		}
+		req := httptest.NewRequest(http.MethodHead, "http://localhost"+path, nil)
+		req.Header.Set("Accept", "text/html")
+		res := httptest.NewRecorder()
+		handler.ServeHTTP(res, req)
+		if res.Code != 200 || res.Body.Len() != 0 {
+			t.Fatal("HEAD must remain bodyless", path, res.Code)
+		}
 	}
 }

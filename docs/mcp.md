@@ -1,20 +1,65 @@
 # OpenAny MCP 接入
 
-The B2A (business to agent) marketplace：一个 MCP 端点接入 4,400+ API 和 168+ AI 模型。API 覆盖社交内容（X、TikTok 等）、SEO 与搜索、加密货币与链上数据、企业工商与销售线索、金融宏观和法律；模型包括 GPT、Claude、Gemini、DeepSeek、Qwen、Kimi，以及 Midjourney、FLUX、Veo、Kling 等图像和视频模型。浏览、搜索、查价免费，只有 `run_api` 需要 API Key，按次付费。
+OpenAny 是由旧金山 Alephant AI LLC 运营的 B2A（business to agent）资源与服务市场。通过一个 MCP 端点，你的 Agent 可以发现模型和 API、查看使用要求，并执行受支持的调用。
+
+可发现的 API 涵盖搜索、社交内容、加密货币、企业数据、金融、法律检索和天气；模型涵盖对话、推理、图像、视频及音频生成。
+
+发现资源和查价免费，不需要密钥。执行需要你自己的 OpenAny API key、相应权限，以及收费请求所需的余额。费用以所选资源公布的价格、计费单位和收费条件为准；模型可能按 Token、图片或时长计费，并非全部按固定单价每次收费。
 
 ## 三步开始使用
 
-1. 把 `https://mcp.openany.si` 加到 MCP 客户端。
+1. 把 `https://mcp.openany.si` 加到支持 Streamable HTTP 远程 MCP 的兼容客户端。Cursor、Claude Code 和 Codex 的配置见[客户端接入指南](https://openany.si/mcp/)。
 2. 如果客户端有这个按钮，点「开始使用 OpenAny」（`openany-start`）；否则说「OpenAny 能帮我做什么？」
-3. 可以直接问：某个推特用户最近的推文、域名的反向链接、比特币价格、公司工商信息、美国 CPI，或画一张图。
+3. 让 Agent 查找所需 API 或模型，并用 `get_api` 核对输入与当前价格；确认请求及适用费用后，再由 `run_api` 执行。
 
-浏览和看价格不需要密钥。只有执行时才到 https://openany.si/dashboard?page=api-keys 创建密钥，并放进客户端的安全连接器设置，不要发到聊天里。
+浏览和看价格不需要密钥。准备执行时再[创建 API key](https://openany.si/dashboard?page=api-keys)，并放进客户端的安全连接器设置，不要发到聊天里。执行要求客户端能安全配置 Authorization 请求头。本服务不提供 OAuth；仅支持 OAuth 的连接器不能通过该鉴权方式接入。
+
+## 支持的调用
+
+### API 类别
+
+| 类别 | 可以查找的能力 | 目录中的代表资源 |
+| --- | --- | --- |
+| 搜索、SEO 与网页数据 | 网页搜索、反向链接、搜索结果与页面提取 | DataForSEO、Serper、Tavily、TinyFish |
+| 社交与内容 | X、TikTok 等平台的公开帖子、账号和视频元数据 | TikHub、ScrapeCreators |
+| 加密货币与链上数据 | 币价、DeFi 指标、DEX 数据、区块链查询与预测市场数据 | CoinGecko、DefiLlama、DexScreener、Alchemy、Polymarket |
+| 企业与销售线索 | 工商登记、企业资料与联系信息查找 | QCC、Crustdata、Hunter、Handelsregister |
+| 金融与宏观 | 经济指标时间序列与金融数据集 | FRED、Financial Datasets |
+| 法律检索 | 按具体条件检索法律与监管信息 | PKULaw、AccurLex |
+| 天气与位置 | 天气预报及基于 IP 的位置数据 | Open-Meteo、National Weather Service、IPRegistry |
+
+### 模型类别
+
+| 类别 | 可以查找的能力 | 目录中的代表模型 |
+| --- | --- | --- |
+| 对话与推理 | 摘要、写作、翻译、编程与推理 | GPT、Claude、Gemini、DeepSeek、Qwen、Kimi、GLM、MiniMax |
+| 图像 | 受支持路由上的图像生成与编辑 | Midjourney、FLUX、Nano Banana、Seedream、GPT Image |
+| 视频 | 受支持路由上的视频生成 | Veo、Kling、Seedance、Hailuo、Wan |
+| 音频 | 音乐与音效生成 | music-v2、music-v2.5、sound-effects-v2 |
+
+以上为示例，不是完整清单，也不代表每家供应商的全部产品或每种模型协议都已开放。用 `search_apis` 查找具体资源，再用 `get_api` 核对当前输入、价格和接入要求。这里的分类用于阅读，不是可直接传给工具的筛选标识。
+
+### 执行范围
+
+默认端点提供 `openany_overview`、`search_apis`、`get_api` 和 `run_api`。模型调用使用已公布的 Chat Completions 输入结构，不支持流式响应。目录中有图像、视频或音频模型，不代表 MCP 支持它们的所有协议；调用前先用 `get_api` 检查选中资源。MCP 可返回有限的 JSON、UTF-8 文本和 Markdown，不直接传递二进制下载、HTML 或 SSE 流。
+
+可移植 Skills 在你的 Agent 内运行。其他市场资源和卖方服务依各自的接入与交付要求使用；MCP 不是整个 Market 的通用执行或交付接口。
+
+通过 `openany_overview` 读取当前 MCP 目录数量与可用状态。这是 MCP 目录的统计范围，不是整个市场的固定总量；不要沿用本页或第三方目录中的旧数字。
+
+## 验证连接
+
+1. 保存客户端配置；这不等于已经连接。
+2. 重新连接，确认 MCP 初始化握手成功。
+3. 确认四个工具可见。用 `openany_overview` 查看当前目录；`search_apis` 返回的是一页结果，不是目录总量。
+
+这些公开读取不验证密钥、余额或业务调用。不要为了测试连接而发起收费请求。添加连接、复制指令或充值不等于授权一次收费调用。
 
 <!-- developer-docs -->
 
 本文默认英文。`Accept-Language` 偏好 zh 时返回中文，也可以用 `?lang=zh` 或 `?lang=en` 指定。请求的 `Accept` 包含 `text/html` 时返回 HTML，否则返回 text/plain。
 
-推荐把 `https://mcp.openany.si` 粘贴到任意 MCP 客户端。传输方式为 Streamable HTTP。`/mcp-lite` 是同一轻量服务。执行业务 API 时，在每个请求中携带：
+在兼容 Streamable HTTP 的客户端中使用 `https://mcp.openany.si`。`/mcp-lite` 是同一轻量服务。执行业务 API 时，在每个请求中携带：
 
 ```text
 Authorization: Bearer YOUR_OPENANY_KEY
@@ -30,7 +75,7 @@ openany_overview、search_apis、get_api 读取目录，不需要密钥，也不
 
 密钥存在但被网关拒绝时，保留网关错误码、HTTP 状态和 request_id。线上无效密钥是 `openany_key_invalid`。同一说明也用于 `openany_authentication_invalid`，以及 `openany_key_expired`、`openany_key_revoked`、`openany_authentication_expired`、`openany_authentication_revoked`。这表示密钥无效、过期或已撤销。在客户端的安全设置里更换密钥，不要把新密钥发到聊天里。其他网关错误仍用原来的通用说明。
 
-本服务没有 OAuth。OpenAny 也没有 MCP URL elicitation 完成页。客户端即使声明了 URL elicitation，缺少密钥时也只返回上述文字说明，不会用表单 elicitation 收集密钥。表单模式不能用来收集密钥。网站若要支持 URL 模式，需要一个 HTTPS 页面：用掩码输入收集密钥，把密钥交给 MCP 客户端（而不是模型）并写进后续请求的 Authorization 头，再向该客户端发送 `notifications/elicitation/complete`。本服务是无状态的，不保存密钥，因此完成通知本身不会让下一次调用带上密钥。
+本服务没有 OAuth 或 MCP URL elicitation 完成页。客户端即使声明了 URL elicitation，缺少密钥时也只返回上述引导，不通过表单 elicitation 收集密钥。凭证应保存在客户端安全设置中，不要放进提示词、URL 或提交到版本库的配置文件。环境变量的引用语法与展开方式因客户端而异，按[客户端接入指南](https://openany.si/mcp/)配置后重新连接。
 
 ## 选择入口
 
@@ -173,6 +218,8 @@ pricing.status=available 表示公开价格数据可读，不代表已经为当�
 
 api_version 包含该接口的 revision、Schema、公开价格和转发规则，只用于发现已知定义变化，不是认证凭证、幂等键或网关锁价令牌。本版本没有通用的自动去重或长任务恢复工具。结果大小限制沿用现有服务；业务结果过大时不会伪装成截断成功，添加摘要后也会重新检查输出预算。
 
+<!-- operations-docs -->
+
 ## 部署与自检
 
 轻量入口默认开启，更新二进制后重启服务即可使用。需要关闭时设置 `MCP_LITE_ENABLED=false`；关闭后不加载轻量价格和搜索索引，原有入口照常工作。数据库角色仍为只读。价格和公开辅助资料共用独立刷新任务与最多1个连接的独立只读连接池；查询不占原目录连接池的连接。数据库连接配额仍预留这一个额外连接。
@@ -200,3 +247,16 @@ api_version 包含该接口的 revision、Schema、公开价格和转发规则�
 生产环境需设置 MCP_PUBLIC_HOSTS；有浏览器 Origin 时配置 MCP_ALLOWED_ORIGINS。反向代理应放行 `/`、/mcp-lite 和 /docs/mcp，按现有要求透传调用方凭证并关闭业务重试。已有环境配置中的显式 false 会覆盖默认开启行为。
 
 `/`、/mcp-lite 和全量入口共用同进程资源与业务并发额度。需要更强隔离时，用同一镜像单独部署轻量实例，再把 `/` 和 /mcp-lite 路由到该实例。
+
+<!-- /operations-docs -->
+
+## 官方参考
+
+- [客户端接入指南](https://openany.si/mcp/)
+- [产品事实与限制](https://openany.si/ai-info/)
+- [Agent 可读索引](https://openany.si/llms.txt)
+- [Agent 使用指令](https://openany.si/SKILL.md)
+- [鉴权指南](https://openany.si/AUTH.md)
+- [价格说明](https://openany.si/pricing/)
+
+文档核对日期：2026 年 11 月 28 日。目录数量、资源价格和可用状态以实时数据为准，不是截至本日期的固定承诺。
