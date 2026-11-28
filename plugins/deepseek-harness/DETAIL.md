@@ -1,8 +1,8 @@
 # OpenAny
 
-The business-to-agent marketplace. One MCP endpoint for 4,400+ APIs across social, SEO/search, company/leads, finance and legal, plus 168+ AI models for chat, reasoning, image, video and audio—including GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo and Kling. Browse free; pay per call.
+The business-to-agent marketplace. One MCP endpoint for data APIs across social, SEO/search, company/leads, finance and legal, plus AI models for chat, reasoning, image, video and audio—including GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo and Kling. Browse free; usage-based calls.
 
-This plugin registers `https://mcp.openany.si` through the harness MCP manager. The server lists `openany_overview`, `search_apis`, `get_api`, and `run_api`.
+This plugin registers `https://mcp.openany.si` through the harness MCP manager. The server lists five tools by default: `openany_overview`, `search_apis`, `get_api`, `run_api`, and `get_account`.
 
 Browsing, schema, and pricing work with no API key. `run_api` needs `OPENANY_API_KEY` in the harness credential store and can charge per call. Create a key at https://openany.si/dashboard?page=api-keys. The plugin stores the header as `Bearer ${credential:OPENANY_API_KEY}` and does not put the key in its settings.
 

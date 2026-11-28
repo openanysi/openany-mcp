@@ -1,7 +1,7 @@
 {
   "name": "dsh-openany",
   "version": "0.1.0",
-  "description": "The business-to-agent marketplace. One MCP endpoint for 4,400+ APIs across social, SEO/search, company/leads, finance and legal, plus 168+ AI models for chat, reasoning, image, video and audio—including GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo and Kling. Browse free; pay per call.",
+  "description": "The business-to-agent marketplace. One MCP endpoint for data APIs across social, SEO/search, company/leads, finance and legal, plus AI models for chat, reasoning, image, video and audio—including GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo and Kling. Browse free; usage-based calls.",
   "type": "module",
   "main": "./plugins/deepseek-harness/index.js",
   "exports": {

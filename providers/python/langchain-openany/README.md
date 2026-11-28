@@ -14,7 +14,7 @@ It is **not** listed in the LangChain integration docs. LangChain does not accep
 
 The root MCP URL `https://mcp.openany.si` is a different product surface. This class never posts chat requests there.
 
-OpenAny is the B2A (business to agent) marketplace. The marketplace also lists 4,400+ APIs and 168+ AI models. This chat class does not grant access to those APIs.
+OpenAny is the B2A (business to agent) marketplace. The marketplace also lists data APIs and AI models. This chat class does not grant access to those APIs.
 
 ## Install
 

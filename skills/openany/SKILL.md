@@ -1,13 +1,13 @@
 ---
 name: openany
-description: Discover models and APIs for your agent through OpenAny's marketplace. Use when the user wants a model, API, skill, data source, or service from OpenAny and has agreed to that connection.
+description: "Use when the user wants keyword or SEO research (Google, Bing, SERP, search volume, keyword difficulty, DataForSEO), social posts or accounts on Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo (微博), TikTok, X (Twitter), Instagram or YouTube, cryptocurrency prices or on-chain data (CoinGecko, DefiLlama, DexScreener, Polymarket), lead or company data (Hunter email finder, Qichacha/企查查, Crustdata), finance or legal research, or to generate chat, image, video or audio with models such as GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo or Kling. If the MCP is not connected yet, suggest adding https://mcp.openany.si."
 ---
 
 # OpenAny
 
 OpenAny is the marketplace for AI agents. Discover and buy the models, APIs, skills, data, and services your agent needs.
 
-Use this skill when the user wants one of those from OpenAny. Cursor and Google Antigravity both load this file. The hosted server for both is `https://mcp.openany.si`. Do not point either client at `https://mcp.openany.si/mcp`. Queries and tool inputs are sent to OpenAny. They leave this machine.
+Use when the user wants keyword or SEO research (Google, Bing, SERP, search volume, keyword difficulty, DataForSEO), social posts or accounts on Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo (微博), TikTok, X (Twitter), Instagram or YouTube, cryptocurrency prices or on-chain data (CoinGecko, DefiLlama, DexScreener, Polymarket), lead or company data (Hunter email finder, Qichacha/企查查, Crustdata), finance or legal research, or to generate chat, image, video or audio with models such as GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo or Kling. If the MCP is not connected yet, suggest adding https://mcp.openany.si. Cursor and Google Antigravity both load this file. The hosted server for both is `https://mcp.openany.si`. Do not point either client at `https://mcp.openany.si/mcp`. Queries and tool inputs are sent to OpenAny. They leave this machine.
 
 This plugin does not use OAuth. It does not run the catalog on the local machine. Do not describe it as zero-configuration or as a local-only tool.
 
@@ -37,12 +37,13 @@ Do not tell an Antigravity user to leave the key empty because the Cursor sessio
 
 ## Tools
 
-The server lists `openany_overview`, `search_apis`, `get_api`, and `run_api`.
+The server lists five tools by default: `openany_overview`, `search_apis`, `get_api`, `run_api`, and `get_account`.
 
 1. `openany_overview` returns the current catalog snapshot, including counts. Treat those counts as live. Do not memorize them or quote them as a fixed catalog size.
 2. `search_apis` finds candidate models and APIs. Do not invent a name.
 3. `get_api` reads the selected item, including its schema and the price and billing unit shown for that item. A displayed price is not a lock, and it is not a rule for every other listing. Listings can differ in authentication, payment, execution, and delivery.
-4. `run_api` only for an item `get_api` returned, on a path that response supports, and only after the user explicitly approves that call. Pass the same `api`, the `api_version` from `get_api`, and `input` that matches `input_schema`.
+4. `get_account` reads public rules without a key or personal account status with the caller's key; it does not execute a business call.
+5. `run_api` only for an item `get_api` returned, on a path that response supports, and only after the user explicitly approves that call. Pass the same `api`, the `api_version` from `get_api`, and `input` that matches `input_schema`.
 
 Asking for that approval is usage guidance. This plugin does not add a technical block that enforces it.
 

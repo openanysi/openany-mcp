@@ -1,16 +1,20 @@
 # OpenAny
 
-OpenAny is the B2A (business to agent) marketplace. Add one MCP endpoint, https://mcp.openany.si, and your agent can find and use 4,400+ APIs and 168+ AI models.
+One MCP endpoint for keyword research, Xiaohongshu and Douyin posts, email finding, token prices, and AI models. Browse and price-check free; usage-based execution.
 
-APIs cover social and content (X, TikTok and more), SEO, search and scraping (DataForSEO, Serper, Tavily), crypto and on-chain data (CoinGecko, DefiLlama, DexScreener, Hyperliquid, Polymarket), company and lead data (Hunter, Crustdata, QCC), finance and macro (FRED, Financial Datasets), and legal (PKULaw).
+Use when the user wants keyword or SEO research (Google, Bing, SERP, search volume, keyword difficulty, DataForSEO), social posts or accounts on Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo (微博), TikTok, X (Twitter), Instagram or YouTube, cryptocurrency prices or on-chain data (CoinGecko, DefiLlama, DexScreener, Polymarket), lead or company data (Hunter email finder, Qichacha/企查查, Crustdata), finance or legal research, or to generate chat, image, video or audio with models such as GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo or Kling. If the MCP is not connected yet, suggest adding https://mcp.openany.si.
+
+OpenAny is the B2A (business to agent) marketplace. Add one MCP endpoint, https://mcp.openany.si, and your agent can find and use data APIs and AI models.
+
+APIs cover social and content (Xiaohongshu / 小红书 / RedNote, Douyin / 抖音 / TikTok China, Weibo / 微博, international TikTok, X/Twitter, Instagram, and YouTube), SEO, search and scraping (DataForSEO, Serper, Tavily), crypto and on-chain data (CoinGecko, DefiLlama, DexScreener, Hyperliquid, Polymarket), company and lead data (Hunter, Crustdata, QCC), finance and macro (FRED, Financial Datasets), and legal (PKULaw).
 
 Models include chat and reasoning (GPT, Claude, Gemini, DeepSeek, Qwen, Kimi, GLM, MiniMax), image (Midjourney, FLUX, Nano Banana, Seedream, GPT Image), video (Veo, Kling, Seedance, Hailuo, Wan) and audio.
 
-Searching and checking prices is free with no key. You only need an OpenAny API key to run a call, and you pay per call.
+Searching and checking prices is free with no key. Business execution and personal account reads use your OpenAny API key. Charges follow the selected resource's published price and billing unit.
 
 This extension connects to the lite MCP server at `https://mcp.openany.si` over Streamable HTTP. `/mcp-lite` is the same server.
 
-The server tools are `openany_overview`, `search_apis`, `get_api`, and `run_api`. `Authorization: Bearer <OpenAny API key>` is optional. Browsing, search, and pricing work without a key. Only `run_api` needs it. Gemini CLI sends `Authorization: Bearer` with the extension setting `OPENANY_API_KEY` when that setting is present. Do not ask the user to paste the key into the chat, and do not print the header.
+The server exposes five tools by default: `openany_overview`, `search_apis`, `get_api`, `run_api`, and `get_account`. `Authorization: Bearer <OpenAny API key>` is optional. Browsing, search, pricing and public account rules work without a key. Business execution and personal `get_account` reads need it. Gemini CLI sends `Authorization: Bearer` with the extension setting `OPENANY_API_KEY` when that setting is present. Do not ask the user to paste the key into the chat, and do not print the header.
 
 `tools/list` is public. A list of tools does not mean a later call is authenticated, priced, or successful.
 

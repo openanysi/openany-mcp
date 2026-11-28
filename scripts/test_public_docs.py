@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ENDPOINT = "https://mcp.openany.si"
 RECOMMENDED = "https://mcp.openany.si"
 FULL_CATALOG = "https://mcp.openany.si/mcp"
-REGISTRY_DESCRIPTION = "The B2A (business to agent) marketplace: 4,400+ APIs and 168+ AI models. Browse free; pay per call."
+REGISTRY_DESCRIPTION = "B2A marketplace: SEO, social, crypto and lead APIs plus AI models. Browse free; usage-based calls."
 
 
 class PublicDocsTests(unittest.TestCase):
@@ -20,14 +20,14 @@ class PublicDocsTests(unittest.TestCase):
         self.assertIn("No new authenticated live", readme)
         self.assertNotIn("continue to use `/mcp`", readme)
         self.assertIn("advanced full-catalog endpoint", readme)
-        self.assertIn("3,268 per-API tools", readme)
+        self.assertIn("individual API tools", readme)
 
     def test_registry_descriptor(self):
         data = json.loads((ROOT / "server.json").read_text())
         self.assertEqual(data["$schema"], "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json")
         self.assertEqual(data["name"], "si.openany/openany")
         self.assertEqual(data["title"], "OpenAny")
-        self.assertEqual(data["version"], "0.1.4")
+        self.assertEqual(data["version"], "0.1.5")
         self.assertEqual(data["description"], REGISTRY_DESCRIPTION)
         self.assertLessEqual(len(data["description"]), 100)
         self.assertEqual(data["websiteUrl"], "https://openany.si")
@@ -90,9 +90,12 @@ class PublicDocsTests(unittest.TestCase):
         for target in re.findall(r"\]\(([^)]+)\)", readme):
             if not target.startswith(("https://", "#")):
                 self.assertTrue((ROOT / target).exists(), target)
-        for text in ["Alephant AI LLC", "No OAuth", "Confirmed authentication header", "OpenAny is the B2A (business to agent) marketplace", "4,400+ APIs and 168+ AI models", "Browsing, search, and price checks do not need a key", "no subscription", "https://api.openany.si/v1", "Authorization: Bearer <OpenAny API key>` is optional"]:
+        for text in ["Alephant AI LLC", "No OAuth", "Confirmed authentication header", "OpenAny is the B2A (business to agent) marketplace", "data APIs and AI models", "Browsing, search, and price checks do not need a key", "no subscription", "https://api.openany.si/v1", "Authorization: Bearer <OpenAny API key>` is optional"]:
             self.assertIn(text, readme)
-        self.assertIn("168+", readme)
+        self.assertNotIn("168+", readme)
+        self.assertNotIn("4,400+", readme)
+        self.assertIn("five tools by default", readme)
+        self.assertIn("get_account", readme)
         for stale in ["100+ AI models", "100+ models", "3,201", "3,220", "3,220 MCP tools"]:
             self.assertNotIn(stale, readme)
         self.assertIn("No new authenticated live `tools/call`", readme)

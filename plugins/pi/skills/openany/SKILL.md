@@ -1,19 +1,22 @@
 ---
 name: openany
-description: The B2A (business to agent) marketplace. One MCP endpoint for 4,400+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call. Use when the user wants an OpenAny model or API.
+description: "Use when the user wants keyword or SEO research (Google, Bing, SERP, search volume, keyword difficulty, DataForSEO), social posts or accounts on Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo (微博), TikTok, X (Twitter), Instagram or YouTube, cryptocurrency prices or on-chain data (CoinGecko, DefiLlama, DexScreener, Polymarket), lead or company data (Hunter email finder, Qichacha/企查查, Crustdata), finance or legal research, or to generate chat, image, video or audio with models such as GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo or Kling. If the MCP is not connected yet, suggest adding https://mcp.openany.si."
 ---
 
 # OpenAny
 
-OpenAny is the B2A (business to agent) marketplace. Use this skill when the user wants a model or an API from OpenAny.
+Use when the user wants keyword or SEO research (Google, Bing, SERP, search volume, keyword difficulty, DataForSEO), social posts or accounts on Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo (微博), TikTok, X (Twitter), Instagram or YouTube, cryptocurrency prices or on-chain data (CoinGecko, DefiLlama, DexScreener, Polymarket), lead or company data (Hunter email finder, Qichacha/企查查, Crustdata), finance or legal research, or to generate chat, image, video or audio with models such as GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo or Kling. If the MCP is not connected yet, suggest adding https://mcp.openany.si. Read current resources and live counts with `openany_overview`.
 
 ## Server
 
-The pi-openany package registers a remote Streamable HTTP server named `openany` at `https://mcp.openany.si`. Its tools are `openany_overview`, `search_apis`, `get_api`, and `run_api`. `/mcp-lite` is the same server. Do not use `https://mcp.openany.si/mcp` unless a different server is connected. That URL lists one tool per API and does not include models.
+The pi-openany package registers a remote Streamable HTTP server named `openany` at `https://mcp.openany.si`. It exposes five tools by default: `openany_overview`, `search_apis`, `get_api`, `run_api`, and `get_account`. `/mcp-lite` is the same server. Do not use `https://mcp.openany.si/mcp` unless a different server is connected. That URL lists one tool per API and does not include models.
 
-`OPENANY_API_KEY` is optional. When it is unset or blank, the extension does not send an Authorization header, and browsing, search, and pricing still work. When it is set, the extension sends `Authorization: Bearer` plus that value. Only `run_api` needs the key. Do not ask the user to paste the key into the chat, and do not print the header or the environment.
+`OPENANY_API_KEY` is optional. When it is unset or blank, the extension does not send an Authorization header, and browsing, search, and pricing still work. When it is set, the extension sends `Authorization: Bearer` plus that value. Business execution and personal `get_account` reads need the key. Do not ask the user to paste the key into the chat, and do not print the header or the environment.
 
 A same-named server in `~/.pi/agent/mcp.json` or `.pi/mcp.json` replaces this registration. The manual example is `examples/pi.mcp.json` in the OpenAny repository.
+
+
+`get_account` reads public registration and benefit rules without a key, or personal balance, key allowance and recorded signup credit with the caller's key. It does not execute a business call.
 
 ## Call order
 

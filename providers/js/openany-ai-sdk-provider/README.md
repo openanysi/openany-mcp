@@ -14,7 +14,7 @@ It is **not** an official Vercel community provider and **not** listed at https:
 
 The root MCP URL `https://mcp.openany.si` is a different product surface. This provider never posts chat requests there.
 
-OpenAny is the B2A (business to agent) marketplace. The marketplace also lists 4,400+ APIs and 168+ AI models. This chat package does not grant access to those APIs. Searching the marketplace and checking prices are separate from this SDK.
+OpenAny is the B2A (business to agent) marketplace. The marketplace also lists data APIs and AI models. This chat package does not grant access to those APIs. Searching the marketplace and checking prices are separate from this SDK.
 
 ## Install
 

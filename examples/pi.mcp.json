@@ -1,5 +1,5 @@
 {
-  "$comment": "CONFIRMED authentication header: Authorization: Bearer <OPENANY_API_KEY>. The header is optional. Browsing, search, and pricing work without a key; only run_api needs it. Merge into ~/.pi/agent/mcp.json or .pi/mcp.json. CLI alternative: pi mcp add openany --url https://mcp.openany.si --bearer-token-env-var OPENANY_API_KEY",
+  "$comment": "CONFIRMED authentication header: Authorization: Bearer <OPENANY_API_KEY>. The header is optional. Browsing, search, and pricing work without a key; business execution and personal get_account reads need it. Merge into ~/.pi/agent/mcp.json or .pi/mcp.json. CLI alternative: pi mcp add openany --url https://mcp.openany.si --bearer-token-env-var OPENANY_API_KEY",
   "mcpServers": {
     "openany": {
       "url": "https://mcp.openany.si",

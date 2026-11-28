@@ -214,7 +214,7 @@ describe('package layout', () => {
   })
 
   it('ships the saved marketplace introduction through the DSH display fields', () => {
-    const intro = 'The business-to-agent marketplace. One MCP endpoint for 4,400+ APIs across social, SEO/search, company/leads, finance and legal, plus 168+ AI models for chat, reasoning, image, video and audio—including GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo and Kling. Browse free; pay per call.'
+    const intro = 'The business-to-agent marketplace. One MCP endpoint for data APIs across social, SEO/search, company/leads, finance and legal, plus AI models for chat, reasoning, image, video and audio—including GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo and Kling. Browse free; usage-based calls.'
     const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
     const english = JSON.parse(readFileSync(join(root, 'locale/en.json'), 'utf8'))
     const chinese = JSON.parse(readFileSync(join(root, 'locale/zh.json'), 'utf8'))
@@ -229,8 +229,8 @@ describe('package layout', () => {
     assert.equal(detail.includes(intro), true)
     assert.equal(readme.startsWith('# OpenAny for DeepSeek Harness\n\n' + intro + '\n'), true)
     assert.equal(chinese.meta.description.startsWith('The business-to-agent marketplace'), true)
-    assert.equal(chinese.meta.description.includes('4,400+'), true)
-    assert.equal(chinese.meta.description.includes('168+'), true)
+    assert.equal(chinese.meta.description.includes('4,400+'), false)
+    assert.equal(chinese.meta.description.includes('168+'), false)
     assert.equal(chinese.meta.description.includes('crypto'), false)
     assert.equal(chinese.meta.description.includes('加密'), false)
     for (const name of ['GPT', 'Claude', 'Gemini', 'DeepSeek', 'Qwen', 'Midjourney', 'Veo', 'Kling']) {

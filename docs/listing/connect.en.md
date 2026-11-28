@@ -1,8 +1,10 @@
 # Connect to OpenAny MCP
 
-OpenAny is the B2A (business to agent) marketplace. Add one MCP endpoint, https://mcp.openany.si, and your agent can find and use 4,400+ APIs and 168+ AI models.
+One MCP endpoint for keyword research, Xiaohongshu and Douyin posts, email finding, token prices, and AI models. Browse and price-check free; usage-based execution.
 
-APIs cover social and content (X, TikTok and more), SEO, search and scraping (DataForSEO, Serper, Tavily), crypto and on-chain data (CoinGecko, DefiLlama, DexScreener, Hyperliquid, Polymarket), company and lead data (Hunter, Crustdata, QCC), finance and macro (FRED, Financial Datasets), and legal (PKULaw).
+OpenAny is the B2A (business to agent) marketplace. Add one MCP endpoint, https://mcp.openany.si, and your agent can find and use data APIs and AI models.
+
+APIs cover social and content (Xiaohongshu / 小红书 / RedNote, Douyin / 抖音 / TikTok China, Weibo / 微博, international TikTok, X/Twitter, Instagram, and YouTube), SEO, search and scraping (DataForSEO, Serper, Tavily), crypto and on-chain data (CoinGecko, DefiLlama, DexScreener, Hyperliquid, Polymarket), company and lead data (Hunter, Crustdata, QCC), finance and macro (FRED, Financial Datasets), and legal (PKULaw).
 
 Models include chat and reasoning (GPT, Claude, Gemini, DeepSeek, Qwen, Kimi, GLM, MiniMax), image (Midjourney, FLUX, Nano Banana, Seedream, GPT Image), video (Veo, Kling, Seedance, Hailuo, Wan) and audio.
 
@@ -14,7 +16,7 @@ Searching and checking prices is free with no key. You only need an OpenAny API 
 | --- | --- |
 | Server URL | `https://mcp.openany.si` |
 | Transport | Streamable HTTP |
-| Authentication | `Authorization: Bearer <OpenAny API key>`, optional. Only `run_api` needs it |
+| Authentication | `Authorization: Bearer <OpenAny API key>`, optional for public reads; required for `run_api` and personal `get_account` reads |
 | Website | https://openany.si/ |
 | Existing connection reference | https://mcp.openany.si/docs/mcp |
 

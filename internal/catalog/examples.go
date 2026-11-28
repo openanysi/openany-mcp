@@ -31,11 +31,25 @@ var questionCatalog = []questionTemplate{
 		zh:       []string{"查一个域名的反向链接概况。", "哪些页面链接到了这个网站？"},
 	},
 	{
+		category: CategorySEO,
+		provider: "dataforseo",
+		needles:  []string{"keyword_overview"},
+		en:       []string{"Is this keyword worth writing?"},
+		zh:       []string{"这个关键词在 Google 上值得写吗？"},
+	},
+	{
+		category: CategorySocial,
+		provider: "justoneapi",
+		needles:  []string{"xiaohongshu"},
+		en:       []string{"How is this being discussed on Xiaohongshu?"},
+		zh:       []string{"这个成分在小红书上怎么被种草？"},
+	},
+	{
 		category: CategoryCrypto,
 		provider: "coingecko",
 		needles:  []string{"simple_price"},
-		en:       []string{"What is the current price of bitcoin?", "Show the USD price for these coins."},
-		zh:       []string{"比特币现在多少钱？", "查这些币的美元价格。"},
+		en:       []string{"What is the current price of bitcoin?", "Show the USD price for these coins.", "What is the price of this token?"},
+		zh:       []string{"比特币现在多少钱？", "查这些币的美元价格。", "这个代币现在什么价？"},
 	},
 	{
 		category: CategoryCompany,
@@ -43,6 +57,13 @@ var questionCatalog = []questionTemplate{
 		needles:  []string{"company_profile"},
 		en:       []string{"Look up a company's registration profile.", "Find a company by its name."},
 		zh:       []string{"查一家公司的工商信息。", "按公司名称找企业。"},
+	},
+	{
+		category: CategoryCompany,
+		provider: "hunter",
+		needles:  []string{"email_finder"},
+		en:       []string{"Find emails for this company domain."},
+		zh:       []string{"帮我找这家公司能联系的邮箱。"},
 	},
 	{
 		category: CategoryFinance,

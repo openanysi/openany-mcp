@@ -63,6 +63,12 @@ func TestGuideLinksCopyAndDisclosureBoundaries(t *testing.T) {
 		if strings.Contains(plain, "<!--") || strings.Contains(plain, "<script") || !strings.Contains(plain, "MCP_PUBLIC_HOSTS") {
 			t.Fatal("plain text lost content or leaked presentation", lang)
 		}
+		if lang == "en" {
+			const hook = "One MCP endpoint for keyword research, Xiaohongshu and Douyin posts, email finding, token prices, and AI models. Browse and price-check free; usage-based execution."
+			if !strings.Contains(body, hook) {
+				t.Fatal("english guide lost the routing hook")
+			}
+		}
 		for _, stale := range []string{"168+", "4,400+", "3,200+", "any MCP client", "任意 MCP 客户端", "and you pay per call"} {
 			if strings.Contains(body, stale) {
 				t.Fatal("stale or overbroad claim", lang, stale)

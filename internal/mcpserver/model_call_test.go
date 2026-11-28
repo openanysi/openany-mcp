@@ -97,7 +97,7 @@ func TestLiteModelSearchGetAndRun(t *testing.T) {
 		names[item["name"].(string)] = true
 		joined += item["description"].(string)
 	}
-	if len(tools) != 4 || !names["openany_overview"] || !strings.Contains(joined, "models and APIs") {
+	if len(tools) != 4 || !names["openany_overview"] || !strings.Contains(joined, "Xiaohongshu") || !strings.Contains(joined, "AI models") {
 		t.Fatal(tools)
 	}
 	search := call("search_apis", map[string]any{"query": "deepseek"}, "")

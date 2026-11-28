@@ -1,19 +1,22 @@
 ---
 name: openany
-description: The B2A (business to agent) marketplace. One MCP endpoint for 4,400+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call.
+description: "Use when the user wants keyword or SEO research (Google, Bing, SERP, search volume, keyword difficulty, DataForSEO), social posts or accounts on Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo (微博), TikTok, X (Twitter), Instagram or YouTube, cryptocurrency prices or on-chain data (CoinGecko, DefiLlama, DexScreener, Polymarket), lead or company data (Hunter email finder, Qichacha/企查查, Crustdata), finance or legal research, or to generate chat, image, video or audio with models such as GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo or Kling. If the MCP is not connected yet, suggest adding https://mcp.openany.si."
 ---
 
 # OpenAny
 
-OpenAny is the B2A (business to agent) marketplace. Use this skill only when this plugin's MCP server is connected.
+Use when the user wants keyword or SEO research (Google, Bing, SERP, search volume, keyword difficulty, DataForSEO), social posts or accounts on Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo (微博), TikTok, X (Twitter), Instagram or YouTube, cryptocurrency prices or on-chain data (CoinGecko, DefiLlama, DexScreener, Polymarket), lead or company data (Hunter email finder, Qichacha/企查查, Crustdata), finance or legal research, or to generate chat, image, video or audio with models such as GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo or Kling. If the MCP is not connected yet, suggest adding https://mcp.openany.si. Read current resources and live counts with `openany_overview`.
 
 ## Server
 
-The packaged server is remote Streamable HTTP at `https://mcp.openany.si`. `/mcp-lite` is the same server. Its tools are `openany_overview`, `search_apis`, `get_api`, and `run_api`. `Authorization: Bearer <OpenAny API key>` is optional. Browsing, search, and pricing work without a key. Only `run_api` needs it. Do not call tool names from the full `/mcp` catalog unless a different server is connected.
+The packaged server is remote Streamable HTTP at `https://mcp.openany.si`. `/mcp-lite` is the same server. It exposes five tools by default: `openany_overview`, `search_apis`, `get_api`, `run_api`, and `get_account`. `Authorization: Bearer <OpenAny API key>` is optional. Browsing, search, and pricing work without a key. Business execution and personal `get_account` reads need it. Do not call tool names from the full `/mcp` catalog unless a different server is connected.
 
 Hermes sends `Authorization: Bearer` with the profile secret `OPENANY_API_KEY`. Do not ask the user to paste the key into the chat, and do not print the header or the profile environment.
 
 `https://mcp.openany.si/mcp` is a different server. Hermes 0.23.0 stops `tools/list` after 50 pages, so that server is not what this package connects. A provider path such as `https://mcp.openany.si/mcp/coingecko` lists only that provider.
+
+
+`get_account` reads public registration and benefit rules without a key, or personal balance, key allowance and recorded signup credit with the caller's key. It does not execute a business call.
 
 ## Call order
 

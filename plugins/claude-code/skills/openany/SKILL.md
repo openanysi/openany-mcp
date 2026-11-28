@@ -1,9 +1,11 @@
 ---
 name: openany
-description: Marketplace for AI agents. Discover models, APIs, skills, data, and services. Use when this community plugin is connected and the user wants something from OpenAny.
+description: "Use when the user wants keyword or SEO research (Google, Bing, SERP, search volume, keyword difficulty, DataForSEO), social posts or accounts on Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo (微博), TikTok, X (Twitter), Instagram or YouTube, cryptocurrency prices or on-chain data (CoinGecko, DefiLlama, DexScreener, Polymarket), lead or company data (Hunter email finder, Qichacha/企查查, Crustdata), finance or legal research, or to generate chat, image, video or audio with models such as GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo or Kling. If the MCP is not connected yet, suggest adding https://mcp.openany.si."
 ---
 
 # OpenAny
+
+Use when the user wants keyword or SEO research (Google, Bing, SERP, search volume, keyword difficulty, DataForSEO), social posts or accounts on Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo (微博), TikTok, X (Twitter), Instagram or YouTube, cryptocurrency prices or on-chain data (CoinGecko, DefiLlama, DexScreener, Polymarket), lead or company data (Hunter email finder, Qichacha/企查查, Crustdata), finance or legal research, or to generate chat, image, video or audio with models such as GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo or Kling. If the MCP is not connected yet, suggest adding https://mcp.openany.si.
 
 OpenAny is a marketplace for AI agents. It lists models, APIs, skills, data, and services. This plugin is maintained by Alephant AI LLC. It is not an Anthropic certification and it is not a listing in Anthropic's official plugin directory.
 
@@ -11,13 +13,16 @@ The plugin is free to install. A model, API, or other listing may charge under i
 
 ## Server
 
-The packaged server is remote Streamable HTTP at `https://mcp.openany.si`. `/mcp-lite` is the same server. Its tools are `openany_overview`, `search_apis`, `get_api`, and `run_api`. Queries and tool inputs are sent to OpenAny. They leave this machine.
+The packaged server is remote Streamable HTTP at `https://mcp.openany.si`. `/mcp-lite` is the same server. It exposes five tools by default: `openany_overview`, `search_apis`, `get_api`, `run_api`, and `get_account`. Queries and tool inputs are sent to OpenAny. They leave this machine.
 
 Claude Code reads `Authorization: Bearer ${OPENANY_API_KEY:-}` from this plugin's `.mcp.json`. Do not put a key in this repository, a chat, a prompt, or a log. Do not ask the user to paste the key, and do not print the header or the environment.
 
 Codex reads `bearer_token_env_var` `OPENANY_API_KEY` from the same file. Codex CLI 0.171.0 sends `Authorization: Bearer <value>` when that variable is non-empty. In that version, an unset or empty variable did not open the MCP connection. Set `OPENANY_API_KEY` in the environment that starts Codex before a session that needs the server.
 
 `https://mcp.openany.si/mcp` is a different server. It lists one tool per API. This package connects to `https://mcp.openany.si`.
+
+
+`get_account` reads public registration and benefit rules without a key, or personal balance, key allowance and recorded signup credit with the caller's key. It does not execute a business call.
 
 ## Call order
 

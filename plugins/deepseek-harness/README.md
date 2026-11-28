@@ -1,8 +1,8 @@
 # OpenAny for DeepSeek Harness
 
-The business-to-agent marketplace. One MCP endpoint for 4,400+ APIs across social, SEO/search, company/leads, finance and legal, plus 168+ AI models for chat, reasoning, image, video and audio—including GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo and Kling. Browse free; pay per call.
+The business-to-agent marketplace. One MCP endpoint for data APIs across social, SEO/search, company/leads, finance and legal, plus AI models for chat, reasoning, image, video and audio—including GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo and Kling. Browse free; usage-based calls.
 
-This bundle registers that endpoint, `https://mcp.openany.si`, with DeepSeek Harness. The server exposes `openany_overview`, `search_apis`, `get_api`, and `run_api`.
+This bundle registers that endpoint, `https://mcp.openany.si`, with DeepSeek Harness. The server exposes five tools by default: `openany_overview`, `search_apis`, `get_api`, `run_api`, and `get_account`.
 
 Searching, schema reads, and price checks are free and do not need a key. `run_api` uses your own OpenAny API key and can charge per call. This package does not call `run_api`, does not contain a key, and is not a DeepSeek product.
 

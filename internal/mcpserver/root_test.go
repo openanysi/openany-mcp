@@ -94,7 +94,7 @@ func TestRootRoutesLiteOverviewAndInstructions(t *testing.T) {
 	rootResult := rootInit["result"].(map[string]any)
 	liteResult := liteInit["result"].(map[string]any)
 	instructions, _ := rootResult["instructions"].(string)
-	for _, phrase := range []string{"openany_overview", "search_apis", "get_api", "run_api", "category", "modality", "confirms that price", "do not call the paid gateway"} {
+	for _, phrase := range []string{"openany_overview", "search_apis", "get_api", "run_api", "category", "modality", "confirms that price", "do not call the paid gateway", "Xiaohongshu", "小红书"} {
 		if !strings.Contains(instructions, phrase) {
 			t.Fatalf("lite instructions missing %q: %s", phrase, instructions)
 		}
@@ -117,8 +117,29 @@ func TestRootRoutesLiteOverviewAndInstructions(t *testing.T) {
 	}
 	listed, _ := rpc("/", "tools/list", map[string]any{})
 	tools := listed["result"].(map[string]any)["tools"].([]any)
+	// This fixture explicitly omits the account client. Standard container
+	// defaults expose five tools; guide_merge_test covers that configuration.
 	if len(tools) != 4 {
 		t.Fatal(len(tools))
+	}
+	for _, tool := range tools {
+		item := tool.(map[string]any)
+		desc, _ := item["description"].(string)
+		switch item["name"] {
+		case "search_apis":
+			for _, phrase := range []string{"openany_overview", "Xiaohongshu", "小红书", "RedNote", "Douyin", "抖音", "TikTok China", "Weibo", "微博", "confirms the live price", "OpenAny API key"} {
+				if !strings.Contains(desc, phrase) {
+					t.Fatalf("search_apis description missing %q", phrase)
+				}
+			}
+			if strings.Contains(desc, "4,400") || strings.Contains(desc, "168+") {
+				t.Fatal("search description hardcodes catalog totals")
+			}
+		case "get_api", "run_api":
+			if !strings.Contains(desc, "confirms") || !strings.Contains(desc, "live price") || !strings.Contains(desc, "OpenAny API key") {
+				t.Fatalf("%s description lost the price confirmation", item["name"])
+			}
+		}
 	}
 	call, _ := rpc("/", "tools/call", map[string]any{"name": "openany_overview", "arguments": map[string]any{}})
 	same, _ := rpc("/mcp-lite", "tools/call", map[string]any{"name": "openany_overview", "arguments": map[string]any{}})

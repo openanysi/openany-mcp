@@ -59,8 +59,9 @@ test("manifest points at the skill and extension and carries the pi-package keyw
   assert.ok(description.length <= 1024);
   assert.match(skill, /\/skill:openany/);
   assert.match(skill, /https:\/\/mcp\.openany\.si/);
-  assert.match(skill, /4,400\+ APIs/);
-  assert.match(skill, /168\+ AI models/);
+  assert.match(skill, /openany_overview/);
+  assert.doesNotMatch(skill, /4,400\+|168\+/);
+
   assert.doesNotMatch(skill, /\$\{OPENANY_API_KEY\}/);
   assert.doesNotMatch(skill, /3,200/);
 });

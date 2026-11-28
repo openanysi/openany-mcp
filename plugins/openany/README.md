@@ -1,8 +1,10 @@
 # OpenAny for Hermes
 
-OpenAny is the B2A (business to agent) marketplace. Add one MCP endpoint, https://mcp.openany.si, and your agent can find and use 4,400+ APIs and 168+ AI models.
+One MCP endpoint for keyword research, Xiaohongshu and Douyin posts, email finding, token prices, and AI models. Browse and price-check free; usage-based execution.
 
-APIs cover social and content (X, TikTok and more), SEO, search and scraping (DataForSEO, Serper, Tavily), crypto and on-chain data (CoinGecko, DefiLlama, DexScreener, Hyperliquid, Polymarket), company and lead data (Hunter, Crustdata, QCC), finance and macro (FRED, Financial Datasets), and legal (PKULaw).
+OpenAny is the B2A (business to agent) marketplace. Add one MCP endpoint, https://mcp.openany.si, and your agent can find and use data APIs and AI models.
+
+APIs cover social and content (Xiaohongshu / 小红书 / RedNote, Douyin / 抖音 / TikTok China, Weibo / 微博, international TikTok, X/Twitter, Instagram, and YouTube), SEO, search and scraping (DataForSEO, Serper, Tavily), crypto and on-chain data (CoinGecko, DefiLlama, DexScreener, Hyperliquid, Polymarket), company and lead data (Hunter, Crustdata, QCC), finance and macro (FRED, Financial Datasets), and legal (PKULaw).
 
 Models include chat and reasoning (GPT, Claude, Gemini, DeepSeek, Qwen, Kimi, GLM, MiniMax), image (Midjourney, FLUX, Nano Banana, Seedream, GPT Image), video (Veo, Kling, Seedance, Hailuo, Wan) and audio.
 
@@ -10,7 +12,7 @@ Searching and checking prices is free with no key. You only need an OpenAny API 
 
 This portable Hermes plugin connects to OpenAny's hosted MCP server over Streamable HTTP.
 
-The default URL is `https://mcp.openany.si`. `/mcp-lite` is the same server. It exposes `openany_overview`, `search_apis`, `get_api`, and `run_api`, so an agent can see what the catalog contains, search models and APIs, read one result, and execute it. Hermes 0.23.0 stops `tools/list` after 50 pages. The full endpoint `https://mcp.openany.si/mcp` exceeds that cap and is truncated at 2500 tools, which hides the rest of the catalog. A provider path such as `https://mcp.openany.si/mcp/coingecko` fits under the cap but lists only that provider.
+The default URL is `https://mcp.openany.si`. `/mcp-lite` is the same server. It exposes five tools by default: `openany_overview`, `search_apis`, `get_api`, `run_api`, and `get_account`, so an agent can discover resources, inspect a result, query account rules or status, and execute a selected request. Hermes 0.23.0 stops `tools/list` after 50 pages. The full endpoint `https://mcp.openany.si/mcp` can exceed that cap; verify pagination completeness rather than assuming every tool was loaded. A provider path such as `https://mcp.openany.si/mcp/coingecko` lists only that provider.
 
 The package does not bundle a catalog. `openany_overview` reports live model and API counts.
 

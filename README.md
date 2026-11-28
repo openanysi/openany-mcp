@@ -3,37 +3,39 @@
 [![openanysi/openany-mcp MCP server](https://glama.ai/mcp/servers/openanysi/openany-mcp/badges/score.svg)](https://glama.ai/mcp/servers/openanysi/openany-mcp)
 [![OpenAny MCP connector](https://glama.ai/mcp/connectors/si.openany/openany/badges/score.svg)](https://glama.ai/mcp/connectors/si.openany/openany)
 
-OpenAny is the B2A (business to agent) marketplace. Add one MCP endpoint, https://mcp.openany.si, and your agent can find and use 4,400+ APIs and 168+ AI models.
+One MCP endpoint for keyword research, Xiaohongshu and Douyin posts, email finding, token prices, and AI models. Browse and price-check free; usage-based execution.
 
-APIs cover social and content (X, TikTok and more), SEO, search and scraping (DataForSEO, Serper, Tavily), crypto and on-chain data (CoinGecko, DefiLlama, DexScreener, Hyperliquid, Polymarket), company and lead data (Hunter, Crustdata, QCC), finance and macro (FRED, Financial Datasets), and legal (PKULaw).
+OpenAny is the B2A (business to agent) marketplace. Add one MCP endpoint, https://mcp.openany.si, and your agent can find and use data APIs and AI models.
+
+APIs cover social and content (Xiaohongshu / 小红书 / RedNote, Douyin / 抖音 / TikTok China, Weibo / 微博, international TikTok, X/Twitter, Instagram, and YouTube), SEO, search and scraping (DataForSEO, Serper, Tavily), crypto and on-chain data (CoinGecko, DefiLlama, DexScreener, Hyperliquid, Polymarket), company and lead data (Hunter, Crustdata, QCC), finance and macro (FRED, Financial Datasets), and legal (PKULaw).
 
 Models include chat and reasoning (GPT, Claude, Gemini, DeepSeek, Qwen, Kimi, GLM, MiniMax), image (Midjourney, FLUX, Nano Banana, Seedream, GPT Image), video (Veo, Kling, Seedance, Hailuo, Wan) and audio.
 
-Searching and checking prices is free with no key. You only need an OpenAny API key to run a call, and you pay per call.
+Searching and checking prices is free with no key. Business execution and personal account reads use your OpenAny API key. Charges follow the selected resource's published price and billing unit.
 
 ## What's inside
 
-- Social & content (1,247 APIs): X/Twitter, TikTok and other platforms, Wikipedia
-- SEO, search & scraping (950): DataForSEO, Serper, Tavily, You.com, web scraping
-- Crypto & on-chain (650): CoinGecko, DefiLlama, DexScreener, GeckoTerminal, Hyperliquid, Polymarket, Jupiter, Uniswap, GoPlus, RugCheck
-- Company & leads (308): Hunter, Crustdata, QCC company registry
-- Finance & macro (77): FRED, Financial Datasets
-- Legal (37): PKULaw
-- AI models (168+): chat/reasoning, image, video, audio
+- Social & content: Xiaohongshu / 小红书 / RedNote, Douyin / 抖音 / TikTok China, Weibo / 微博, international TikTok, X/Twitter, Instagram, YouTube, and Wikipedia
+- SEO, search & scraping: DataForSEO, Serper, Tavily, You.com, web scraping
+- Crypto & on-chain: CoinGecko, DefiLlama, DexScreener, GeckoTerminal, Hyperliquid, Polymarket, Jupiter, Uniswap, GoPlus, RugCheck
+- Company & leads: Hunter, Crustdata, QCC company registry
+- Finance & macro: FRED, Financial Datasets
+- Legal: PKULaw
+- AI models: chat/reasoning, image, video, audio
 
 Get started in 3 steps:
 
 1. Add https://mcp.openany.si to your MCP client.
 2. Ask: "What can OpenAny do for me?"
-3. Try a real task: recent tweets from a user, backlinks for a domain, the price of bitcoin, a company's registration, the latest CPI, or an image.
+3. Try a real task: "Is this keyword worth writing?", "How is this being discussed on Xiaohongshu?", "Find emails for this company domain.", "What is the price of this token?", recent tweets from a user, backlinks for a domain, the price of bitcoin, a company's registration, the latest CPI, or an image.
 
-Browsing, search, and price checks do not need a key. Only `run_api` needs an OpenAny API key. Pay per call, no subscription.
+Browsing, search, and price checks do not need a key. Business execution and personal `get_account` reads need an OpenAny API key. Pay per call, no subscription.
 
 **Endpoint:** https://mcp.openany.si
 
 **Transport:** Streamable HTTP, not legacy SSE.
 
-**Tools:** `openany_overview`, `search_apis`, `get_api`, `run_api`.
+**Tools (five by default):** `openany_overview`, `search_apis`, `get_api`, `run_api`, `get_account`.
 
 **Operator:** Alephant AI LLC.
 
@@ -43,7 +45,7 @@ Live catalog counts come from `openany_overview`. The separate model API base UR
 
 ## Configuration
 
-Add this remote server in a client that accepts a top-level `mcpServers` object. `Authorization: Bearer <OpenAny API key>` is optional. Only `run_api` needs it. Browsing, search, and pricing work without a key. `${OPENANY_API_KEY}` is the environment placeholder for that key. Do not hardcode a key. If a client refuses to connect while the variable is unset, omit the header until you execute a call.
+Add this remote server in a client that accepts a top-level `mcpServers` object. `Authorization: Bearer <OpenAny API key>` is optional. Business execution and personal `get_account` reads need it. Browsing, search, and pricing work without a key. `${OPENANY_API_KEY}` is the environment placeholder for that key. Do not hardcode a key. If a client refuses to connect while the variable is unset, omit the header until you execute a call.
 
 ```json
 {
@@ -62,21 +64,21 @@ This block is the lite server. `https://mcp.openany.si/mcp-lite` is the same ser
 
 ## Tools
 
-`https://mcp.openany.si` is the lightweight server. `https://mcp.openany.si/mcp-lite` is the same server. `openany_overview` reports live catalog counts. `search_apis` finds models and APIs. Execution is pay per call with one API key.
+`https://mcp.openany.si` is the lightweight server. `https://mcp.openany.si/mcp-lite` is the same server. Both expose five tools by default, including `get_account`. `openany_overview` reports live catalog counts. `search_apis` finds models and APIs. Execution is pay per call with one API key.
 
 - `openany_overview`: Return the current data API count, AI model count, APIs grouped by category, and models grouped by modality. No arguments, and it does not call the paid gateway.
-- `search_apis`: Find OpenAny models and APIs by keywords and optional kind (api, model, or all; default all), provider, category, data_platform, data_product or capability.
+- `search_apis`: Search the catalog of data APIs and AI models. Use it for keyword or SEO research, social posts or accounts on Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo (微博), TikTok, X (Twitter), Instagram or YouTube, cryptocurrency prices or on-chain data, lead or company data such as email finding, finance or legal research, or chat, image, video or audio models. Optional filters remain kind (api, model, or all; default all), provider, category, data_platform, data_product or capability. Call `get_api` next, and call `run_api` only after the user confirms the live price.
 - `get_api`: Read one model or API selected from search_apis.
-- `get_account`: When enabled, read your balance, key allowance, and signup credit without a business call. Without a key, get public rules and setup links.
+- `get_account`: Enabled by default, read your balance, key allowance, and signup credit without a business call. Without a key, get public rules and setup links.
 - `run_api`: Execute one selected OpenAny API, or send one selected model to chat completions, with the caller's current credentials.
 
-`https://mcp.openany.si/mcp` is the advanced full-catalog endpoint. It exposes 3,268 per-API tools across 45 providers, led by tikhub (1,009), anyapi (337), justoneapi (301), scrapecreators (193), and qcc (170). It does not include models. The list is in [TOOLS.md](TOOLS.md). Use it only when a workflow already has an exact tool name. It is not the default.
+`https://mcp.openany.si/mcp` is the advanced full-catalog endpoint. It exposes individual API tools across providers; read the current list and follow pagination instead of assuming a fixed total. It does not include models. [TOOLS.md](TOOLS.md) is a saved catalog snapshot, not a live count. Use it only when a workflow already has an exact tool name. It is not the default.
 
 ## Recommended server
 
 When enabled and routed by the deployment, `https://mcp.openany.si` and
 `https://mcp.openany.si/mcp-lite` use the same Streamable HTTP transport and expose
-`openany_overview`, `search_apis`, `get_api`, `run_api`, and `get_account` when enabled. One search covers the current model
+`openany_overview`, `search_apis`, `get_api`, `run_api`, and `get_account` by default. One search covers the current model
 catalog and the API catalog. `get_api` reads the selected model or API.
 `run_api` executes an API through the gateway, or posts a model call to
 `/v1/chat/completions` on the model API origin, using the caller's key.
@@ -303,9 +305,9 @@ The repository root is a DeepSeek Harness bundle named `dsh-openany`. [`package.
 
 The Gemini CLI extension, the Cursor `.mcp.json` plugin, the Claude Code
 and Codex plugin, the OpenClaw skill, and the files under `examples/` use `https://mcp.openany.si`. Public `tools/list` on that URL
-returns `openany_overview`, `search_apis`, `get_api`, and `run_api` in a single page and does not
+returns five tools by default: `openany_overview`, `search_apis`, `get_api`, `run_api`, and `get_account`, in a single page and does not
 send `nextCursor`. The advanced `https://mcp.openany.si/mcp` URL returns one tool
-per API, 3,268 tools, 50 tools per page, with `nextCursor` until the last page.
+per API, up to 50 tools per page, with `nextCursor` until the last page. Read current totals from the live service.
 
 That split matters for these clients. Cursor staff wrote in July 2026 and
 again in September 2026 that the desktop MCP client registers only the first
@@ -340,8 +342,8 @@ Its Authorization header is optional. The value is `Bearer {OPENANY_API_KEY}`,
 Browsing does not need the key. `run_api` does.
 
 The registry description is limited to 100 characters, so its wording is
-shorter than the full description above. It now uses the tagline "The B2A (business to agent) marketplace". [`server.json`](server.json) is version `0.1.4`. Local setup does not run
-`mcp-publisher publish`.
+shorter than the full description above. [`server.json`](server.json) is version `0.1.5`. Its description is exactly `B2A marketplace: SEO, social, crypto and lead APIs plus AI models. Browse free; usage-based calls.` The remote URL stays `https://mcp.openany.si`. Local setup does not run
+`mcp-publisher publish`. Publishing `0.1.5` is a separate manual registry step.
 
 [`glama.json`](glama.json) names the Glama maintainer for this repository.
 

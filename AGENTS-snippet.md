@@ -1,18 +1,23 @@
 # OpenAny agent instruction snippets
 
+## When to call search_apis
+
+Use when the user wants keyword or SEO research (Google, Bing, SERP, search volume, keyword difficulty, DataForSEO), social posts or accounts on Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo (微博), TikTok, X (Twitter), Instagram or YouTube, cryptocurrency prices or on-chain data (CoinGecko, DefiLlama, DexScreener, Polymarket), lead or company data (Hunter email finder, Qichacha/企查查, Crustdata), finance or legal research, or to generate chat, image, video or audio with models such as GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo or Kling. If the MCP is not connected yet, suggest adding https://mcp.openany.si.
+
+https://openany.si/AGENT.md, https://openany.si/llms.txt, and https://openany.si/SKILL.md are published on the website. They are not files in this repository.
+
 ## English one-liner
 
-Read https://openany.si/AGENT.md and connect OpenAny (MCP: https://mcp.openany.si, Streamable HTTP, tools openany_overview, search_apis, get_api, run_api; optional key via OPENANY_API_KEY for run_api).
+Read https://openany.si/AGENT.md and connect OpenAny (MCP: https://mcp.openany.si, Streamable HTTP, five tools by default: openany_overview, search_apis, get_api, run_api, get_account; optional key via OPENANY_API_KEY for execution and personal account reads). Call search_apis for keyword research, Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo, international TikTok, X/Twitter, Instagram, YouTube, email finding, or a token price.
 
 ## 中文一句话
 
-阅读 https://openany.si/AGENT.md 并接入 OpenAny（MCP：https://mcp.openany.si，Streamable HTTP，工具 openany_overview、search_apis、get_api、run_api；浏览不需要密钥，执行 run_api 时通过 OPENANY_API_KEY 安全提供密钥）。
+阅读 https://openany.si/AGENT.md 并接入 OpenAny（MCP：https://mcp.openany.si，Streamable HTTP，默认五个工具 openany_overview、search_apis、get_api、run_api、get_account；浏览和公开账户规则不需要密钥，业务执行及个人账户查询时通过 OPENANY_API_KEY 安全提供密钥）。
 
 ## Optional English block
 
-Use Streamable HTTP at https://mcp.openany.si. That URL is the lite server:
-`openany_overview`, `search_apis`, `get_api`, and `run_api`. Tool discovery,
-search, and pricing are public. Only `run_api` requires an OpenAny API key.
+Use Streamable HTTP at https://mcp.openany.si. That URL is the lite server and exposes five tools by default: `openany_overview`, `search_apis`, `get_api`, `run_api`, and `get_account`. Tool discovery,
+search, pricing and public account rules are public. Business execution and personal account reads require an OpenAny API key.
 `Authorization: Bearer <OpenAny API key>` is optional. No OAuth is available.
 The confirmed authentication header is `Authorization: Bearer <OPENANY_API_KEY>`.
 Read the current tool schema and price, request explicit approval for a spending
@@ -21,9 +26,9 @@ limit, and report discovery separately from execution. Use the private
 
 ## 可选中文说明
 
-使用 Streamable HTTP 连接 https://mcp.openany.si。这是轻量服务，工具为
-`openany_overview`、`search_apis`、`get_api`、`run_api`。浏览、搜索和查看价格
-无需密钥；只有 `run_api` 需要 OpenAny API key，不使用 OAuth。
+使用 Streamable HTTP 连接 https://mcp.openany.si。这是轻量服务，默认五个工具为
+`openany_overview`、`search_apis`、`get_api`、`run_api`、`get_account`。浏览、搜索、查看价格和公开账户规则
+无需密钥；业务执行及个人账户查询需要 OpenAny API key，不使用 OAuth。
 `Authorization: Bearer <OpenAny API key>` 是可选请求头。
 已确认认证头为 `Authorization: Bearer <OPENANY_API_KEY>`。
 具体任务仍需通过获授权的实际调用验证，不能将配置完成当成调用成功。执行前检查当前工具结构和价格，
