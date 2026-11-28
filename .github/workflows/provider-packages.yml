@@ -6,6 +6,15 @@ on:
     branches: [main]
 
 jobs:
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go test ./internal/seo/ ./internal/config/ ./internal/mcpserver/ ./cmd/openany-mcp/ -count=1
+
   javascript:
     runs-on: ubuntu-latest
     defaults:

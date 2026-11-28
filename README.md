@@ -333,6 +333,14 @@ authenticated `tools/call`.
 
 No new authenticated live `tools/call` was performed during this documentation update.
 
+## SEO server
+
+Google Keyword Checker is a separate process of this same binary. It is for one job: decide whether a keyword is worth writing, which terms belong on a page, which keywords a domain currently ranks for, and who is on page 1. The Chinese hook for that job is 这个词该不该做.
+
+Run it with `MCP_SERVER=seo`. It serves only `keyword_research`, `keyword_ideas`, `ranked_keywords`, and `serp_overview`, all backed by DataForSEO. It does not serve the root tools. The root process is unchanged when `MCP_SERVER` is unset, and its endpoint stays https://mcp.openany.si.
+
+The intended public host is https://seo.openany.si. This repository does not create that DNS record and does not publish `si.openany/seo` to the MCP registry. [`seo/server.json`](seo/server.json) is the candidate descriptor. [`docs/seo.md`](docs/seo.md) has the run command, the price-confirmation flow, and the DataForSEO routes.
+
 ## Registry metadata
 
 [`server.json`](server.json) is the descriptor for the official MCP

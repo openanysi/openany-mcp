@@ -49,7 +49,7 @@ func run() int {
 	}
 	defer pool.Close()
 	manager := catalog.NewManager(catalog.PostgresLoader(pool, c.QueryTimeout), o, c.MaxAge, *check)
-	if c.LiteEnabled {
+	if c.LiteEnabled || c.Server == "seo" {
 		priceConfig := pc.Copy()
 		priceConfig.MaxConns = 1
 		pricePool, priceErr := pgxpool.NewWithConfig(context.Background(), priceConfig)
@@ -59,14 +59,16 @@ func run() int {
 		}
 		defer pricePool.Close()
 		manager = catalog.NewManagerWithDiscovery(catalog.PostgresLoader(pool, c.QueryTimeout), o, c.MaxAge, *check, catalog.PostgresPricingLoader(pricePool, c.QueryTimeout), catalog.PostgresMetadataLoader(pricePool, c.QueryTimeout))
-		manager.SetModelLoader(catalog.HTTPModelLoader(c.ModelsOrigin, c.QueryTimeout))
+		if c.LiteEnabled && c.Server != "seo" {
+			manager.SetModelLoader(catalog.HTTPModelLoader(c.ModelsOrigin, c.QueryTimeout))
+		}
 	}
 	if *check {
 		if err = manager.Refresh(context.Background()); err != nil {
 			logger.Error("catalog check failed", "reason", err.Error())
 			return 1
 		}
-		if c.LiteEnabled {
+		if c.LiteEnabled || c.Server == "seo" {
 			_ = manager.RefreshPricing(context.Background())
 		}
 		return writeCatalogReport(os.Stdout, manager)
@@ -79,7 +81,7 @@ func run() int {
 	defer client.Close()
 	client.EnableAlternatives(c.AlternativesEnabled)
 	var modelClient *gateway.Client
-	if c.LiteEnabled {
+	if c.LiteEnabled && c.Server != "seo" {
 		modelClient, err = gateway.New(c.ModelsOrigin, c.GatewayTimeout, c.ConnectTimeout, c.MaxResponse, c.MaxResult)
 		if err != nil {
 			logger.Error(err.Error())
@@ -90,7 +92,7 @@ func run() int {
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	opts := mcpserver.Options{LiteEnabled: c.LiteEnabled, MaxBody: c.MaxBody, MaxCalls: c.MaxCalls, Hosts: c.Hosts, Origins: c.Origins, Logger: logger, ModelGateway: modelClient, BenefitsEnabled: c.BenefitsEnabled, AlternativesEnabled: c.AlternativesEnabled}
+	opts := mcpserver.Options{LiteEnabled: c.LiteEnabled, MaxBody: c.MaxBody, MaxCalls: c.MaxCalls, Hosts: c.Hosts, Origins: c.Origins, Logger: logger, ModelGateway: modelClient, BenefitsEnabled: c.BenefitsEnabled, AlternativesEnabled: c.AlternativesEnabled, Product: c.Server}
 	if c.BenefitsEnabled || (c.LiteEnabled && c.AccountEnabled) {
 		accountClient, err := account.NewClient(c.AccountOrigin)
 		if err != nil {
@@ -141,7 +143,7 @@ func run() int {
 		}
 	}()
 	pricingDone := make(chan struct{})
-	if c.LiteEnabled {
+	if c.LiteEnabled || c.Server == "seo" {
 		go func() {
 			defer close(pricingDone)
 			ticker := time.NewTicker(c.Refresh)

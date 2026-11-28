@@ -31,6 +31,7 @@ type Options struct {
 	ModelGateway        *gateway.Client
 	AccountClient       *account.Client
 	PolicyCache         *account.PolicyCache
+	Product             string
 }
 
 const fullCatalogInstructions = "OpenAny Full Catalog lists one tool per data API and does not include AI models. For models, live catalog counts, and search across the whole catalog, connect to https://mcp.openany.si. Tool calls need the caller's OpenAny API key on the MCP connection as Authorization: Bearer <key>. Create a key at https://openany.si/dashboard?page=api-keys and store it in the client's secure secret or connector settings. Never ask the user to paste the key into the chat or prompt. A call with no key is rejected locally. This server has no OAuth flow and does not collect secrets with form elicitation. Confirm the live price with the user before calling a tool. A call can incur charges."
@@ -51,6 +52,7 @@ type Handler struct {
 	views   *viewSet
 	sdk     *mcp.StreamableHTTPHandler
 	lite    *mcp.Server
+	seo     *mcp.Server
 }
 
 func New(manager *catalog.Manager, client *gateway.Client, opts Options) *Handler {
@@ -64,8 +66,11 @@ func New(manager *catalog.Manager, client *gateway.Client, opts Options) *Handle
 		opts.Logger = slog.Default()
 	}
 	h := &Handler{manager: manager, gateway: client, models: opts.ModelGateway, options: opts, slots: make(chan struct{}, opts.MaxCalls)}
-	if opts.LiteEnabled {
+	if opts.LiteEnabled && opts.Product != "seo" {
 		h.lite = h.newLiteServer()
+	}
+	if opts.Product == "seo" {
+		h.seo = h.newSEOServer()
 	}
 	h.sdk = mcp.NewStreamableHTTPHandler(func(r *http.Request) *mcp.Server { s, _ := r.Context().Value(serverKey{}).(*mcp.Server); return s }, &mcp.StreamableHTTPOptions{Stateless: true, JSONResponse: true, MaxRequestBodyBytes: opts.MaxBody, Logger: opts.Logger, DisableLocalhostProtection: true})
 	return h
@@ -73,6 +78,10 @@ func New(manager *catalog.Manager, client *gateway.Client, opts Options) *Handle
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !h.allowedHost(r.Host) {
 		http.Error(w, "Forbidden host", 403)
+		return
+	}
+	if h.options.Product == "seo" {
+		h.serveSEO(w, r)
 		return
 	}
 	// Public discovery metadata. Browser clients send Origin and must not be

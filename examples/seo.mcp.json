@@ -1,0 +1,11 @@
+{
+  "$comment": "Google Keyword Checker, the standalone OpenAny SEO MCP. Intended endpoint https://seo.openany.si. DNS for that host is not created by this repository. Authorization is optional for the price check and required before a confirmed paid call. Do not put a real key in this file.",
+  "mcpServers": {
+    "openany-seo": {
+      "url": "https://seo.openany.si",
+      "headers": {
+        "Authorization": "Bearer ${OPENANY_API_KEY}"
+      }
+    }
+  }
+}

@@ -17,6 +17,7 @@ type Config struct {
 	AlternativesEnabled                                                            bool
 	LiteEnabled, AccountEnabled, BenefitsEnabled                                   bool
 	DatabaseURL, GatewayURL, ModelsOrigin, AccountOrigin, Listen, OverridesFile    string
+	Server                                                                         string
 	Hosts, Origins                                                                 []string
 	Refresh, MaxAge, QueryTimeout, GatewayTimeout, ConnectTimeout, ShutdownTimeout time.Duration
 	MaxConns                                                                       int32
@@ -55,6 +56,10 @@ func Load() (Config, error) {
 	}
 	if c.DatabaseURL == "" || c.GatewayURL == "" {
 		return c, fmt.Errorf("POSTGRES_DATABASE_URL and OPENANY_GATEWAY_BASE_URL are required")
+	}
+	c.Server = value("MCP_SERVER", "root")
+	if c.Server != "root" && c.Server != "seo" {
+		return c, fmt.Errorf("invalid MCP_SERVER")
 	}
 	c.ModelsOrigin, err = parseModelsOrigin(value("OPENANY_MODELS_BASE_URL", "https://api.openany.si"))
 	if err != nil {

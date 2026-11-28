@@ -46,7 +46,7 @@ func (h *Handler) withAlternatives(result gateway.Result, discovery *catalog.Dis
 				api = id
 			}
 		}
-		if api != "" && h.options.LiteEnabled {
+		if api != "" && h.options.LiteEnabled && h.options.Product != "seo" {
 			continuation := map[string]any{"endpoint": "/mcp-lite", "connect_before_use": true, "inspect": map[string]any{"tool": "get_api", "arguments": map[string]any{"api": api}}}
 			compatibility, _ := c["compatibility"].(map[string]any)
 			if compatibility["level"] != "needs_inspection" {

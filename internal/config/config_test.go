@@ -70,6 +70,25 @@ func TestAccountConfigurationFlagsAndOrigin(t *testing.T) {
 	}
 }
 
+func TestServerDefaultsToRootAndAcceptsSEO(t *testing.T) {
+	t.Setenv("POSTGRES_DATABASE_URL", "postgres://localhost/test")
+	t.Setenv("OPENANY_GATEWAY_BASE_URL", "http://localhost:8888")
+	os.Unsetenv("MCP_SERVER")
+	c, err := Load()
+	if err != nil || c.Server != "root" {
+		t.Fatal("root is no longer the default server", c.Server, err)
+	}
+	t.Setenv("MCP_SERVER", "seo")
+	c, err = Load()
+	if err != nil || c.Server != "seo" {
+		t.Fatal(c.Server, err)
+	}
+	t.Setenv("MCP_SERVER", "crypto")
+	if _, err = Load(); err == nil || !strings.Contains(err.Error(), "MCP_SERVER") {
+		t.Fatal("another vertical was accepted", err)
+	}
+}
+
 func TestAlternativesFlagDefaultsFalseAndAcceptsExternalOverride(t *testing.T) {
 	t.Setenv("POSTGRES_DATABASE_URL", "postgres://localhost/test")
 	t.Setenv("OPENANY_GATEWAY_BASE_URL", "http://localhost:8888")
