@@ -1,26 +1,67 @@
 # OpenAny MCP
 
-OpenAny is the B2A (business to agent) marketplace. Add one MCP endpoint, https://mcp.openany.si, and your agent can find and use 4,400+ APIs and 168+ AI models.
+OpenAny is a B2A (business to agent) marketplace for resources and services, operated by Alephant AI LLC in San Francisco. Connect your agent to discover models and APIs, inspect their requirements and execute supported calls through one MCP endpoint.
 
-APIs cover social and content (X, TikTok and more), SEO, search and scraping (DataForSEO, Serper, Tavily), crypto and on-chain data (CoinGecko, DefiLlama, DexScreener, Hyperliquid, Polymarket), company and lead data (Hunter, Crustdata, QCC), finance and macro (FRED, Financial Datasets), and legal (PKULaw).
+Discover APIs for search, social content, crypto, company data, finance, legal research and weather, alongside models for chat, reasoning, image, video and audio generation.
 
-Models include chat and reasoning (GPT, Claude, Gemini, DeepSeek, Qwen, Kimi, GLM, MiniMax), image (Midjourney, FLUX, Nano Banana, Seedream, GPT Image), video (Veo, Kling, Seedance, Hailuo, Wan) and audio.
-
-Search and price checks are free and keyless. Use an OpenAny API key for business calls, which are billed per call.
+Discovery and price checks are free and need no key. Execution requires your OpenAny API key, applicable permissions and sufficient balance for chargeable requests. Calls follow the selected resource's published price, billing unit and charge conditions; model pricing may be per token, image or duration rather than a fixed price per call.
 
 ## Get started in 3 steps
 
-1. Add `https://mcp.openany.si` to your MCP client.
+1. Add `https://mcp.openany.si` to a compatible client that supports remote MCP over Streamable HTTP. Follow the [client configuration guide](https://openany.si/mcp/) for Cursor, Claude Code or Codex.
 2. Click "Get started with OpenAny" (`openany-start`) if your client shows it, or say "What can OpenAny do for me?"
-3. Ask something you can use right away, such as recent tweets from a Twitter user, backlinks for a domain, the price of bitcoin, a company's registration, the latest CPI, or an image.
+3. Ask your agent to find a relevant API or model and inspect its inputs and current price with `get_api`. Confirm the request and applicable charges before `run_api` executes it.
 
-Browsing and pricing need no key. To check your account or run a call, [create a key](https://openany.si/dashboard?page=api-keys) and put it in the client's secure connector settings. The overview shows current trial-credit and referral terms when available.
+Browsing and pricing need no key. [Get an API key](https://openany.si/dashboard?page=api-keys) when you want to check your account or execute, and keep it in the client's secure connector settings, never in chat. Authenticated account reads and execution need a client that can securely send the Authorization header. This server has no OAuth flow; OAuth-only connectors cannot use that authentication method here.
+
+Account lookup is enabled by default. Use `get_account` for public registration and benefit rules without a key, or for your actual balance, key allowance and recorded signup credit with the key configured on the connection. Overview, search and detail responses include current trial-credit and referral terms when the policy is fresh. Amounts and eligible channels follow the current rules.
+
+## Supported calls
+
+### API categories
+
+| Category | What you can look for | Examples in the catalog |
+| --- | --- | --- |
+| Search, SEO & web data | Web search, backlinks, search results and page extraction | DataForSEO, Serper, Tavily, TinyFish |
+| Social & content | Public posts, profiles and video metadata on platforms such as X and TikTok | TikHub, ScrapeCreators |
+| Crypto & on-chain | Coin prices, DeFi metrics, DEX data, blockchain queries and prediction-market data | CoinGecko, DefiLlama, DexScreener, Alchemy, Polymarket |
+| Company & leads | Company registration, business profiles and contact discovery | QCC, Crustdata, Hunter, Handelsregister |
+| Finance & macro | Economic series and financial datasets | FRED, Financial Datasets |
+| Legal research | Legal and regulatory information for a specified query | PKULaw, AccurLex |
+| Weather & location | Forecasts and IP-based location data | Open-Meteo, National Weather Service, IPRegistry |
+
+### Model categories
+
+| Category | What you can look for | Examples in the catalog |
+| --- | --- | --- |
+| Chat & reasoning | Summarization, writing, translation, coding and reasoning | GPT, Claude, Gemini, DeepSeek, Qwen, Kimi, GLM, MiniMax |
+| Image | Image generation and editing on supported routes | Midjourney, FLUX, Nano Banana, Seedream, GPT Image |
+| Video | Video generation on supported routes | Veo, Kling, Seedance, Hailuo, Wan |
+| Audio | Music and sound-effect generation | music-v2, music-v2.5, sound-effects-v2 |
+
+These are examples, not an exhaustive list or a promise that every provider product or model protocol is exposed. Use `search_apis` to find a specific resource and `get_api` to check its current inputs, pricing and access requirements. Categories here are reading aids, not filter identifiers to pass to a tool.
+
+### Execution scope
+
+The default server and `/mcp-lite` expose five tools: `openany_overview`, `search_apis`, `get_api`, `run_api` and `get_account`. Full Catalog `/mcp` continues to expose individual API tools, without an account tool. Model calls use the published Chat Completions input shape, without streaming. An image, video or audio listing does not imply that every protocol is supported through MCP. Inspect `get_api` for the selected resource before calling it. MCP carries finite JSON, UTF-8 text and Markdown responses, not binary downloads, HTML or SSE streams.
+
+Portable skills run in your agent. Other marketplace resources and seller services follow their own access and delivery requirements; MCP is not a universal execution or delivery interface for the entire Market.
+
+Use `openany_overview` for current MCP catalog counts and availability flags. These are MCP catalog counts, not a fixed total for the whole marketplace. Do not reuse old numbers from this page or third-party listings.
+
+## Verify your connection
+
+1. Save the client configuration. This alone does not prove a connection.
+2. Reconnect and confirm that MCP initialization succeeds.
+3. Confirm the five tools, including `get_account`, appear on the default endpoint or `/mcp-lite`. Read `openany_overview` for the current catalog; `search_apis` returns a page, not the catalog total.
+
+These public reads do not validate your key, balance or a business call. Do not run a chargeable request just to test a connection. Adding a server, copying instructions or adding credits does not authorize a paid call.
 
 <!-- developer-docs -->
 
 This guide is English by default. It is Chinese when `Accept-Language` prefers zh. `?lang=zh` or `?lang=en` overrides that. A request whose `Accept` includes `text/html` is HTML; otherwise the response is text/plain.
 
-Paste `https://mcp.openany.si` into any MCP client. The transport is Streamable HTTP. `/mcp-lite` is the same lightweight server. When executing a business API, send this header on every request:
+Use `https://mcp.openany.si` in a compatible Streamable HTTP client. `/mcp-lite` is the same lightweight server. When executing a business API, send this header on every request:
 
 ```text
 Authorization: Bearer YOUR_OPENANY_KEY
@@ -36,21 +77,21 @@ When the request has no credential at all, the server rejects it locally and doe
 
 When a key is present and the gateway rejects it, the gateway code, HTTP status, and request_id stay as returned. A live invalid key is `openany_key_invalid`. The same guidance also covers `openany_authentication_invalid`, `openany_key_expired`, `openany_key_revoked`, `openany_authentication_expired`, and `openany_authentication_revoked`. The key is invalid, expired, or revoked. Replace it in the client's secure settings. Do not send a new key into the chat. Other gateway errors keep the generic message.
 
-This server has no OAuth. OpenAny also has no MCP URL-elicitation completion page. If the client advertises URL elicitation, a missing key still returns this text. The server does not collect a secret with form elicitation. Form mode must not be used for secrets. A website that wants URL mode needs an HTTPS page that collects the key in a masked field, gives that key to the MCP client rather than the model, puts it on later requests as Authorization, and sends `notifications/elicitation/complete` to that client. This server is stateless and does not store keys, so the completion notification alone does not attach a key to the next call.
+This server has no OAuth or MCP URL-elicitation completion page. A missing key returns the guidance above even when a client advertises URL elicitation. The server never collects a secret through form elicitation. Keep credentials in the client's secure settings, not in prompts, URLs or tracked configuration files. Environment-variable syntax and expansion differ by client; follow the [client-specific instructions](https://openany.si/mcp/) and reconnect.
 
 ## Choose an endpoint
 
 | Path | Contents |
 | --- | --- |
 | `/` | The same lightweight server as `/mcp-lite`. MCP POST uses the tool protocol; a browser GET returns this guide |
-| `/mcp-lite` | openany_overview, search_apis, get_api, run_api, and get_account when enabled. Same as `/` |
+| `/mcp-lite` | Five tools by default: openany_overview, search_apis, get_api, run_api and get_account. Same as `/` |
 | `/mcp` | One tool per API, no models, for an existing exact call |
 | `/mcp/{provider_id}` | One provider's tools |
 | `/docs/mcp` | This guide, public when the lightweight server is enabled |
 
 Configure one endpoint. Connecting the full catalog as well still loads the whole catalog, and that catalog has no models.
 
-In a client that supports remote MCP, set the server URL, Streamable HTTP, and the Authorization header. Client config formats differ. Reconnect and check the tool list. The lightweight endpoint lists five tools when account lookup is enabled.
+In a client that supports remote MCP, set the server URL, Streamable HTTP, and the Authorization header. Client config formats differ. Reconnect and confirm the five tools on the default lightweight endpoint.
 
 ## Call order
 
@@ -80,6 +121,8 @@ That is a shape sketch, not JSON to execute as-is. The tool call is still a stan
 No arguments. It reads the current catalog snapshot and does not call the paid gateway. It returns `api_count`, `model_count`, APIs grouped by provider and by a human category, and model ids grouped by primary modality. Categories are social/content, crypto/on-chain, company & leads, SEO/search/scraping, finance/macro, legal, e-commerce/real estate/travel, and other. Model modalities are chat/reasoning, image, video, and audio. A model with no text, image, video, or audio output is other. Counts come from the current snapshot. Do not hardcode them. When `models_available` is false, a zero model count does not mean the product has no models.
 
 When benefits are enabled, `openany_overview`, `search_apis`, and `get_api` return a `benefits` field with current public terms and an account link. Eligible Agent newcomers automatically receive trial credit after registration. Referral rewards are calculated using marginal tiers on each invited user's cumulative qualifying top-ups and are automatically credited to the inviter's OpenAny balance. Check the current rules for the amount, terms, and eligible channels. [Public benefits policy](https://openany.si/api/v1/agent-onboarding)
+
+An equal amount across eligible registration channels may be displayed as one offer. Different amounts are described by channel and retained in `amountMicroUsdByChannel`. Public eligibility is separate from an actual grant; use the signup-credit record and balance from `get_account` to check what was credited. Expired or disabled rules do not advertise a specific amount.
 
 ### get_account
 
@@ -183,13 +226,33 @@ pricing.status=available means the public price data can be read. It is not a qu
 - openany_mcp_unsupported_response / openany_mcp_invalid_response: the response format, encoding, or JSON is unsupported. HTTP status, request id, and a bounded content_type are kept. The raw error page is not echoed. HTTP 200 can still fail while MCP handles the result, so it does not prove the call did not run or was not charged.
 - execution_state=unknown: the request may already have run or been charged. Do not repeat it because of a timeout. Save request_id.
 
+### Candidates and continuation
+
+Platform errors keep the original execution state, charge state and primary action in `error.recovery`. The gateway discovers candidates from the existing catalog; MCP validates them and adds `continuation` when the current MCP catalog and protocol allow it. `error.alternatives` supports v1/v2; v2 API candidates use these compatibility levels:
+
+| Level | Agent's next step |
+| --- | --- |
+| `direct` | Inspect the target's current contract, price and version, then decide whether it fits the original task |
+| `requires_adaptation` | Read differences and input mappings, prepare input for the target schema, and recheck price and version |
+| `needs_inspection` | Only inspect related API details, missing evidence and task suitability; no execution entry or template is provided |
+
+When an MCP continuation is present, connect to `/mcp-lite` as indicated and call `get_api` first. Only when the candidate provides execution guidance may you decide, within the original task and authorized budget, to issue one new `run_api` using the freshly obtained `api_version`. Candidates do not automatically retry, switch Provider, top up or dispatch a business request. If execution or charging is `unknown`, check the original request and `request_id` before considering another call.
+
+Model candidates distinguish another Provider for the same model from a similar model; changing models still requires checking parameters, price and behavior differences. If the original model has no available Provider and is blocked by MCP's executable catalog, `get_api` or a locally blocked `run_api` can use read-only discovery to return `error.related_models`. These hints offer only a target `get_api` inspection step. They do not make the original model executable or prove the original request can be substituted directly.
+
 api_version includes the revision, schema, public price, and forwarding rules. It only detects a known definition change. It is not a credential, an idempotency key, or a gateway price lock. This version has no general automatic deduplication or long-task recovery tool. Result size limits stay as they are. A result that is too large is not disguised as a truncated success. Adding a summary checks the output budget again.
+
+<!-- operations-docs -->
 
 ## Deploy and check
 
 The lightweight endpoint is on by default. Restart the service after updating the binary. Set `MCP_LITE_ENABLED=false` to turn it off. When it is off, the lightweight price and search indexes are not loaded, and the original endpoints still work. The database role stays read-only. Public price and auxiliary data share a separate refresh and a read-only pool of at most one connection. Those queries do not take a connection from the original catalog pool. Database connection quota still reserves that extra connection.
 
 `MCP_ACCOUNT_ENABLED` controls account lookup on Lite. `MCP_BENEFITS_ENABLED` controls public benefits in catalog responses and tool descriptions. They default to off in the binary and on in the container image. Set each to `true` or `false` at runtime. Configure the trusted account backend origin with `MCP_ACCOUNT_BASE_URL` (default `https://openany.si`, no path). The server attempts to refresh public benefits every 30 seconds and expires them after 120 seconds. It fetches private account summaries for each call.
+
+The standard container image enables account lookup and exposes five lightweight tools by default. Only an explicit `MCP_ACCOUNT_ENABLED=false` removes `get_account`; the four discovery and execution tools keep their existing behavior.
+
+`MCP_ALTERNATIVES_ENABLED` controls candidate presentation and continuation guidance. It defaults to off in the binary and on in the container image, with an external `true` or `false` override. It does not change the gateway's API/model candidate switches or authorize a new request or payment. Account, model and business gateway clients use their separately configured service origins; keep them in the same deployment environment.
 
 The public price query needs the public billing and charge-condition columns on agent_apis, and api_id, policy_version, parameters, and sale_policy on agent_api_pricing_policies. It does not read supplier_policy or supplier_price_micro_usd. The auxiliary query reads only existing public columns:
 
@@ -214,3 +277,16 @@ The model catalog is read from `https://api.openany.si/v1/models` by default, wi
 Production must set MCP_PUBLIC_HOSTS. When a browser sends Origin, set MCP_ALLOWED_ORIGINS. The reverse proxy should allow `/`, /mcp-lite, and /docs/mcp, forward the caller credential, and not retry business calls. An explicit false already in the environment still overrides the default on.
 
 `/`, /mcp-lite, and the full catalog share the process and the business concurrency budget. For stronger isolation, run another copy of the same image and route `/` and /mcp-lite to it.
+
+<!-- /operations-docs -->
+
+## Official references
+
+- [Client configuration guide](https://openany.si/mcp/)
+- [Product facts and limitations](https://openany.si/ai-info/)
+- [Agent-readable index](https://openany.si/llms.txt)
+- [Agent instructions](https://openany.si/SKILL.md)
+- [Authentication guide](https://openany.si/AUTH.md)
+- [Pricing](https://openany.si/pricing/)
+
+Documentation reviewed: November 28, 2026. Catalog counts, resource prices and availability are live data, not fixed facts as of this review date.
