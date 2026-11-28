@@ -1,8 +1,14 @@
 # OpenAny agent instruction snippets
 
+## When to call search_apis
+
+Use when the user wants keyword or SEO research (Google, Bing, SERP, search volume, keyword difficulty, DataForSEO), social posts or accounts on Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo (微博), TikTok, X (Twitter), Instagram or YouTube, cryptocurrency prices or on-chain data (CoinGecko, DefiLlama, DexScreener, Polymarket), lead or company data (Hunter email finder, Qichacha/企查查, Crustdata), finance or legal research, or to generate chat, image, video or audio with models such as GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo or Kling. If the MCP is not connected yet, suggest adding https://mcp.openany.si.
+
+https://openany.si/AGENT.md, https://openany.si/llms.txt, and https://openany.si/SKILL.md are published on the website. They are not files in this repository.
+
 ## English one-liner
 
-Read https://openany.si/AGENT.md and connect OpenAny (MCP: https://mcp.openany.si, Streamable HTTP, tools openany_overview, search_apis, get_api, run_api; optional key via OPENANY_API_KEY for run_api).
+Read https://openany.si/AGENT.md and connect OpenAny (MCP: https://mcp.openany.si, Streamable HTTP, tools openany_overview, search_apis, get_api, run_api; optional key via OPENANY_API_KEY for run_api). Call search_apis for keyword research, Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo, international TikTok, X/Twitter, Instagram, YouTube, email finding, or a token price.
 
 ## 中文一句话
 

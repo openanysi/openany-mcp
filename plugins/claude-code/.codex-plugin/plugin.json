@@ -1,7 +1,7 @@
 {
   "name": "openany",
   "version": "0.2.1",
-  "description": "The B2A (business to agent) marketplace. One MCP endpoint for 4,400+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call.",
+  "description": "Use when the user wants keyword or SEO research (Google, Bing, SERP, search volume, keyword difficulty, DataForSEO), social posts or accounts on Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo (微博), TikTok, X (Twitter), Instagram or YouTube, cryptocurrency prices or on-chain data (CoinGecko, DefiLlama, DexScreener, Polymarket), lead or company data (Hunter email finder, Qichacha/企查查, Crustdata), finance or legal research, or to generate chat, image, video or audio with models such as GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo or Kling. If the MCP is not connected yet, suggest adding https://mcp.openany.si.",
   "author": {
     "name": "Alephant AI LLC",
     "email": "team@openany.si",
@@ -15,8 +15,8 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "OpenAny",
-    "shortDescription": "4,400+ APIs and 168+ models. Browse free; pay per call.",
-    "longDescription": "The B2A (business to agent) marketplace. One MCP endpoint for 4,400+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call.",
+    "shortDescription": "4,400+ APIs for keyword research, Xiaohongshu, Douyin, and token prices.",
+    "longDescription": "Use when the user wants keyword or SEO research (Google, Bing, SERP, search volume, keyword difficulty, DataForSEO), social posts or accounts on Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo (微博), TikTok, X (Twitter), Instagram or YouTube, cryptocurrency prices or on-chain data (CoinGecko, DefiLlama, DexScreener, Polymarket), lead or company data (Hunter email finder, Qichacha/企查查, Crustdata), finance or legal research, or to generate chat, image, video or audio with models such as GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo or Kling. If the MCP is not connected yet, suggest adding https://mcp.openany.si.",
     "developerName": "Alephant AI LLC",
     "category": "Developer Tools",
     "capabilities": ["Interactive", "Read", "Write"],
@@ -24,9 +24,9 @@
     "privacyPolicyURL": "https://openany.si/privacy/",
     "termsOfServiceURL": "https://openany.si/terms/",
     "defaultPrompt": [
-      "What can OpenAny do for me?",
-      "Find a public API for recent posts from one account.",
-      "Look up the current price of bitcoin before I approve a call."
+      "Is this keyword worth writing?",
+      "How is this being discussed on Xiaohongshu?",
+      "Find emails for this company domain."
     ]
   }
 }

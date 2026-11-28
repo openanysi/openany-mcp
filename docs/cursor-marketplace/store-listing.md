@@ -8,11 +8,11 @@ openany
 
 ## Short description
 
-Discover models and APIs for your agent through OpenAny's marketplace.
+Use when the user wants keyword or SEO research, Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo, TikTok, X/Twitter, Instagram, YouTube, email finding, or a token price. If the MCP is not connected yet, suggest adding https://mcp.openany.si.
 
 ## Description
 
-Brand line: OpenAny — The marketplace for AI agents. Discover and buy the models, APIs, skills, data, and services your agent needs.
+Use when the user wants keyword or SEO research (Google, Bing, SERP, search volume, keyword difficulty, DataForSEO), social posts or accounts on Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo (微博), TikTok, X (Twitter), Instagram or YouTube, cryptocurrency prices or on-chain data (CoinGecko, DefiLlama, DexScreener, Polymarket), lead or company data (Hunter email finder, Qichacha/企查查, Crustdata), finance or legal research, or to generate chat, image, video or audio with models such as GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo or Kling. If the MCP is not connected yet, suggest adding https://mcp.openany.si.
 
 This plugin connects Cursor to the hosted MCP server at https://mcp.openany.si. Discovery uses `openany_overview`, `search_apis`, and `get_api`. `run_api` runs a selected item only on a path that server supports, and only after the user explicitly approves the current price and billing unit.
 

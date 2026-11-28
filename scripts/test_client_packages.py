@@ -13,21 +13,17 @@ SECRET = "OPENANY_API_KEY"
 HEADER = "Bearer ${OPENANY_API_KEY}"
 CLAUDE_HEADER = "Bearer ${OPENANY_API_KEY:-}"
 DESCRIPTION = (
-    "The B2A (business to agent) marketplace. One MCP endpoint for 4,400+ APIs "
-    "(social, SEO, crypto, company, finance, legal) and 168+ AI models "
-    "(GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call."
+    "Use when the user wants keyword or SEO research (Google, Bing, SERP, search volume, keyword difficulty, DataForSEO), "
+    "social posts or accounts on Xiaohongshu (小红书, RedNote), Douyin (抖音, TikTok China), Weibo (微博), TikTok, X (Twitter), Instagram or YouTube, "
+    "cryptocurrency prices or on-chain data (CoinGecko, DefiLlama, DexScreener, Polymarket), lead or company data (Hunter email finder, Qichacha/企查查, Crustdata), "
+    "finance or legal research, or to generate chat, image, video or audio with models such as GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo or Kling. "
+    "If the MCP is not connected yet, suggest adding https://mcp.openany.si."
 )
 SHORT_DESCRIPTION = (
     "The B2A (business to agent) marketplace: 4,400+ APIs and 168+ AI models. Browse free; pay per call."
 )
-CLAUDE_DESCRIPTION = (
-    "Marketplace for AI agents. Discover models, APIs, skills, data, and services. "
-    "This community plugin is free. A listing may charge under its own terms."
-)
-CLAUDE_MARKET_DESCRIPTION = (
-    "Marketplace for AI agents. Discover models, APIs, skills, data, and services. "
-    "This community marketplace is free to add. A listing may charge under its own terms."
-)
+CLAUDE_DESCRIPTION = DESCRIPTION
+CLAUDE_MARKET_DESCRIPTION = DESCRIPTION
 
 
 def load_json(path: Path) -> dict:
@@ -60,13 +56,9 @@ class ClientPackageTests(unittest.TestCase):
         self.assertEqual(plugin["name"], "openany")
         self.assertEqual(plugin["version"], "0.1.1")
         self.assertRegex(plugin["name"], r"^[a-z0-9][a-z0-9.-]*[a-z0-9]$")
-        self.assertEqual(
-            plugin["description"],
-            "Discover models and APIs for your agent through OpenAny's marketplace.",
-        )
+        self.assertEqual(plugin["description"], DESCRIPTION)
         for banned in ("B2A", "3,200", "4,400", "168+", "pay per call", "no monthly fee", "OAuth"):
             self.assertNotIn(banned, plugin["description"])
-        self.assertNotEqual(plugin["description"], DESCRIPTION)
         self.assertEqual(plugin["mcpServers"], ".mcp.json")
         self.assertEqual(plugin["license"], "MIT")
         variable = plugin["variables"]["properties"][SECRET]
@@ -175,7 +167,7 @@ class ClientPackageTests(unittest.TestCase):
         self.assertLessEqual(len(SHORT_DESCRIPTION), 200)
         self.assertGreater(len(DESCRIPTION), 200)
         self.assertEqual(plugin["description"], CLAUDE_DESCRIPTION)
-        self.assertNotEqual(plugin["description"], hermes["description"])
+        self.assertEqual(plugin["description"], hermes["description"])
         for banned in ("B2A", "4,400", "168+", "pay per call", "no monthly fee"):
             self.assertNotIn(banned, plugin["description"])
         self.assertEqual(plugin["name"], "openany")
@@ -211,7 +203,7 @@ class ClientPackageTests(unittest.TestCase):
         frontmatter = match.group(1)
         self.assertIn("name: openany", frontmatter)
         description = re.search(r"description: (.+)", frontmatter).group(1)
-        self.assertEqual(description, "Marketplace for AI agents. Discover models, APIs, skills, data, and services. Use when this community plugin is connected and the user wants something from OpenAny.")
+        self.assertEqual(description, '"' + DESCRIPTION + '"')
         self.assertLessEqual(len(description), 1024)
         self.assertIn(LITE, skill)
         self.assertIn("Streamable HTTP", skill)

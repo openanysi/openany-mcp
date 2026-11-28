@@ -20,9 +20,11 @@ Short description:
 
 Long description:
 
+> One MCP endpoint for keyword research, Xiaohongshu and Douyin posts, email finding, token prices, and 168+ AI models. Browse and price-check free; pay per call.
+>
 > OpenAny is the B2A (business to agent) marketplace. Add one MCP endpoint, https://mcp.openany.si, and your agent can find and use 4,400+ APIs and 168+ AI models.
 >
-> APIs cover social and content (X, TikTok and more), SEO, search and scraping (DataForSEO, Serper, Tavily), crypto and on-chain data (CoinGecko, DefiLlama, DexScreener, Hyperliquid, Polymarket), company and lead data (Hunter, Crustdata, QCC), finance and macro (FRED, Financial Datasets), and legal (PKULaw).
+> APIs cover social and content (Xiaohongshu / 小红书 / RedNote, Douyin / 抖音 / TikTok China, Weibo / 微博, international TikTok, X/Twitter, Instagram, and YouTube), SEO, search and scraping (DataForSEO, Serper, Tavily), crypto and on-chain data (CoinGecko, DefiLlama, DexScreener, Hyperliquid, Polymarket), company and lead data (Hunter, Crustdata, QCC), finance and macro (FRED, Financial Datasets), and legal (PKULaw).
 >
 > Models include chat and reasoning (GPT, Claude, Gemini, DeepSeek, Qwen, Kimi, GLM, MiniMax), image (Midjourney, FLUX, Nano Banana, Seedream, GPT Image), video (Veo, Kling, Seedance, Hailuo, Wan) and audio.
 >
@@ -136,7 +138,7 @@ For Skill listings, reuse the public OpenAny workflow only after its repository,
 
 ## Official MCP Registry
 
-The included server.json is `si.openany/openany` version `0.1.4`. The remote URL is `https://mcp.openany.si` (Streamable HTTP, the lite server). The Authorization header is optional. Browsing does not need a key. `run_api` does.
+The included server.json is `si.openany/openany` version `0.1.5`. The description is `B2A marketplace: 4,400+ APIs for SEO, social, crypto and leads, plus 168+ AI models. Pay per call.` The remote URL is `https://mcp.openany.si` (Streamable HTTP, the lite server). The Authorization header is optional. Browsing does not need a key. `run_api` does.
 
 Follow the official [remote server guide](https://modelcontextprotocol.io/registry/remote-servers) and [authentication guide](https://modelcontextprotocol.io/registry/authentication) to verify `openany.si` through DNS or HTTP ownership proof. Keep publisher signing keys private. This ownership verification is independent of end-user API-key authentication; it does not add OAuth to the MCP service.
 
