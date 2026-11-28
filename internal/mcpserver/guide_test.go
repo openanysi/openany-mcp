@@ -41,9 +41,17 @@ func TestGuideLanguageAndHTMLNegotiation(t *testing.T) {
 	if status != 200 || !strings.HasPrefix(media, "text/plain") || !strings.HasPrefix(body, "# OpenAny MCP\n") || !strings.Contains(body, "Get started in 3 steps") || !strings.Contains(body, "Choose an endpoint") || strings.Contains(body, "选择入口") || strings.Contains(body, "developer-docs") {
 		t.Fatal("default guide", status, media, body[:80])
 	}
+	for _, phrase := range []string{"One MCP endpoint for keyword research, Xiaohongshu and Douyin posts", "Xiaohongshu / 小红书 / RedNote", "Douyin / 抖音 / TikTok China", "Weibo / 微博", "international TikTok", "Is this keyword worth writing?"} {
+		if !strings.Contains(body, phrase) {
+			t.Fatalf("english guide missing %q", phrase)
+		}
+	}
 	status, media, body = get("/", "*/*", "zh-CN,zh;q=0.9,en;q=0.8")
 	if status != 200 || !strings.HasPrefix(media, "text/plain") || !strings.Contains(body, "选择入口") || strings.Contains(body, "Choose an endpoint") {
 		t.Fatal("accept-language zh", media, strings.Contains(body, "选择入口"))
+	}
+	if !strings.Contains(body, "一个入口，让 agent 去查搜索词、小红书或抖音、找邮箱、看币价、调用模型。浏览和查价免费，执行按次付费.") || !strings.Contains(body, "抖音 / Douyin / TikTok China") || !strings.Contains(body, "这个关键词在 Google 上值得写吗？") {
+		t.Fatal("chinese guide hook")
 	}
 	status, media, body = get("/?lang=en", "", "zh-CN,zh;q=0.9")
 	if !strings.HasPrefix(media, "text/plain") || !strings.Contains(body, "Choose an endpoint") {

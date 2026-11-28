@@ -17,9 +17,9 @@ const serverCardMediaType = "application/mcp-server-card+json"
 // and still returned HTTP 404 from static.modelcontextprotocol.io on 2026-11-26.
 const serverCardSchemaURL = "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json"
 
-// Published server.json description. It is 99 characters, inside the Server
-// Card schema's maxLength of 100.
-const serverCardDescription = "The B2A (business to agent) marketplace: 4,400+ APIs and 168+ AI models. Browse free; pay per call."
+// Published server.json description. It is 98 characters, inside the Server
+// Card schema's maxLength of 100. Keep this identical to server.json.
+const serverCardDescription = "B2A marketplace: 4,400+ APIs for SEO, social, crypto and leads, plus 168+ AI models. Pay per call."
 
 const serverCardHeaderDescription = "Anonymous catalog discovery and pricing do not authorize charges. Execution uses a Bearer OpenAny API key from secure client settings. This service uses API keys, not OAuth."
 
@@ -64,7 +64,7 @@ type serverCardInput struct {
 // openAnyServerCard describes the running https://mcp.openany.si endpoint.
 // name is the published registry name because a Server Card name must be
 // namespaced. version is the live serverInfo version from the lite server
-// (0.1.0), not registry server.json 0.1.4. supportedProtocolVersions matches
+// (0.1.0), not registry server.json 0.1.5. supportedProtocolVersions matches
 // the lite server constructor in lite.go.
 var openAnyServerCard = serverCardDocument{
 	Schema:      serverCardSchemaURL,

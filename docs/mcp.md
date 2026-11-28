@@ -1,5 +1,7 @@
 # OpenAny MCP 接入
 
+一个入口，让 agent 去查搜索词、小红书或抖音、找邮箱、看币价、调用模型。浏览和查价免费，执行按次付费.
+
 OpenAny 是由旧金山 Alephant AI LLC 运营的 B2A（business to agent）资源与服务市场。通过一个 MCP 端点，你的 Agent 可以发现模型和 API、查看使用要求，并执行受支持的调用。
 
 可发现的 API 涵盖搜索、社交内容、加密货币、企业数据、金融、法律检索和天气；模型涵盖对话、推理、图像、视频及音频生成。
@@ -10,7 +12,7 @@ OpenAny 是由旧金山 Alephant AI LLC 运营的 B2A（business to agent）资�
 
 1. 把 `https://mcp.openany.si` 加到支持 Streamable HTTP 远程 MCP 的兼容客户端。Cursor、Claude Code 和 Codex 的配置见[客户端接入指南](https://openany.si/mcp/)。
 2. 如果客户端有这个按钮，点「开始使用 OpenAny」（`openany-start`）；否则说「OpenAny 能帮我做什么？」
-3. 让 Agent 查找所需 API 或模型，并用 `get_api` 核对输入与当前价格；确认请求及适用费用后，再由 `run_api` 执行。
+3. 可以直接问：这个关键词在 Google 上值得写吗？这个成分在小红书上怎么被种草？帮我找这家公司能联系的邮箱。这个代币现在什么价？再用 `get_api` 核对输入与当前价格；确认请求及适用费用后，再由 `run_api` 执行。
 
 浏览和看价格不需要密钥。准备执行时再[创建 API key](https://openany.si/dashboard?page=api-keys)，并放进客户端的安全连接器设置，不要发到聊天里。执行要求客户端能安全配置 Authorization 请求头。本服务不提供 OAuth；仅支持 OAuth 的连接器不能通过该鉴权方式接入。
 
@@ -21,7 +23,7 @@ OpenAny 是由旧金山 Alephant AI LLC 运营的 B2A（business to agent）资�
 | 类别 | 可以查找的能力 | 目录中的代表资源 |
 | --- | --- | --- |
 | 搜索、SEO 与网页数据 | 网页搜索、反向链接、搜索结果与页面提取 | DataForSEO、Serper、Tavily、TinyFish |
-| 社交与内容 | X、TikTok 等平台的公开帖子、账号和视频元数据 | TikHub、ScrapeCreators |
+| 社交与内容 | 小红书 / Xiaohongshu / RedNote、抖音 / Douyin / TikTok China、微博 / Weibo、国际版 TikTok、X/Twitter、Instagram、YouTube 上的公开帖子、账号和视频元数据 | TikHub、ScrapeCreators |
 | 加密货币与链上数据 | 币价、DeFi 指标、DEX 数据、区块链查询与预测市场数据 | CoinGecko、DefiLlama、DexScreener、Alchemy、Polymarket |
 | 企业与销售线索 | 工商登记、企业资料与联系信息查找 | QCC、Crustdata、Hunter、Handelsregister |
 | 金融与宏观 | 经济指标时间序列与金融数据集 | FRED、Financial Datasets |

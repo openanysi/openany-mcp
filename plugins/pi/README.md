@@ -1,6 +1,8 @@
 # pi-openany
 
-Pi package for [OpenAny](https://openany.si), the B2A (business to agent) marketplace. One MCP endpoint, `https://mcp.openany.si`, exposes `openany_overview`, `search_apis`, `get_api`, and `run_api`. The catalog copy is 4,400+ APIs (social, SEO, crypto, company, finance, legal) and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call.
+One MCP endpoint for keyword research, Xiaohongshu and Douyin posts, email finding, token prices, and 168+ AI models. Browse and price-check free; pay per call.
+
+Pi package for [OpenAny](https://openany.si), the B2A (business to agent) marketplace. One MCP endpoint, `https://mcp.openany.si`, exposes `openany_overview`, `search_apis`, `get_api`, and `run_api`. The catalog copy is 4,400+ APIs across social (Xiaohongshu / 小红书 / RedNote, Douyin / 抖音 / TikTok China, Weibo / 微博, international TikTok, X/Twitter, Instagram, YouTube), SEO, crypto, company, finance, and legal, and 168+ AI models (GPT, Claude, Gemini, DeepSeek, Qwen, Midjourney, Veo, Kling). Browse free; pay per call. If the MCP is not connected yet, suggest adding https://mcp.openany.si.
 
 Version: `0.1.0`.
 

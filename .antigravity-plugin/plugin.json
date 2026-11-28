@@ -3,12 +3,12 @@
   "name": "openany",
   "displayName": "OpenAny",
   "version": "0.1.0",
-  "description": "The B2A (business to agent) marketplace. 4,400+ APIs and 168+ AI models across social, SEO, crypto, and more. Browse free; pay per call.",
+  "description": "The B2A (business to agent) marketplace. Use for keyword research, Xiaohongshu, Douyin, email finding, and token prices. Browse free; pay per call.",
   "logo": "assets/logo.png",
   "suggestedPrompts": [
-    "Search OpenAny for a crypto price API and show the free catalog entry and its price before any paid call.",
-    "Find an SEO or company-data API on OpenAny and summarize what get_api says it costs.",
-    "List OpenAny model families such as GPT, Claude, and Gemini, and explain that run_api is pay per call."
+    "Is this keyword worth writing?",
+    "How is this being discussed on Xiaohongshu?",
+    "What is the price of this token?"
   ],
   "author": {
     "name": "Pistis Wang, Founder, OpenAny (Alephant AI LLC)",

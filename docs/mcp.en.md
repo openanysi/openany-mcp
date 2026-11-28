@@ -1,5 +1,7 @@
 # OpenAny MCP
 
+One MCP endpoint for keyword research, Xiaohongshu and Douyin posts, email finding, token prices, and 168+ AI models. Browse and price-check free; pay per call.
+
 OpenAny is a B2A (business to agent) marketplace for resources and services, operated by Alephant AI LLC in San Francisco. Connect your agent to discover models and APIs, inspect their requirements and execute supported calls through one MCP endpoint.
 
 Discover APIs for search, social content, crypto, company data, finance, legal research and weather, alongside models for chat, reasoning, image, video and audio generation.
@@ -10,7 +12,7 @@ Discovery and price checks are free and need no key. Execution requires your Ope
 
 1. Add `https://mcp.openany.si` to a compatible client that supports remote MCP over Streamable HTTP. Follow the [client configuration guide](https://openany.si/mcp/) for Cursor, Claude Code or Codex.
 2. Click "Get started with OpenAny" (`openany-start`) if your client shows it, or say "What can OpenAny do for me?"
-3. Ask your agent to find a relevant API or model and inspect its inputs and current price with `get_api`. Confirm the request and applicable charges before `run_api` executes it.
+3. Ask something you can use right away, such as "Is this keyword worth writing?", "How is this being discussed on Xiaohongshu?", "Find emails for this company domain.", or "What is the price of this token?". Then inspect inputs and the current price with `get_api`, and confirm the request and applicable charges before `run_api` executes it.
 
 Browsing and pricing need no key. [Get an API key](https://openany.si/dashboard?page=api-keys) when you are ready to execute, and keep it in the client's secure connector settings, never in chat. Execution needs a client that can securely send the Authorization header. This server has no OAuth flow; OAuth-only connectors cannot use that authentication method here.
 
@@ -21,7 +23,7 @@ Browsing and pricing need no key. [Get an API key](https://openany.si/dashboard?
 | Category | What you can look for | Examples in the catalog |
 | --- | --- | --- |
 | Search, SEO & web data | Web search, backlinks, search results and page extraction | DataForSEO, Serper, Tavily, TinyFish |
-| Social & content | Public posts, profiles and video metadata on platforms such as X and TikTok | TikHub, ScrapeCreators |
+| Social & content | Public posts and accounts on Xiaohongshu / 小红书 / RedNote, Douyin / 抖音 / TikTok China, Weibo / 微博, international TikTok, X/Twitter, Instagram, and YouTube | TikHub, ScrapeCreators |
 | Crypto & on-chain | Coin prices, DeFi metrics, DEX data, blockchain queries and prediction-market data | CoinGecko, DefiLlama, DexScreener, Alchemy, Polymarket |
 | Company & leads | Company registration, business profiles and contact discovery | QCC, Crustdata, Hunter, Handelsregister |
 | Finance & macro | Economic series and financial datasets | FRED, Financial Datasets |

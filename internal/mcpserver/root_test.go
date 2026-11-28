@@ -94,7 +94,7 @@ func TestRootRoutesLiteOverviewAndInstructions(t *testing.T) {
 	rootResult := rootInit["result"].(map[string]any)
 	liteResult := liteInit["result"].(map[string]any)
 	instructions, _ := rootResult["instructions"].(string)
-	for _, phrase := range []string{"openany_overview", "search_apis", "get_api", "run_api", "category", "modality", "confirms that price", "do not call the paid gateway"} {
+	for _, phrase := range []string{"openany_overview", "search_apis", "get_api", "run_api", "category", "modality", "confirms that price", "do not call the paid gateway", "Xiaohongshu", "小红书"} {
 		if !strings.Contains(instructions, phrase) {
 			t.Fatalf("lite instructions missing %q: %s", phrase, instructions)
 		}
@@ -119,6 +119,22 @@ func TestRootRoutesLiteOverviewAndInstructions(t *testing.T) {
 	tools := listed["result"].(map[string]any)["tools"].([]any)
 	if len(tools) != 4 {
 		t.Fatal(len(tools))
+	}
+	for _, tool := range tools {
+		item := tool.(map[string]any)
+		desc, _ := item["description"].(string)
+		switch item["name"] {
+		case "search_apis":
+			for _, phrase := range []string{"4,400+", "168+", "Xiaohongshu", "小红书", "RedNote", "Douyin", "抖音", "TikTok China", "Weibo", "微博", "confirms the live price", "OpenAny API key"} {
+				if !strings.Contains(desc, phrase) {
+					t.Fatalf("search_apis description missing %q", phrase)
+				}
+			}
+		case "get_api", "run_api":
+			if !strings.Contains(desc, "confirms") || !strings.Contains(desc, "live price") || !strings.Contains(desc, "OpenAny API key") {
+				t.Fatalf("%s description lost the price confirmation", item["name"])
+			}
+		}
 	}
 	call, _ := rpc("/", "tools/call", map[string]any{"name": "openany_overview", "arguments": map[string]any{}})
 	same, _ := rpc("/mcp-lite", "tools/call", map[string]any{"name": "openany_overview", "arguments": map[string]any{}})
