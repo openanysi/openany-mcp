@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -37,12 +38,13 @@ type Policy struct {
 }
 
 type SignupCredit struct {
-	Automatic        bool     `json:"automatic"`
-	Status           string   `json:"status"`
-	AmountMicroUSD   string   `json:"amountMicroUsd"`
-	Currency         string   `json:"currency"`
-	EligibleChannels []string `json:"eligibleChannels"`
-	RulesURL         string   `json:"rulesUrl"`
+	Automatic               bool              `json:"automatic"`
+	Status                  string            `json:"status"`
+	AmountMicroUSD          string            `json:"amountMicroUsd"`
+	AmountMicroUSDByChannel map[string]string `json:"amountMicroUsdByChannel,omitempty"`
+	Currency                string            `json:"currency"`
+	EligibleChannels        []string          `json:"eligibleChannels"`
+	RulesURL                string            `json:"rulesUrl"`
 }
 
 type ReferralReward struct {
@@ -69,16 +71,55 @@ func (p *Policy) valid() bool {
 	return p != nil && p.Version == 1 && p.PolicyRevision != "" && p.Status == "available"
 }
 
-func (p *Policy) TrialAmount() int64 {
+// TrialAmounts returns an owned, validated view of the eligible channels. Older
+// policies omit the channel map when all channels share AmountMicroUSD.
+func (p *Policy) TrialAmounts() map[string]int64 {
 	if !p.valid() || p.SignupCredit.Status != "enabled" || !p.SignupCredit.Automatic ||
 		p.SignupCredit.Currency != "USD" || len(p.SignupCredit.EligibleChannels) == 0 {
-		return 0
+		return nil
 	}
-	amount, err := strconv.ParseInt(p.SignupCredit.AmountMicroUSD, 10, 64)
-	if err != nil || amount <= 0 || strconv.FormatInt(amount, 10) != p.SignupCredit.AmountMicroUSD {
-		return 0
+	parse := func(raw string) (int64, bool) {
+		amount, err := strconv.ParseInt(raw, 10, 64)
+		return amount, err == nil && amount > 0 && strconv.FormatInt(amount, 10) == raw
 	}
-	return amount
+	primary, ok := parse(p.SignupCredit.AmountMicroUSD)
+	if !ok {
+		return nil
+	}
+	byChannel := p.SignupCredit.AmountMicroUSDByChannel
+	if byChannel != nil && len(byChannel) != len(p.SignupCredit.EligibleChannels) {
+		return nil
+	}
+	amounts := make(map[string]int64, len(p.SignupCredit.EligibleChannels))
+	for i, channel := range p.SignupCredit.EligibleChannels {
+		if channel == "" || strings.TrimSpace(channel) != channel {
+			return nil
+		}
+		if _, duplicate := amounts[channel]; duplicate {
+			return nil
+		}
+		amount := primary
+		if byChannel != nil {
+			amount, ok = parse(byChannel[channel])
+			if !ok || i == 0 && amount != primary {
+				return nil
+			}
+		}
+		amounts[channel] = amount
+	}
+	return amounts
+}
+
+// TrialAmount is a universal offer only when every eligible channel agrees.
+func (p *Policy) TrialAmount() int64 {
+	var common int64
+	for _, amount := range p.TrialAmounts() {
+		if common != 0 && common != amount {
+			return 0
+		}
+		common = amount
+	}
+	return common
 }
 
 type policyEntry struct {

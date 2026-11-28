@@ -66,17 +66,37 @@ func (h *Handler) accountInstructions() string {
 }
 
 func trialDescription(policy *account.Policy) string {
-	amount := policy.TrialAmount()
-	if amount == 0 {
+	amounts := policy.TrialAmounts()
+	if len(amounts) == 0 {
 		return ""
 	}
+	if common := policy.TrialAmount(); common > 0 {
+		return "Eligible Agent newcomers automatically receive " + trialUSD(common) + " in credit."
+	}
+	parts := make([]string, 0, len(amounts))
+	for _, channel := range policy.SignupCredit.EligibleChannels {
+		var label string
+		switch channel {
+		case "agent_wallet":
+			label = "Agent wallet registration"
+		case "cli_email":
+			label = "CLI email registration"
+		default:
+			return "Eligible Agent newcomers automatically receive channel-specific trial credit. See the current trial-credit terms."
+		}
+		parts = append(parts, trialUSD(amounts[channel])+" for "+label)
+	}
+	return "Eligible Agent newcomers automatically receive trial credit: " + strings.Join(parts, "; ") + "."
+}
+
+func trialUSD(amount int64) string {
 	usd := fmt.Sprintf("%d.%06d", amount/1_000_000, amount%1_000_000)
 	usd = strings.TrimRight(usd, "0")
 	dot := strings.IndexByte(usd, '.')
 	if decimals := len(usd) - dot - 1; decimals < 2 {
 		usd += strings.Repeat("0", 2-decimals)
 	}
-	return "Eligible Agent newcomers automatically receive $" + usd + " in credit."
+	return "$" + usd
 }
 
 // The policy revision selects only display metadata. Tools and cursors are
