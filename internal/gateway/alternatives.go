@@ -271,6 +271,9 @@ func candidateRecoveryV1(obj map[string]any, enabled bool) (map[string]any, []an
 		return nil, nil, false
 	}
 	core := map[string]any{"version": json.Number("1"), "reason": "upstream_failure", "execution_state": state, "charge_state": charge, "primary_action": "check_original_request", "next_step_target": "https://openany.si/dashboard?page=usage"}
+	if code == "openany_route_unavailable" && state == "not_started" && charge == "not_charged" {
+		core["reason"], core["primary_action"], core["next_step_target"] = "routing_options_unavailable", "correct_input", "https://openany.si/docs"
+	}
 	for _, key := range []string{"recovery_id", "alternatives_status", "replay_safety"} {
 		if s, ok := r[key].(string); ok && publicToken.MatchString(s) {
 			core[key] = s
@@ -302,6 +305,7 @@ func candidateRecoveryV1(obj map[string]any, enabled bool) (map[string]any, []an
 		return core, nil, true
 	}
 	core["primary_action"] = "inspect_alternatives"
+	core["reason"] = r["reason"]
 	core["next_step_target"] = r["next_step_target"]
 	return core, out, true
 }

@@ -1,0 +1,73 @@
+{
+  "code": "openany_route_unavailable",
+  "details": {
+    "alternatives": [
+      {
+        "availability": {
+          "basis": "current_route_catalog",
+          "health": "unknown",
+          "published": true
+        },
+        "billing_unit": "token",
+        "candidate_id": "1bfd4370f932e519db14c8341f8bcb74baa8788667627e17ae486c05867ef71c",
+        "checks": [
+          "inspect_target_contract",
+          "provider_route_checked",
+          "recheck_price_and_access"
+        ],
+        "compatibility": {
+          "basis": "catalog_inferred",
+          "differences": [
+            {
+              "code": "model_changed",
+              "message": "Different model; quality and behavior are not guaranteed to match. Recheck the request and authorized budget."
+            }
+          ],
+          "input_mapping": [],
+          "level": "needs_inspection",
+          "missing_evidence": [
+            "input_schema"
+          ]
+        },
+        "currency": "USD",
+        "definition_path": "/api/v1/key-market/model-prices?modelid=local-small-chat",
+        "kind": "model",
+        "model_id": "local-small-chat",
+        "model_revision": "38c926303da2effe0c2fb7ef62bbdfd61de1452ed38d531d59da1d5d6361a2cc",
+        "name": "local-small-chat",
+        "operation_key": "chat.completion",
+        "pricing": {
+          "completion": "0.000003",
+          "currency": "USD",
+          "prompt": "0.000001",
+          "requires_quote": false,
+          "scope": "public_catalog",
+          "status": "known",
+          "unit": "token"
+        },
+        "provider_id": "local-alternative",
+        "relation": "similar_model"
+      }
+    ],
+    "alternatives_meta": {
+      "generated_at": "2026-11-28T00:00:00Z",
+      "rule_version": "api-discovery-v2-r2",
+      "snapshot_revision": "9d3c4ed60c91a141e47b349c7675e06148f23046cfd97c1485542b74b7e967ec"
+    },
+    "alternatives_version": 2,
+    "recovery": {
+      "alternatives_status": "available",
+      "charge_state": "not_charged",
+      "execution_state": "not_started",
+      "next_step_target": "/api/v1/key-market/model-prices?modelid=local-small-chat",
+      "primary_action": "inspect_alternatives",
+      "reason": "upstream_failure",
+      "recovery_id": "local-sparse-fixture",
+      "replay_safety": "safe",
+      "version": 1
+    }
+  },
+  "message": "The selected routing options did not match an available Provider. Inspect the suggested options and current contract and price before deciding whether to make another call. Read-only suggestions do not establish request compatibility or authorize execution.",
+  "param": null,
+  "type": "openany_error"
+}

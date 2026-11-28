@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -88,6 +89,10 @@ func TestC30C33AlternativesRPCMapsExactRevisionAndPreservesText(t *testing.T) {
 			t.Fatal("unreachable MCP continuation", continuation)
 		}
 		inspect := continuation["inspect"].(map[string]any)
+		message := e["message"].(string)
+		if !strings.Contains(message, a["name"].(string)) || !strings.Contains(message, a["provider_id"].(string)) || !strings.Contains(message, `get_api({"api":"target_read"})`) {
+			t.Fatal("API message guidance missing", message)
+		}
 		refreshed := rpc(continuation["endpoint"].(string), "get_api", inspect["arguments"].(map[string]any))
 		if refreshed["structuredContent"].(map[string]any)["api_version"] == nil {
 			t.Fatal("continuation cannot inspect target")
@@ -114,6 +119,10 @@ func TestC30C33AlternativesRPCMapsExactRevisionAndPreservesText(t *testing.T) {
 	candidate := e["alternatives"].([]any)[0].(map[string]any)
 	if candidate["continuation"] != nil || candidate["definition_path"] == nil {
 		t.Fatal("stale revision advertised as MCP executable", candidate)
+	}
+	message := e["message"].(string)
+	if strings.Contains(message, "get_api(") || !strings.Contains(message, "GET "+candidate["definition_path"].(string)) {
+		t.Fatal("stale mapping leaked into message", message)
 	}
 }
 

@@ -12,7 +12,7 @@ var publicToken = regexp.MustCompile(`^[A-Za-z0-9_.:-]{1,128}$`)
 // RecoveryActionText renders platform actions without treating upstream prose as instructions.
 func RecoveryActionText(action, target string) string {
 	if action == "inspect_alternatives" && officialDefinitionTarget(target) {
-		return "Inspect the reviewed alternatives and refresh the target contract and price. Continue only within the original task and budget authorization. " + target
+		return "Inspect alternative details and compatibility, then refresh the target contract and price. Read-only suggestions do not establish request compatibility or authorize execution. Continue only within the original task and budget authorization. " + target
 	}
 	if action == "inspect_related_apis" && strings.HasPrefix(target, "/api/v1/agent-apis/") && officialDefinitionTarget(target) {
 		return "Inspect related API details to determine task suitability, inputs and current price. Compatibility is unconfirmed; this is a read-only inspection step. " + target
@@ -40,6 +40,60 @@ func RecoveryActionText(action, target string) string {
 		result += " Current account benefit rules: https://openany.si/api/v1/agent-onboarding."
 	}
 	return result
+}
+
+func recoveryMessage(code string, recovery map[string]any) string {
+	action, _ := recovery["primary_action"].(string)
+	target, _ := recovery["next_step_target"].(string)
+	if code == "openany_route_unavailable" && recovery["reason"] == "routing_options_unavailable" {
+		return "Check the requested model, Provider and route_mode against the current catalog before making another call. " + target
+	}
+	return RecoveryActionText(action, target)
+}
+
+// CandidateRecoveryMessage uses validated platform candidates, never upstream
+// prose. The MCP handler calls it again after adding current catalog mappings.
+func CandidateRecoveryMessage(code string, recovery map[string]any, alternatives []any) string {
+	base := recoveryMessage(code, recovery)
+	options := []string{}
+	quote := func(v any) string { b, _ := json.Marshal(v); return string(b) }
+	for _, raw := range alternatives {
+		if len(options) == 3 {
+			break
+		}
+		c, ok := raw.(map[string]any)
+		if !ok {
+			continue
+		}
+		path, _ := c["definition_path"].(string)
+		if !officialDefinitionTarget(path) {
+			continue
+		}
+		label := "API " + quote(c["name"])
+		if c["kind"] == "model" {
+			label = "Model " + quote(c["model_id"])
+		}
+		if c["relation"] == "similar_model" {
+			label += " (different model)"
+		}
+		label += ", Provider " + quote(c["provider_id"])
+		compatibility, _ := c["compatibility"].(map[string]any)
+		if compatibility["level"] == "needs_inspection" {
+			label += " (read-only)"
+		}
+		label += "; next: GET " + path + " on the current OpenAny catalog"
+		continuation, _ := c["continuation"].(map[string]any)
+		mcp, _ := continuation["mcp"].(map[string]any)
+		inspect, _ := mcp["inspect"].(map[string]any)
+		if inspect["tool"] == "get_api" {
+			label += "; MCP: connect to /mcp-lite and call get_api(" + quote(inspect["arguments"]) + ")"
+		}
+		options = append(options, label)
+	}
+	if len(options) == 0 {
+		return base
+	}
+	return base + " Suggested options: " + strings.Join(options, "; ") + "."
 }
 
 func officialRecoveryTarget(target string) bool {
@@ -119,7 +173,13 @@ func recoveryMatchesCode(code string, r map[string]any) bool {
 		expectedReason, expectedAction, expectedPage = "spend_limit_exceeded", "review_key_limit", "api-keys"
 	case "openany_invalid_request", "openany_invalid_json", "openany_payload_too_large", "openany_unsupported_media_type", "openany_missing_parameter", "openany_invalid_parameter", "openany_unsupported_parameter", "openany_route_incompatible", "openany_endpoint_not_found", "openany_method_not_allowed":
 		expectedReason, expectedAction = "invalid_parameters", "correct_input"
-	case "openany_not_found", "openany_task_not_found", "openany_duplicate_request", "openany_rate_limited", "openany_usage_unavailable", "openany_billing_unavailable", "openany_service_unavailable", "openany_models_unavailable", "openany_model_not_available", "openany_image_price_not_available", "openany_no_upstream_available", "openany_route_unavailable", "openany_internal_error":
+	case "openany_route_unavailable":
+		if reason == "routing_options_unavailable" && state == "not_started" && r["charge_state"] == "not_charged" {
+			expectedReason, expectedAction = "routing_options_unavailable", "correct_input"
+		} else {
+			expectedReason, expectedAction, expectedPage = "request_outcome_unknown", "check_original_request", "usage"
+		}
+	case "openany_not_found", "openany_task_not_found", "openany_duplicate_request", "openany_rate_limited", "openany_usage_unavailable", "openany_billing_unavailable", "openany_service_unavailable", "openany_models_unavailable", "openany_model_not_available", "openany_image_price_not_available", "openany_no_upstream_available", "openany_internal_error":
 		expectedReason, expectedAction, expectedPage = "request_outcome_unknown", "check_original_request", "usage"
 	default:
 		if !strings.HasPrefix(code, "openany_upstream_") || state == "not_started" {
@@ -160,7 +220,7 @@ func publicFailure(obj map[string]any, status int, id any, alternativesEnabled .
 	enabled := len(alternativesEnabled) > 0 && alternativesEnabled[0]
 	if recovery, alternatives, ok := candidateRecovery(obj, enabled); ok {
 		e["recovery"], e["execution_state"], e["charge_state"] = recovery, recovery["execution_state"], recovery["charge_state"]
-		e["message"] = RecoveryActionText(recovery["primary_action"].(string), recovery["next_step_target"].(string))
+		e["message"] = CandidateRecoveryMessage(code, recovery, alternatives)
 		if len(alternatives) > 0 {
 			details := obj["details"].(map[string]any)
 			e["alternatives_version"] = details["alternatives_version"]
@@ -176,7 +236,7 @@ func publicFailure(obj map[string]any, status int, id any, alternativesEnabled .
 			e["recovery"] = recovery
 			e["execution_state"] = recovery["execution_state"]
 			e["charge_state"] = recovery["charge_state"]
-			e["message"] = RecoveryActionText(recovery["primary_action"].(string), recovery["next_step_target"].(string))
+			e["message"] = recoveryMessage(code, recovery)
 		}
 	}
 	return r

@@ -1,0 +1,17 @@
+{
+  "code": "openany_route_unavailable",
+  "details": {
+    "recovery": {
+      "charge_state": "not_charged",
+      "execution_state": "not_started",
+      "next_step_target": "https://openany.si/docs",
+      "primary_action": "correct_input",
+      "reason": "routing_options_unavailable",
+      "recovery_id": "local-sparse-fixture",
+      "version": 1
+    }
+  },
+  "message": "The requested model is not available with the selected routing options. Check the requested model, Provider and route_mode against the current catalog before making another call.",
+  "param": null,
+  "type": "openany_error"
+}

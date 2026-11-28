@@ -1,0 +1,109 @@
+{
+  "code": "openany_route_unavailable",
+  "details": {
+    "alternatives": [
+      {
+        "availability": {
+          "basis": "current_route_catalog",
+          "health": "unknown",
+          "published": true
+        },
+        "billing_unit": "token",
+        "candidate_id": "ab08298312d945037f2fcf43ded8671fef5589876e8638ebc2ab41fa1bf421a4",
+        "checks": [
+          "inspect_target_contract",
+          "provider_route_checked",
+          "recheck_price_and_access"
+        ],
+        "compatibility": {
+          "basis": "catalog_inferred",
+          "differences": [],
+          "input_mapping": [],
+          "level": "needs_inspection",
+          "missing_evidence": [
+            "input_schema"
+          ]
+        },
+        "currency": "USD",
+        "definition_path": "/api/v1/key-market/model-prices?modelid=deepseek-v4-flash",
+        "kind": "model",
+        "model_id": "deepseek-v4-flash",
+        "model_revision": "3b01d0043276aaa01c6d87d91dac3194399ddcde6ab41f27143dcb4174355aac",
+        "name": "deepseek-v4-flash",
+        "operation_key": "chat.completion",
+        "pricing": {
+          "completion": "0.000003",
+          "currency": "USD",
+          "prompt": "0.000001",
+          "requires_quote": false,
+          "scope": "public_catalog",
+          "status": "known",
+          "unit": "token"
+        },
+        "provider_id": "TokenUs",
+        "relation": "same_model"
+      },
+      {
+        "availability": {
+          "basis": "current_route_catalog",
+          "health": "unknown",
+          "published": true
+        },
+        "billing_unit": "token",
+        "candidate_id": "8aaacbb6a15e2b9aca949b5da755962b3a674aad37136d122abc81caef9f256b",
+        "checks": [
+          "inspect_target_contract",
+          "provider_route_checked",
+          "recheck_price_and_access"
+        ],
+        "compatibility": {
+          "basis": "catalog_inferred",
+          "differences": [],
+          "input_mapping": [],
+          "level": "needs_inspection",
+          "missing_evidence": [
+            "input_schema"
+          ]
+        },
+        "currency": "USD",
+        "definition_path": "/api/v1/key-market/model-prices?modelid=deepseek-v4-flash",
+        "kind": "model",
+        "model_id": "deepseek-v4-flash",
+        "model_revision": "84d0dac9afe2404f8ae94ca187489897ec82032eb75745f9b4d7cc374fbcc7ce",
+        "name": "deepseek-v4-flash",
+        "operation_key": "chat.completion",
+        "pricing": {
+          "completion": "0.000003",
+          "currency": "USD",
+          "prompt": "0.000001",
+          "requires_quote": false,
+          "scope": "public_catalog",
+          "status": "known",
+          "unit": "token"
+        },
+        "provider_id": "redqueen-serving",
+        "relation": "same_model"
+      }
+    ],
+    "alternatives_meta": {
+      "generated_at": "2026-11-28T00:00:00Z",
+      "rule_version": "api-discovery-v2-r2",
+      "snapshot_revision": "727b196f1ca8954b620a5f1e55e3a62a084b71685b6559dba16460dbc01cd861"
+    },
+    "alternatives_version": 2,
+    "recovery": {
+      "alternatives_status": "available",
+      "charge_state": "not_charged",
+      "execution_state": "not_started",
+      "next_step_target": "/api/v1/key-market/model-prices?modelid=deepseek-v4-flash",
+      "primary_action": "inspect_alternatives",
+      "reason": "upstream_failure",
+      "recovery_id": "local-sparse-fixture",
+      "replay_safety": "safe",
+      "version": 1
+    }
+  },
+  "message": "The selected routing options did not match an available Provider. Inspect the suggested options and current contract and price before deciding whether to make another call. Read-only suggestions do not establish request compatibility or authorize execution.",
+  "param": null,
+  "type": "openany_error"
+}

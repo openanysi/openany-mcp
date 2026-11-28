@@ -42,7 +42,9 @@ func (h *Handler) withAlternatives(result gateway.Result, discovery *catalog.Dis
 			execution, _ := c["execution"].(map[string]any)
 			overrides, _ := execution["request_overrides"].(map[string]any)
 			id, _ := c["model_id"].(string)
-			if execution["protocol"] == "openai-chat-completions" && execution["path"] == "/v1/chat/completions" && overrides["stream"] != true && len(id) <= 64 && discovery.Kind(id) == "model" && discovery.Version(id) != "" {
+			compatibility, _ := c["compatibility"].(map[string]any)
+			inspection := compatibility["level"] == "needs_inspection" && c["operation_key"] == "chat.completion"
+			if (inspection || execution["protocol"] == "openai-chat-completions" && execution["path"] == "/v1/chat/completions" && overrides["stream"] != true) && len(id) <= 64 && discovery.Kind(id) == "model" && discovery.Version(id) != "" {
 				api = id
 			}
 		}
@@ -59,6 +61,10 @@ func (h *Handler) withAlternatives(result gateway.Result, discovery *catalog.Dis
 				}
 			}
 		}
+	}
+	if recovery, ok := e["recovery"].(map[string]any); ok {
+		code, _ := e["code"].(string)
+		e["message"] = gateway.CandidateRecoveryMessage(code, recovery, values)
 	}
 	return result
 }

@@ -228,7 +228,23 @@ func boundedCandidateV2(raw any) (map[string]any, bool) {
 	}
 	needs := k.Level == "needs_inspection"
 	if needs {
-		if c.Kind != "api" || c.Relation != "related_operation" || !candidateUUID.MatchString(c.APIID) || c.Revision < 1 || !definitionPath(c.Definition, "api", c.APIID) || len(k.InputMapping) != 0 || c.ModelID != "" || c.ModelRevision != "" {
+		if len(k.InputMapping) != 0 {
+			return nil, false
+		}
+		if c.Kind == "model" {
+			if (c.Relation != "same_model" && c.Relation != "similar_model") || c.ModelID == "" || !boundedText(c.ModelID, 128) || !candidateHash.MatchString(c.ModelRevision) || !definitionPath(c.Definition, "model", c.ModelID) || c.Operation != "chat.completion" || k.Basis != "catalog_inferred" || len(k.MissingEvidence) == 0 {
+				return nil, false
+			}
+			if c.Relation == "similar_model" {
+				changed := false
+				for _, d := range k.Differences {
+					changed = changed || d.Code == "model_changed"
+				}
+				if !changed {
+					return nil, false
+				}
+			}
+		} else if c.Kind != "api" || c.Relation != "related_operation" || !candidateUUID.MatchString(c.APIID) || c.Revision < 1 || !definitionPath(c.Definition, "api", c.APIID) || c.ModelID != "" || c.ModelRevision != "" {
 			return nil, false
 		}
 		for _, key := range []string{"execution", "method", "public_path"} {
@@ -257,6 +273,19 @@ func boundedCandidateV2(raw any) (map[string]any, bool) {
 				return nil, false
 			}
 			if _, present := p["unit"]; present {
+				return nil, false
+			}
+			return candidateV2Map(c), true
+		}
+		if c.Kind == "model" {
+			if c.Currency != "USD" || p["currency"] != "USD" || p["unit"] != c.Unit || p["requires_quote"] != false || c.Price != "" {
+				return nil, false
+			}
+			if c.Unit == "token" {
+				if p["prompt"] == nil || p["completion"] == nil {
+					return nil, false
+				}
+			} else if c.Unit != "call" || p["amount"] == nil {
 				return nil, false
 			}
 			return candidateV2Map(c), true
@@ -361,9 +390,12 @@ func candidateRecoveryV2(obj map[string]any, enabled bool) (map[string]any, []an
 			return core, nil, true
 		}
 		core["primary_action"], core["next_step_target"] = "inspect_alternatives", highTarget
+	} else if out[0].(map[string]any)["kind"] == "model" {
+		core["primary_action"], core["next_step_target"] = "inspect_alternatives", out[0].(map[string]any)["definition_path"]
 	} else {
 		core["primary_action"], core["next_step_target"] = "inspect_related_apis", out[0].(map[string]any)["definition_path"]
 	}
 	core["alternatives_status"] = "available"
+	core["reason"] = r["reason"]
 	return core, out, true
 }
